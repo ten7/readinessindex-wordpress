@@ -29,12 +29,27 @@ final class Plugin {
 		add_action( Scan\Poller::HOOK, array( Scan\Poller::class, 'run' ) );
 		add_action( Connect\Connector::VERIFY_HOOK, array( Connect\Verifier::class, 'run' ) );
 
+		// Only fixers the owner applied add anything, and with none applied this adds no hook.
+		Fixers\Hooks::register();
+
 		if ( is_admin() ) {
 			Admin\Menu::register();
 			// A comparison of two numbers; the table is created or upgraded only when it is behind.
-			add_action( 'admin_init', array( Changes\Schema::class, 'maybe_upgrade' ) );
+			add_action( 'admin_init', array( self::class, 'upgrade' ) );
 			Admin\Notices::register();
 		}
+	}
+
+	/**
+	 * Brings a site that got new files without being reactivated (an update, a deploy) to what
+	 * activation would have made: the table, and the option the front end reads for free.
+	 */
+	public static function upgrade(): void {
+		if ( (int) get_option( Changes\Schema::VERSION_OPTION, 0 ) >= Changes\Schema::VERSION ) {
+			return;
+		}
+		Fixers\State::seed();
+		Changes\Schema::install();
 	}
 
 	/**

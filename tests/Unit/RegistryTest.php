@@ -34,17 +34,18 @@ final class RegistryTest extends WpTestCase {
 	}
 
 	public function test_every_class_that_implements_fixer_is_registered(): void {
-		$registered = array_map( 'ltrim', Registry::CLASSES, array_fill( 0, count( Registry::CLASSES ), '\\' ) );
-		$found      = array();
-		foreach ( $this->sources() as $path => $code ) {
-			if ( ! preg_match( '/^namespace\s+([\w\\\\]+);.*?\bclass\s+(\w+)[^{]*\bimplements\b[^{]*\bFixer\b/s', $code, $m ) && ! preg_match( '/^namespace\s+([\w\\\\]+);.*?\babstract class\s+(\w+)\s+implements\s+Fixer\b/s', $code, $m ) ) {
+		$found = array();
+		foreach ( array_keys( $this->sources() ) as $path ) {
+			$class = 'ReadinessIndex\\' . str_replace( '/', '\\', substr( $path, 4, -4 ) );
+			if ( ! class_exists( $class ) ) {
 				continue;
 			}
-			if ( false !== strpos( $code, 'abstract class' ) ) {
-				continue;
+			$reflection = new \ReflectionClass( $class );
+			if ( $reflection->isInstantiable() && $reflection->implementsInterface( Fixer::class ) ) {
+				$found[] = $class;
 			}
-			$found[] = $m[1] . '\\' . $m[2];
 		}
+		$registered = Registry::CLASSES;
 		sort( $found );
 		sort( $registered );
 		$this->assertSame( $found, $registered, 'A Fixer that is not in Registry::CLASSES does not exist for the Fixes screen, the runner or the uninstall.' );

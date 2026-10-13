@@ -17,7 +17,10 @@ final class Registry {
 	/**
 	 * The fixers, in the order the Fixes screen offers them.
 	 */
-	const CLASSES = array();
+	const CLASSES = array(
+		Impl\RobotsTxtFixer::class,
+		Impl\LlmsTxtFixer::class,
+	);
 
 	/**
 	 * Instances, built once.
