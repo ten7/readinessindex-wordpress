@@ -92,8 +92,22 @@ final class RankMath implements Tool {
 		}
 		if ( array() !== $plan ) {
 			update_option( self::TITLES, $titles );
+			self::refresh();
 		}
 		return $prior;
+	}
+
+	/**
+	 * Tells Rank Math to read its options again. It keeps what it read when the request began, so
+	 * without this the rest of the request, and a test, still sees the old settings.
+	 */
+	private static function refresh(): void {
+		if ( function_exists( 'rank_math' ) ) {
+			$plugin = rank_math();
+			if ( is_object( $plugin ) && isset( $plugin->settings ) && is_object( $plugin->settings ) && method_exists( $plugin->settings, 'reset' ) ) {
+				$plugin->settings->reset();
+			}
+		}
 	}
 
 	/**
@@ -111,6 +125,7 @@ final class RankMath implements Tool {
 			}
 		}
 		update_option( self::TITLES, $titles );
+		self::refresh();
 	}
 
 	/**

@@ -72,6 +72,13 @@
 	<rule ref="WordPress.Security.EscapeOutput">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
+	<!-- Tests call WordPress's own hooks and constants and read the database directly. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
 	<rule ref="Generic.Files.OneObjectStructurePerFile">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>

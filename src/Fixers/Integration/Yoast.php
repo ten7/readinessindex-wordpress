@@ -83,30 +83,63 @@ final class Yoast implements Tool {
 	/**
 	 * Makes the writes and returns what they replaced.
 	 *
+	 * The whole option is read before and after, and every key that differs is recorded, not
+	 * only the ones written: Yoast derives some keys itself (it stores the logo's size and type
+	 * when it is given a logo's id), and Undo has to give those back too or the option is not
+	 * what it was.
+	 *
 	 * @param array<int,array{option:string,key:string,before:mixed,after:mixed}> $plan A plan.
 	 * @return array<string,array<string,mixed>>
 	 */
 	public function write( array $plan ): array {
-		$prior = array();
+		$options = array_values(
+			array_unique(
+				array_map(
+					static function ( array $write ): string {
+						return $write['option'];
+					},
+					$plan
+				)
+			)
+		);
+		$before  = array();
+		foreach ( $options as $option ) {
+			$before[ $option ] = (array) get_option( $option, array() );
+		}
 		foreach ( $plan as $write ) {
-			// The value in the plan was read when the preview was made; the one replaced is read
-			// again now, so Undo gives back what was there at the moment of the write.
-			$prior[ $write['option'] ][ $write['key'] ] = \WPSEO_Options::get( $write['key'], null, array( $write['option'] ) );
 			\WPSEO_Options::set( $write['key'], $write['after'], $write['option'] );
+		}
+		$prior = array();
+		foreach ( $options as $option ) {
+			$after = (array) get_option( $option, array() );
+			foreach ( array_unique( array_merge( array_keys( $before[ $option ] ), array_keys( $after ) ) ) as $key ) {
+				if ( ( $before[ $option ][ $key ] ?? null ) !== ( $after[ $key ] ?? null ) ) {
+					$prior[ $option ][ $key ] = $before[ $option ][ $key ] ?? null;
+				}
+			}
+		}
+		// Yoast fills the logo's size and type in lazily, the first time it draws a graph after it
+		// is given a logo, so the diff above cannot see it. It is derived from the logo's id and is
+		// recorded with it: without this Undo leaves the old logo's metadata behind.
+		if ( isset( $prior[ self::TITLES ]['company_logo_id'] ) && ! array_key_exists( 'company_logo_meta', $prior[ self::TITLES ] ) ) {
+			$prior[ self::TITLES ]['company_logo_meta'] = $before[ self::TITLES ]['company_logo_meta'] ?? false;
 		}
 		return $prior;
 	}
 
 	/**
-	 * Puts back the values `write` replaced.
+	 * Puts back the values `write` replaced, and only those: anything else the owner changed in
+	 * Yoast since is left as it is.
 	 *
 	 * @param array<string,array<string,mixed>> $prior Prior values by option and key.
 	 */
 	public function restore( array $prior ): void {
 		foreach ( $prior as $option => $values ) {
+			$current = (array) get_option( (string) $option, array() );
 			foreach ( $values as $key => $value ) {
-				\WPSEO_Options::set( (string) $key, $value, (string) $option );
+				$current[ $key ] = $value;
 			}
+			update_option( (string) $option, $current );
 		}
 	}
 

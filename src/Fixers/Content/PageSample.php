@@ -54,6 +54,8 @@ final class PageSample {
 		if ( '' !== $base && 0 === strpos( $path, $base ) ) {
 			$path = substr( $path, strlen( $base ) );
 		}
-		return '' === $path ? '/' : $path;
+		$path = '' === $path ? '/' : $path;
+		// Plain permalinks tell one page from another only by the query string.
+		return is_array( $parts ) && ! empty( $parts['query'] ) ? $path . '?' . $parts['query'] : $path;
 	}
 }

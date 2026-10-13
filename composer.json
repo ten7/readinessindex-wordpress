@@ -28,7 +28,7 @@
         "lint": "phpcs",
         "lint:fix": "phpcbf",
         "test": "phpunit --testsuite unit",
-        "test:integration": "phpunit --testsuite integration",
+        "test:integration": "phpunit -c phpunit-integration.xml.dist",
         "check": [
             "@lint",
             "@test"
