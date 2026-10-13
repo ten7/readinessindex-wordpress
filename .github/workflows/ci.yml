@@ -83,6 +83,78 @@ jobs:
       - name: Plugin Check
         run: npx wp-env run cli wp plugin check readiness-index --format=table
 
+  integration:
+    name: Integration, WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }}, ${{ matrix.seo }} ${{ matrix.seo_version }}
+    runs-on: ubuntu-latest
+    # A cell on the newest, unpinned version of an SEO plugin or on WordPress trunk may fail
+    # without failing the workflow: it is the early warning that a release changed something
+    # this plugin reads. The cell still shows red, and its last step says so.
+    continue-on-error: ${{ matrix.allow_failure }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { wp: '6.4', php: '8.1', seo: none, seo_version: '', allow_failure: false }
+          - { wp: latest, php: '8.4', seo: none, seo_version: '', allow_failure: false }
+          - { wp: trunk, php: '8.4', seo: none, seo_version: '', allow_failure: true }
+          # The pinned range this plugin is tested against. Outside it, the integration
+          # degrades to exact instructions rather than writing into a plugin it has not seen.
+          - { wp: latest, php: '8.1', seo: yoast, seo_version: '20.0', allow_failure: false }
+          - { wp: latest, php: '8.1', seo: yoast, seo_version: '28.7', allow_failure: false }
+          - { wp: latest, php: '8.1', seo: yoast, seo_version: latest, allow_failure: true }
+          - { wp: '6.4', php: '8.1', seo: yoast, seo_version: '22.0', allow_failure: false }
+          - { wp: latest, php: '8.1', seo: rank_math, seo_version: '1.0.220', allow_failure: false }
+          - { wp: latest, php: '8.1', seo: rank_math, seo_version: '1.0.280', allow_failure: false }
+          - { wp: latest, php: '8.1', seo: rank_math, seo_version: latest, allow_failure: true }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+          coverage: none
+      # The tests run inside wp-env's container, from the working tree, so vendor/ is needed.
+      - run: composer install --no-interaction --prefer-dist
+      - run: npm ci
+      - name: Configure wp-env for this cell
+        run: |
+          case "${{ matrix.wp }}" in
+            latest) core=null ;;
+            trunk)  core='"WordPress/WordPress#master"' ;;
+            *)      core='"WordPress/WordPress#${{ matrix.wp }}"' ;;
+          esac
+          printf '{ "core": %s, "phpVersion": "%s", "lifecycleScripts": { "afterStart": null } }\n' "$core" "${{ matrix.php }}" > .wp-env.override.json
+          cat .wp-env.override.json
+      - run: npx wp-env start
+      - name: Install the SEO plugin for this cell
+        if: ${{ matrix.seo != 'none' }}
+        run: |
+          slug=wordpress-seo
+          [ "${{ matrix.seo }}" = rank_math ] && slug=seo-by-rank-math
+          if [ "${{ matrix.seo_version }}" = latest ]; then
+            npx wp-env run tests-cli wp plugin install "${slug}" --force
+          else
+            npx wp-env run tests-cli wp plugin install "${slug}" --version="${{ matrix.seo_version }}" --force
+          fi
+          npx wp-env run tests-cli wp plugin list --fields=name,version
+      - name: Integration tests
+        run: |
+          filter=""
+          case "${{ matrix.seo }}" in
+            yoast)     filter="--filter YoastTest" ;;
+            rank_math) filter="--filter RankMathTest" ;;
+          esac
+          seo="${{ matrix.seo }}"
+          [ "${seo}" = none ] && seo=""
+          npx wp-env run tests-cli --env-cwd=wp-content/plugins/readiness-index \
+            bash -c "READINESS_INDEX_TEST_SEO=${seo} vendor/bin/phpunit -c phpunit-integration.xml.dist ${filter}"
+      - name: Say so when a cell that is allowed to fail did
+        if: ${{ failure() && matrix.allow_failure }}
+        run: echo "::warning title=Early warning::${{ matrix.seo }} ${{ matrix.seo_version }} on WordPress ${{ matrix.wp }} failed. The workflow stays green; read the log before the next release of that plugin is trusted."
+
   contract-pin:
     name: The copied API contract is the pinned web commit's
     runs-on: ubuntu-latest
