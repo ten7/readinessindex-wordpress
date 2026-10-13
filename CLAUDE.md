@@ -106,10 +106,18 @@ tests, `vendor`, `node_modules`, `.github`, composer files or docs, checking the
 without reading `.distignore`. CI runs the same script. Add a new development-only file
 to `.distignore`; if the check trips, the file is in the zip and a reviewer would see it.
 
+## CI and PHP 7.4
+
+The plugin supports PHP 7.4, and three things cover it: the lint and unit jobs run on 7.4,
+and the release-zip job runs `php -l` over every PHP file of the built zip on 7.4. The
+wp-env activation and Plugin Check cells start at PHP 8.1 on purpose: wp-env builds its
+7.4 image from Debian bullseye, whose apt mirrors return 404, so those cells failed on
+infrastructure. Do not add 7.4 back to that matrix until wp-env can build it.
+
 ## Git
 
-`main` is the only long-lived branch. There is no remote yet; do not create one or push
-until Ivan says so (the repository name and visibility are his to confirm).
+`main` is the only long-lived branch; origin is the private `ten7/readinessindex-wordpress`.
+Push to `main` only when Ivan has said to.
 
 ## Keeping this file current
 

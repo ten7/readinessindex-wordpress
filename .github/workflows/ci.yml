@@ -43,13 +43,16 @@ jobs:
         # trunk is allowed to fail the build on purpose: it is the early warning
         # for what the next WordPress release will break.
         wp: ['6.4', 'latest', 'trunk']
-        php: ['7.4', '8.1', '8.4']
+        # PHP 7.4 is deliberately absent. wp-env builds its PHP 7.4 image from a Debian
+        # bullseye base, whose apt mirrors now answer 404, so the image cannot be built
+        # and both 7.4 cells failed on infrastructure with our code untouched. PHP 7.4
+        # is still covered by the lint and unit jobs and by the syntax check of the built
+        # zip in the release-zip job below.
+        php: ['8.1', '8.4']
         exclude:
-          # WordPress 6.4 is not tested on PHP 8.4, and trunk does not support 7.4.
+          # WordPress 6.4 is not tested on PHP 8.4.
           - wp: '6.4'
             php: '8.4'
-          - wp: 'trunk'
-            php: '7.4'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -85,6 +88,26 @@ jobs:
       # The same script a person runs locally. It fails when the zip holds tests,
       # vendor, node_modules, .github, composer files or docs.
       - run: bin/build-zip
+      # Plugin Requires PHP: 7.4, but wp-env cannot build a 7.4 site (see the
+      # plugin-check matrix), so the shipped files are parsed by a real 7.4 binary here.
+      # It reads the unpacked zip and not the working tree: syntax that only a file
+      # excluded from the release contains is not our concern, and one that ships is.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+      - name: Every PHP file in the built zip parses on PHP 7.4
+        run: |
+          php -v | head -1
+          unpacked="$(mktemp -d)"
+          unzip -q dist/*.zip -d "${unpacked}"
+          count=0
+          while IFS= read -r -d '' file; do
+            php -l "${file}" > /dev/null
+            count=$((count + 1))
+          done < <(find "${unpacked}" -name '*.php' -print0)
+          echo "Parsed ${count} PHP files"
+          test "${count}" -gt 0
       - uses: actions/upload-artifact@v4
         with:
           name: readiness-index-zip
