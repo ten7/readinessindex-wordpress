@@ -162,6 +162,17 @@ local sentence when the kit adds it. Code still writes none. Do not add a price 
 one file besides the API client allowed to make a request (`StaticGuardsTest`). Inside wp-env that needs
 `bin/wp-env-loopback`.
 
+**A site's request to itself may be refused, and a refusal is not "not live".** On the Pantheon dev site
+the plugin's own request to its public address was answered by Cloudflare's challenge page (a 403) and
+the change, which was live, was reported as not. `SiteFetcher::was_turned_away` (401, 403, 407, 429,
+503, a CDN mitigation header) turns every verify and diagnostic into "could not look"; a 404 is still
+"not live". The same host's edge kept the old home page for a week, so `PageCache` knows Pantheon's
+and WP Engine's purge functions as well as the four caching plugins. A dev environment's platform
+serves its own `robots.txt` before WordPress is asked, which no file check can see: verify says so.
+
+**To see the Fixes tab without a connected site,** run `php -S 0.0.0.0:8099 tests/e2e/fake-api.php` and
+point wp-env at it (the file says how). It serves the golden fixtures and nothing else.
+
 ## The zip is what ships
 
 `bin/build-zip` builds the release from `.distignore` and then fails if the result holds
