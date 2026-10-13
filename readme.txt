@@ -1,5 +1,4 @@
 === Readiness Index ===
-Contributors: ten7
 Tags: seo, ai, llms-txt, robots-txt, schema
 Requires at least: 6.4
 Tested up to: 7.1
@@ -39,7 +38,7 @@ This plugin connects to one service, and to no other host: Readiness Index at ht
 
 Once connected, the plugin sends this site's address and the connection key to readinessindex.io when you open the Readiness screen, start a scan, or while a scan is running, so the service can run the scan and return the result. It sends no information about your visitors or users.
 
-The terms and privacy policy are published on that site.
+The terms are at https://readinessindex.io/terms and the privacy policy is at https://readinessindex.io/privacy.
 
 == Changelog ==
 
