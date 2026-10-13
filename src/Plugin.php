@@ -29,8 +29,10 @@ final class Plugin {
 		add_action( Scan\Poller::HOOK, array( Scan\Poller::class, 'run' ) );
 		add_action( Connect\Connector::VERIFY_HOOK, array( Connect\Verifier::class, 'run' ) );
 
-		// Only fixers the owner applied add anything, and with none applied this adds no hook.
-		Fixers\Hooks::register();
+		// Only fixers the owner applied add anything, and with none applied this adds no hook. Late,
+		// because a plugin that loads after this one (Yoast SEO, Rank Math) defines the constants
+		// that feature detection reads only once its own file has loaded.
+		add_action( 'plugins_loaded', array( Fixers\Hooks::class, 'register' ), 20 );
 
 		if ( is_admin() ) {
 			Admin\Menu::register();

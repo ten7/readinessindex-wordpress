@@ -191,8 +191,11 @@ final class EntityGraphFixer extends AbstractFixer {
 			$resolved = wp_get_attachment_url( (int) $logo );
 			$logo     = is_string( $resolved ) ? $resolved : '';
 		}
-		if ( '' !== $logo && 0 === strpos( $logo, 'https://' ) ) {
-			$org['logo'] = esc_url_raw( $logo, array( 'https' ) );
+		if ( '' !== $logo ) {
+			$clean = esc_url_raw( $logo, array( 'https', 'http' ) );
+			if ( '' !== $clean ) {
+				$org['logo'] = $clean;
+			}
 		}
 		if ( isset( $in['description'] ) && is_string( $in['description'] ) ) {
 			$description = trim( preg_replace( '/\s+/', ' ', sanitize_textarea_field( $in['description'] ) ) ?? '' );

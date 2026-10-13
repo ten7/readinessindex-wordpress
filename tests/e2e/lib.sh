@@ -81,3 +81,12 @@ PY
 	while IFS= read -r line; do args+=(--data-urlencode "${line}"); done < /tmp/claude-501/undo-fields.txt
 	curl -s -b "${JAR}" -c "${JAR}" -o /dev/null -w '%{http_code} %{redirect_url}\n' "${args[@]}" "${BASE}/wp-admin/admin-post.php"
 }
+
+# Previews a fixer with a query string of choices, then presses Apply on exactly that preview.
+# Prints what the screen would say about the preview and the redirect of the apply.
+ri_preview_apply() {
+	local fixer="$1" query="${2:-}"
+	ri_get "admin.php?page=readiness-index-preview&fixer=${fixer}${query:+&}${query}" > /tmp/claude-501/prev.html
+	ri_post_apply /tmp/claude-501/prev.html
+	ri_get "admin.php?page=readiness-index-changes" | ri_show
+}
