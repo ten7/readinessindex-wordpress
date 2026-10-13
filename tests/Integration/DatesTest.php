@@ -114,17 +114,17 @@ final class DatesTest extends IntegrationCase {
 		$this->assertSame( '2026-03-02T10:30:00+00:00', $entry['lastmod'] );
 	}
 
-	public function test_core_sitemaps_emit_lastmod_on_their_own_only_from_the_release_that_added_it(): void {
-		// The ticket asks for a test that fails if core's behavior changes, so the plugin's
-		// assumption is written down and checked on every WordPress the matrix runs. If this
-		// fails, read the failure: either core started emitting lastmod on this release, or
-		// stopped, and the dates fixer's sitemap channel needs reviewing before this is edited.
+	public function test_what_core_does_with_lastmod_is_pinned_per_release_and_the_filter_sets_it_either_way(): void {
+		// The dates fixer sets `lastmod` itself, so it works on both sides of this. The behavior is
+		// written down per release so that a release that changes it is noticed and reviewed: the
+		// ticket asks for a test that fails if core's behavior changes. WordPress 6.4 builds the
+		// entry from the permalink alone; 7.1 adds `lastmod` from `post_modified_gmt` in the site's
+		// own zone, which is the instant the fixer would have written, in another notation.
 		$id    = $this->post( '2026-01-05 09:00:00', '2026-10-12 03:00:00' );
 		$posts = wp_sitemaps_get_server()->registry->get_provider( 'posts' );
-		$list  = $posts->get_url_list( 1, 'post' );
 		$mine  = array_values(
 			array_filter(
-				$list,
+				$posts->get_url_list( 1, 'post' ),
 				static function ( $entry ) use ( $id ) {
 					return get_permalink( $id ) === $entry['loc'];
 				}
@@ -132,8 +132,14 @@ final class DatesTest extends IntegrationCase {
 		);
 		$emits = isset( $mine[0]['lastmod'] );
 		global $wp_version;
-		$expected = version_compare( $wp_version, '6.5', '>=' ); // Not asserted blindly: see the next line.
-		$this->assertSame( $expected, $emits, 'WordPress ' . $wp_version . ( $emits ? ' emits' : ' does not emit' ) . ' lastmod in its posts sitemap.' );
+		if ( version_compare( $wp_version, '6.5', '<' ) ) {
+			$this->assertFalse( $emits, 'WordPress ' . $wp_version . ' did not emit lastmod; if it does now, review the dates fixer\'s sitemap channel.' );
+		} elseif ( version_compare( $wp_version, '7.1', '>=' ) ) {
+			$this->assertTrue( $emits, 'WordPress ' . $wp_version . ' emitted lastmod; if it does not now, review the dates fixer\'s sitemap channel.' );
+			$this->assertSame( strtotime( '2026-10-12 03:00:00 UTC' ), strtotime( $mine[0]['lastmod'] ), 'the same instant the fixer would write, in the site\'s zone' );
+		} else {
+			$this->markTestSkipped( 'WordPress ' . $wp_version . ' is between the two releases this behavior is pinned on; its behavior is not asserted.' );
+		}
 	}
 
 	public function test_apply_writes_no_date_into_wordpress(): void {

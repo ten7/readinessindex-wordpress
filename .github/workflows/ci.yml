@@ -134,10 +134,13 @@ jobs:
         run: |
           slug=wordpress-seo
           [ "${{ matrix.seo }}" = rank_math ] && slug=seo-by-rank-math
+          # A pinned version is installed from its own zip: `--version` still checks the newest
+          # release's WordPress requirement and refuses on an older core (WordPress 6.4 and Yoast
+          # SEO 28, for one), which says nothing about the pinned release.
           if [ "${{ matrix.seo_version }}" = latest ]; then
             npx wp-env run tests-cli wp plugin install "${slug}" --force
           else
-            npx wp-env run tests-cli wp plugin install "${slug}" --version="${{ matrix.seo_version }}" --force
+            npx wp-env run tests-cli wp plugin install "https://downloads.wordpress.org/plugin/${slug}.${{ matrix.seo_version }}.zip" --force
           fi
           npx wp-env run tests-cli wp plugin list --fields=name,version
       - name: Integration tests

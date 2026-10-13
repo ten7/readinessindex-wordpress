@@ -104,12 +104,10 @@ final class EntityGraph {
 		if ( ! is_string( $json ) ) {
 			return;
 		}
-		wp_print_inline_script_tag(
-			$json,
-			array(
-				'type'  => 'application/ld+json',
-				'class' => 'readiness-index-graph',
-			)
-		);
+		// Printed by hand rather than with wp_print_inline_script_tag: on a theme without HTML5
+		// script support WordPress wraps the body in a CDATA comment, which turns this JSON into
+		// something no crawler can parse. The JSON flags above make a closing tag impossible, so
+		// the body is safe to print as it is.
+		echo '<script type="application/ld+json" class="readiness-index-graph">' . $json . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON encoded with the hex flags: no tag, ampersand or quote can survive in it.
 	}
 }

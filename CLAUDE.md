@@ -41,9 +41,10 @@ having started only MySQL, with no message. The plugin is mapped to
 `wp-content/plugins/readiness-index` explicitly, because wp-env otherwise installs it under
 the checkout's directory name and `wp plugin is-active readiness-index` fails.
 
-`composer test:integration` runs the suite that needs a real WordPress (`wp-phpunit`).
-The unit suite must stay free of WordPress so it stays fast; a test that needs `$wpdb`
-or a hook that really fires is an integration test.
+`composer test:integration` runs the suite that needs a real WordPress (`wp-phpunit`), inside wp-env
+(`docs/TESTING.md` has the command, and how Yoast SEO and Rank Math are loaded). The unit suite must
+stay free of WordPress so it stays fast; a test that needs `$wpdb` or a hook that really fires is an
+integration test.
 
 ---
 
@@ -127,6 +128,39 @@ browsers that default to Lax, with no error anywhere.
 from the zip. A handler never calls `exit` where a test can reach it: the decision is a pure
 method (`Actions::callback_plan`) and the handler only executes it, because an `exit` inside
 PHPUnit ends the whole run silently.
+
+## The fixers
+
+**Every change goes through `Fixers\Runner`, and nothing else may apply, undo or clean up.** The runner
+checks capability and then nonce, refuses anything but a POST, compares the preview's hash with the one
+the Apply form carried, refuses on a conflict, restores the prior value if `apply` throws, writes a row
+and verifies. A fixer's `apply`, `undo` and `cleanup` take a `Permit` only the runner can issue, and
+`RegistryTest` greps for a call from anywhere else. A fixer is a filter over what WordPress already
+produces, and the only thing stored is the owner's choices (one autoloaded option, `State::OPTION`, the
+one the front end needs on every request), which is what makes Undo exact.
+
+**A fixer's logic is pure and is held to the golden vectors; the adapter around it is not.**
+`src/Fixers/Logic/` has no WordPress in it and reproduces `tests/fixtures/parity/fixers/` to the
+character (`VectorTest`). `Impl/` builds the facts from WordPress. Never read what the site serves now
+to find the baseline: it contains the fixer's own change. `RobotsTxt::baseline()` takes the fixer's own
+filter out, runs the others and puts it back; a real file in the web root is the baseline when there is one.
+
+**Feature detection runs on `plugins_loaded`, never when this plugin loads.** WordPress loads plugins
+alphabetically, so `readiness-index` loads before `wordpress-seo`: `defined('WPSEO_VERSION')` is false
+at load and the integration silently registered nothing. `Hooks::register` is on `plugins_loaded` 20.
+
+**Yoast derives the logo's size and type lazily, and Rank Math keeps the settings it read at the start of
+the request.** `Integration\Yoast::write` records every key that differs plus `company_logo_meta`, and
+`RankMath` calls `settings->reset()`; without both, Undo is not byte for byte. Both were found by the
+integration suite, not by reading.
+
+**Sentences the shared contract lacks live in `strings/plugin.en.json`.** `Strings::all()` merges them
+under the contract's; a contract key always wins and `StringsTest` fails on the overlap, so delete a
+local sentence when the kit adds it. Code still writes none. Do not add a price to either file.
+
+**Diagnostics and the verify step request only this site's own host,** through `Http\SiteFetcher`, the
+one file besides the API client allowed to make a request (`StaticGuardsTest`). Inside wp-env that needs
+`bin/wp-env-loopback`.
 
 ## The zip is what ships
 
