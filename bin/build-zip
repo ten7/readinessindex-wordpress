@@ -52,7 +52,7 @@ if [ -n "${bad}" ]; then
 	exit 1
 fi
 
-for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css; do
+for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css strings/plugin.en.json; do
 	if ! echo "${listing}" | grep -qx "${slug}/${required}"; then
 		echo "FAIL: the release zip is missing ${required}" >&2
 		exit 1
@@ -61,3 +61,7 @@ done
 
 echo
 echo "OK: ${zip_path} contains no development files."
+
+# A checksum beside the zip, so what was built can be compared with what is installed or attached
+# to a release. Written with the zip's own name, so `shasum -a 256 -c` works in dist/.
+( cd "$(dirname "${zip_path}")" && shasum -a 256 "$(basename "${zip_path}")" > SHA256SUMS && cat SHA256SUMS )

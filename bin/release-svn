@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Prepare a wordpress.org SVN commit for a tagged release. It refuses unless the tag exists on
+# origin and CI is green on that commit, and it stops before committing unless --commit is given.
+#
+# Nothing here has been run against the real repository, and nothing may be: submitting to
+# wordpress.org needs Ivan's go-ahead at that moment (docs/RELEASING.md). Until the plugin is
+# approved there is no SVN repository to check out.
+#
+#   bin/release-svn v0.4.0                 # check out, copy, show the status; commits nothing
+#   bin/release-svn v0.4.0 --commit       # commit trunk and the tag
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+tag="${1:?usage: bin/release-svn <tag> [--commit]}"
+commit="${2:-}"
+slug=readiness-index
+svn_url="https://plugins.svn.wordpress.org/${slug}"
+
+git fetch --quiet origin "refs/tags/${tag}:refs/tags/${tag}" 2>/dev/null || true
+if ! git rev-parse -q --verify "refs/tags/${tag}" > /dev/null; then
+	echo "Refusing: the tag ${tag} does not exist." >&2
+	exit 1
+fi
+sha="$(git rev-parse "${tag}^{commit}")"
+if ! git ls-remote --exit-code --tags origin "refs/tags/${tag}" > /dev/null; then
+	echo "Refusing: the tag ${tag} is not on origin." >&2
+	exit 1
+fi
+state="$(gh run list --commit "${sha}" --workflow ci --json status,conclusion --jq '[.[] | select(.status=="completed")] | map(.conclusion) | first // "none"')"
+if [ "${state}" != "success" ]; then
+	echo "Refusing: CI on ${sha} is '${state}', not 'success'." >&2
+	exit 1
+fi
+git checkout --quiet "${tag}"
+bin/check-version "${tag}"
+bin/build-zip > /dev/null
+
+work="$(mktemp -d)"
+svn checkout --quiet "${svn_url}" "${work}/svn"
+unzip -q dist/*.zip -d "${work}/zip"
+rsync -a --delete --exclude='.svn' "${work}/zip/${slug}/" "${work}/svn/trunk/"
+version="${tag#v}"
+mkdir -p "${work}/svn/tags/${version}"
+rsync -a --delete --exclude='.svn' "${work}/zip/${slug}/" "${work}/svn/tags/${version}/"
+( cd "${work}/svn" && svn add --force --quiet trunk tags && svn status )
+
+if [ "${commit}" = "--commit" ]; then
+	( cd "${work}/svn" && svn commit -m "Release ${version}" )
+else
+	echo "Not committed. Review ${work}/svn, then run again with --commit."
+fi

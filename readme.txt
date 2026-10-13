@@ -31,7 +31,7 @@ Nothing changes until you have read the exact before and after and pressed Apply
 2. Activate it through the Plugins screen.
 3. Open Readiness in the admin menu and choose Connect. You sign in to your Readiness Index account on readinessindex.io and approve the connection, then you are returned to your site.
 
-Your site must be reachable on the public internet over https to be connected and scanned. A site behind a password, in maintenance mode, or with a robots.txt that shuts every crawler out will be explained on the screen before you connect, and refused by the scanner without using a rescan.
+Your site must be reachable on the public internet over https to be connected and scanned. The ownership file the service checks (`/.well-known/readinessindex-verify`) is answered by WordPress, so the site needs pretty permalinks (any structure except Plain); on Plain permalinks the web server usually answers that address itself and ownership cannot be verified. A site behind a password, in maintenance mode, or with a robots.txt that shuts every crawler out will be explained on the screen before you connect, and refused by the scanner without using a rescan.
 
 == Frequently Asked Questions ==
 
@@ -70,6 +70,7 @@ The terms are at https://readinessindex.io/terms and the privacy policy is at ht
 * Works with Yoast SEO and Rank Math instead of printing a second graph beside them; other SEO plugins get the exact setting to change.
 * Three diagnostics that never fix anything: images without alt text, a CDN or firewall that may turn AI crawlers away, and content that needs JavaScript.
 * A change that is saved but not live names the page cache it found and asks it to clear.
+* Adds the plugin's paragraph to the privacy policy guide.
 
 = 0.3.0 =
 * The Fixes tab: the service's ranked list of what to fix, each row one of fix it here, fix it with a tool your site already has, or hand it on, with a count of the points this plugin can reach.

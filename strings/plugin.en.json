@@ -95,5 +95,6 @@
   "fixer.dates.flag_row": "{path}: {reason}",
   "fixer.dates.flag.modified_before_published": "WordPress recorded a modified date earlier than the published date. The published date is used instead; the date stored in WordPress is not changed.",
   "fixer.dates.flag.modified_in_future": "WordPress recorded a modified date in the future. The published date is used instead; the date stored in WordPress is not changed.",
-  "fixer.robots_directives.could_not_look": "This module could not read any of your pages from the server, so it cannot say which of them carry these directives."
+  "fixer.robots_directives.could_not_look": "This module could not read any of your pages from the server, so it cannot say which of them carry these directives.",
+  "privacy.policy": "This site uses the Readiness Index plugin. When an administrator connects it, the plugin sends this site's address, the versions of the plugin and WordPress, and a connection key to readinessindex.io, operated by TEN7, so the service can scan the site and return its score. It sends no information about visitors or users and collects no analytics. The plugin also requests this site's own pages from this site's own address, to check that a change it made is live. Terms and privacy policy: https://readinessindex.io/terms and https://readinessindex.io/privacy."
 }

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Fail unless the plugin's version is the same everywhere it is written: the header, the constant,
+# readme.txt's stable tag and its newest changelog entry, and CHANGELOG.md's newest entry. With a
+# tag name (v0.4.0) it must match that too. A release whose header says one thing and whose readme
+# says another is the one wordpress.org's own checks catch late.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+header="$(sed -n 's/^ \* Version:  *//p' readiness-index.php | head -1)"
+constant="$(sed -n "s/^define( 'READINESS_INDEX_VERSION', '\(.*\)' );/\1/p" readiness-index.php | head -1)"
+stable="$(sed -n 's/^Stable tag: *//p' readme.txt | head -1)"
+readme_log="$(sed -n 's/^= \([0-9][0-9.]*\) =$/\1/p' readme.txt | head -1)"
+changelog="$(sed -n 's/^## \[\{0,1\}\([0-9][0-9.]*\)\]\{0,1\}.*/\1/p' CHANGELOG.md | head -1)"
+
+echo "header=${header} constant=${constant} stable_tag=${stable} readme_changelog=${readme_log} CHANGELOG.md=${changelog}"
+for v in "${constant}" "${stable}" "${readme_log}" "${changelog}"; do
+	if [ "${v}" != "${header}" ]; then
+		echo "FAIL: the version is not the same everywhere." >&2
+		exit 1
+	fi
+done
+if [ -n "${1:-}" ] && [ "${1#v}" != "${header}" ]; then
+	echo "FAIL: tag ${1} is not version ${header}." >&2
+	exit 1
+fi
+echo "OK: ${header}"

@@ -1,0 +1,36 @@
+name: release-zip
+
+# Builds the installable zip and its checksum from a version tag. It publishes nothing: no GitHub
+# release, no wordpress.org upload. The zip and SHA256SUMS are attached to this workflow run as an
+# artifact, so a person can download what CI built, check it and decide.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The version is the same everywhere and is the tag's
+        run: bin/check-version "${GITHUB_REF_NAME}"
+      - run: bin/build-zip
+      - name: Every PHP file parses on the oldest supported PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+      - run: |
+          unpacked="$(mktemp -d)"
+          unzip -q dist/*.zip -d "${unpacked}"
+          find "${unpacked}" -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: readiness-index-${{ github.ref_name }}
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+          if-no-files-found: error

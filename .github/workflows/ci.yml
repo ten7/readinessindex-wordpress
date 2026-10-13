@@ -203,6 +203,7 @@ jobs:
       - uses: actions/checkout@v4
       # The same script a person runs locally. It fails when the zip holds tests,
       # vendor, node_modules, .github, composer files or docs.
+      - run: bin/check-version
       - run: bin/build-zip
       - name: The Pantheon deploy script's tests (shimmed, no network)
         run: tests/deploy-pantheon-test.sh

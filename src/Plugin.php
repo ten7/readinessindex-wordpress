@@ -39,6 +39,7 @@ final class Plugin {
 			// A comparison of two numbers; the table is created or upgraded only when it is behind.
 			add_action( 'admin_init', array( self::class, 'upgrade' ) );
 			Admin\Notices::register();
+			add_action( 'admin_init', array( Admin\Privacy::class, 'add_policy_content' ) );
 		}
 	}
 

@@ -297,4 +297,18 @@ final class RunnerTest extends WpTestCase {
 		$this->assertNotContains( 'apply', $fixer->calls );
 		$this->assertSame( 0, Log::count() );
 	}
+
+	public function test_two_administrators_pressing_apply_on_the_same_preview_change_the_site_once(): void {
+		list( $fixer, $vector ) = $this->llms();
+		$choices                = $vector['given']['choices'];
+		$hash                   = Runner::preview( $fixer, $choices )['hash'];
+
+		$first  = Runner::apply( $fixer, $choices, $hash, 3 );
+		$second = Runner::apply( $fixer, $choices, $hash, 4 );
+
+		$this->assertSame( 'applied', $first['outcome'] );
+		$this->assertSame( 'unchanged', $second['outcome'] );
+		$this->assertSame( 1, Log::count(), 'one row, one change' );
+		$this->assertSame( 1, count( array_keys( $fixer->calls, 'apply', true ) ) );
+	}
 }
