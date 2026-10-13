@@ -33,12 +33,17 @@ rsync -a --exclude-from=.distignore --exclude="/${out}" ./ "${stage}/"
 
 echo "Built ${zip_path}"
 echo
+# Read the listing once into a variable. Piping unzip straight into grep -q under
+# pipefail fails at random: grep exits on its first match, unzip takes SIGPIPE, and
+# the pipeline reports failure for a file that is in the zip.
+listing="$(unzip -Z1 "${zip_path}" | sort)"
+
 echo "Contents:"
-unzip -Z1 "${zip_path}" | sort
+echo "${listing}"
 
 # Entries that must never ship. Matched against each path inside the zip, after the slug.
 forbidden='^readiness-index/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|docs|bin|dist)(/|$)|^readiness-index/(\.|composer\.|package|phpcs|phpunit|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
-bad="$(unzip -Z1 "${zip_path}" | grep -E "${forbidden}" || true)"
+bad="$(echo "${listing}" | grep -E "${forbidden}" || true)"
 
 if [ -n "${bad}" ]; then
 	echo >&2
@@ -48,7 +53,7 @@ if [ -n "${bad}" ]; then
 fi
 
 for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php; do
-	if ! unzip -Z1 "${zip_path}" | grep -qx "${slug}/${required}"; then
+	if ! echo "${listing}" | grep -qx "${slug}/${required}"; then
 		echo "FAIL: the release zip is missing ${required}" >&2
 		exit 1
 	fi
