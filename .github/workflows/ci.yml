@@ -80,6 +80,42 @@ jobs:
       - name: Plugin Check
         run: npx wp-env run cli wp plugin check readiness-index --format=table
 
+  contract-pin:
+    name: The copied API contract is the pinned web commit's
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.WEB_REPO_READ_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read the pinned web commit
+        id: pin
+        run: echo "commit=$(sed -n 's/^web_commit //p' docs/contract/PIN)" >> "$GITHUB_OUTPUT"
+      # The web repository is private. With a read token in WEB_REPO_READ_TOKEN the copy is
+      # compared with the real files at the pinned commit; without one this job says so and
+      # the unit suite's ContractTest still fails on any hand edit, because it checks every
+      # copied file against the pin's hashes.
+      - name: Check out the web repository at the pin
+        if: ${{ env.HAS_TOKEN == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ten7/ai-readiness-index
+          ref: ${{ steps.pin.outputs.commit }}
+          token: ${{ secrets.WEB_REPO_READ_TOKEN }}
+          path: web
+          sparse-checkout: |
+            docs/cms-fixtures
+            docs/cms-parity
+      - name: The copy matches the pin
+        if: ${{ hashFiles('web/docs/cms-fixtures/openapi.json') != '' }}
+        run: |
+          diff -r web/docs/cms-fixtures tests/fixtures/cms
+          diff web/docs/cms-parity/strings/en.json strings/en.json
+          diff web/docs/cms-parity/screens.md docs/contract/screens.md
+          diff web/docs/cms-parity/MATRIX.md docs/contract/MATRIX.md
+      - name: No token, so only the hash pin is checked
+        if: ${{ hashFiles('web/docs/cms-fixtures/openapi.json') == '' }}
+        run: echo "::notice::WEB_REPO_READ_TOKEN is not set; the copy was checked against the pin's hashes only (ContractTest)."
+
   release-zip:
     name: Release zip has no development files
     runs-on: ubuntu-latest

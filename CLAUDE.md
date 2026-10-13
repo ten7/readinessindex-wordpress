@@ -22,6 +22,7 @@ composer lint               # PHPCS: WordPress Coding Standards, PHP 7.4 to late
 composer lint:fix           # phpcbf
 composer test               # PHPUnit unit suite (Brain Monkey, no WordPress)
 bin/build-zip               # build dist/readiness-index-<version>.zip and fail on dev files
+bin/sync-contract           # copy fixtures, strings and screens from the web repo and re-pin them
 bin/deploy-pantheon --dry-run   # deploy to the Pantheon dev site; docs/DEPLOY-PANTHEON.md
 tests/deploy-pantheon-test.sh   # shim-based test of that script; no network
 
@@ -100,6 +101,32 @@ Comments and commit messages are written to be read by Ivan, who notices.
   `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
 
 ---
+
+## The contract is copied, pinned and never edited
+
+`tests/fixtures/cms/` (the golden API fixtures and `openapi.json`), `strings/en.json` (every
+sentence the plugin shows; it ships in the zip) and `docs/contract/` (`screens.md`, `MATRIX.md`)
+are copied from the web repository by `bin/sync-contract`, which writes `docs/contract/PIN`: the
+web commit and a SHA-256 of each file. `tests/Unit/ContractTest.php` fails on a hand edit or a
+stale pin, and checks every fixture strictly against the OpenAPI document. The runtime models
+ignore a field they do not know (an additive server change must not break a site that has not
+updated) and raise a `contract` error for a missing one; the strictness lives in that test.
+A sentence is never written in code: `StaticGuardsTest` fails on one, on a missing string key,
+on a price or a per-period figure, and on any `wp_remote_` outside `src/Api/Client.php`.
+
+**The key and token patterns end in `D`.** Without it `$` also matches before a trailing
+newline, and a key with one would be stored and sent in an Authorization header.
+
+**Connect's return is a cross-site POST, which a SameSite=Lax cookie does not accompany.**
+`Actions::handle_callback` is also registered `admin_post_nopriv_`; a pending state is relayed
+once from this site to itself (same-site, so the cookie travels) and the signed-in branch does
+the work. Do not "simplify" this to a `manage_options` check alone: Connect then fails in
+browsers that default to Lax, with no error anywhere.
+
+**Tests that fake `time()` need `patchwork.json`** (`redefinable-internals`), which is excluded
+from the zip. A handler never calls `exit` where a test can reach it: the decision is a pure
+method (`Actions::callback_plan`) and the handler only executes it, because an `exit` inside
+PHPUnit ends the whole run silently.
 
 ## The zip is what ships
 

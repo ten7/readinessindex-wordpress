@@ -17,7 +17,7 @@ require_once dirname( __DIR__ ) . '/src/Autoloader.php';
 
 // The plugin file defines these when WordPress loads it; the unit suite loads classes
 // directly, so it defines them itself.
-define( 'READINESS_INDEX_VERSION', '0.1.0' );
+define( 'READINESS_INDEX_VERSION', '0.2.0' );
 define( 'READINESS_INDEX_DIR', dirname( __DIR__ ) . '/' );
 define( 'READINESS_INDEX_FILE', dirname( __DIR__ ) . '/readiness-index.php' );
 

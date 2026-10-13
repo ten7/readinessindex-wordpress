@@ -52,7 +52,7 @@ if [ -n "${bad}" ]; then
 	exit 1
 fi
 
-for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php; do
+for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css; do
 	if ! echo "${listing}" | grep -qx "${slug}/${required}"; then
 		echo "FAIL: the release zip is missing ${required}" >&2
 		exit 1
