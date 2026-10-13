@@ -124,7 +124,7 @@ final class DatesFixer extends AbstractFixer {
 		$checked = 0;
 		foreach ( $urls as $path ) {
 			$got = SiteFetcher::get( home_url( $path ) );
-			if ( null === $got || 200 !== $got['status'] ) {
+			if ( SiteFetcher::was_turned_away( $got ) || 200 !== $got['status'] ) {
 				continue;
 			}
 			if ( ! preg_match_all( '#<url>\s*<loc>([^<]+)</loc>(?:\s*<lastmod>([^<]*)</lastmod>)?#', $got['body'], $m, PREG_SET_ORDER ) ) {

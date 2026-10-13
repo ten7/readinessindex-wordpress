@@ -152,7 +152,7 @@ final class LlmsTxt {
 			'X-Content-Type-Options' => 'nosniff',
 			'ETag'                   => $etag,
 			'Last-Modified'          => gmdate( 'D, d M Y H:i:s', (int) $stored['built'] ) . ' GMT',
-			'Cache-Control'          => 'public, max-age=300',
+			'Cache-Control'          => 'public, max-age=60',
 		);
 		$same    = '' !== $if_none && in_array( $etag, array_map( 'trim', explode( ',', $if_none ) ), true );
 		if ( ! $same && '' === $if_none && '' !== $if_mod ) {

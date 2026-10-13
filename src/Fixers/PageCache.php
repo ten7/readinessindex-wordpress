@@ -9,7 +9,7 @@ namespace ReadinessIndex\Fixers;
 
 /**
  * A change that is saved but not served is, nine times in ten, a page cache. This names the
- * four the plugin knows (so the message can say which) and asks a detected one to clear itself
+ * ones the plugin knows (so the message can say which) and asks a detected one to clear itself
  * through the function or action its own documentation gives, and never by deleting its files.
  */
 final class PageCache {
@@ -22,6 +22,8 @@ final class PageCache {
 		'w3tc'       => 'W3 Total Cache',
 		'litespeed'  => 'LiteSpeed Cache',
 		'cloudflare' => 'Cloudflare APO',
+		'pantheon'   => 'Pantheon',
+		'wpengine'   => 'WP Engine',
 	);
 
 	/**
@@ -39,6 +41,13 @@ final class PageCache {
 		}
 		if ( class_exists( 'CF\WordPress\Hooks' ) || has_action( 'cloudflare_purge_everything' ) ) {
 			return 'cloudflare';
+		}
+		// Hosts that cache in front of WordPress and give a function to clear it.
+		if ( function_exists( 'pantheon_clear_edge_all' ) ) {
+			return 'pantheon';
+		}
+		if ( class_exists( 'WpeCommon', false ) && method_exists( 'WpeCommon', 'purge_varnish_cache' ) ) {
+			return 'wpengine';
 		}
 		return null;
 	}
@@ -71,6 +80,12 @@ final class PageCache {
 				break;
 			case 'cloudflare':
 				do_action( 'cloudflare_purge_everything' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- The Cloudflare plugin's documented purge action.
+				break;
+			case 'pantheon':
+				pantheon_clear_edge_all();
+				break;
+			case 'wpengine':
+				\WpeCommon::purge_varnish_cache();
 				break;
 		}
 		return $key;

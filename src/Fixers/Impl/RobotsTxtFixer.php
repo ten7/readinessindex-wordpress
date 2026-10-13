@@ -144,7 +144,7 @@ final class RobotsTxtFixer extends AbstractFixer {
 	 */
 	public function verify( array $ev ): array {
 		$got = SiteFetcher::get( home_url( '/robots.txt' ) );
-		if ( null === $got ) {
+		if ( SiteFetcher::was_turned_away( $got ) ) {
 			return array(
 				'live'   => null,
 				'reason' => 'unreachable',

@@ -268,4 +268,28 @@ final class LlmsTxtTest extends IntegrationCase {
 		$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/src/Fixers/Runtime/LlmsTxt.php' );
 		$this->assertStringNotContainsString( 'llms-full', $source );
 	}
+
+	public function test_verify_says_it_could_not_look_when_its_own_request_is_challenged_and_not_live_when_the_route_is_missing(): void {
+		$fixer = new LlmsTxtFixer();
+		$ev    = array( 'output' => array( 'llms.txt' => "# Example Co\n" ) );
+
+		$this->answers[ home_url( '/llms.txt' ) ] = array(
+			'status'  => 403,
+			'headers' => array( 'cf-mitigated' => 'challenge' ),
+			'body'    => '<title>Just a moment...</title>',
+		);
+		$this->assertNull( $fixer->verify( $ev )['live'], 'a challenge page is not the site\'s page' );
+
+		$this->answers[ home_url( '/llms.txt' ) ] = array(
+			'status' => 404,
+			'body'   => 'Not found',
+		);
+		$this->assertFalse( $fixer->verify( $ev )['live'] );
+
+		$this->answers[ home_url( '/llms.txt' ) ] = array(
+			'status' => 200,
+			'body'   => "# Example Co\n",
+		);
+		$this->assertTrue( $fixer->verify( $ev )['live'] );
+	}
 }

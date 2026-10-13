@@ -165,7 +165,7 @@ final class LlmsTxtFixer extends AbstractFixer {
 	 */
 	public function verify( array $ev ): array {
 		$got = SiteFetcher::get( home_url( '/llms.txt' ) );
-		if ( null === $got ) {
+		if ( SiteFetcher::was_turned_away( $got ) ) {
 			return array(
 				'live'   => null,
 				'reason' => 'unreachable',

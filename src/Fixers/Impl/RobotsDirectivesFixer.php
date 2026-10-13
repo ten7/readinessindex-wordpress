@@ -174,7 +174,7 @@ final class RobotsDirectivesFixer extends AbstractFixer {
 		$seen = 0;
 		foreach ( $ev['output']['pages'] as $page ) {
 			$got = SiteFetcher::get( home_url( $page['path'] ) );
-			if ( null === $got || 200 !== $got['status'] ) {
+			if ( SiteFetcher::was_turned_away( $got ) || 200 !== $got['status'] ) {
 				continue;
 			}
 			++$seen;

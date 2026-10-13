@@ -62,6 +62,21 @@ final class SiteFetcher {
 	}
 
 	/**
+	 * Whether the site's own request was turned away rather than answered: a firewall's or a CDN's
+	 * challenge, a rate limit, a password. The page that answered is then not the site's page, and
+	 * comparing it with what the fixer made would say "not live" about a change that may be perfectly
+	 * live. Callers say they could not look instead.
+	 *
+	 * @param array{status:int,body:string,headers:array<string,string>}|null $got A result of `get`.
+	 */
+	public static function was_turned_away( ?array $got ): bool {
+		if ( null === $got ) {
+			return true;
+		}
+		return in_array( $got['status'], array( 401, 403, 407, 429, 503 ), true ) || isset( $got['headers']['cf-mitigated'] );
+	}
+
+	/**
 	 * Whether a URL is on this site's own host.
 	 *
 	 * @param string $url A URL.

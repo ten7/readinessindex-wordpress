@@ -360,7 +360,7 @@ final class EntityGraphFixer extends AbstractFixer {
 	 */
 	public function verify( array $ev ): array {
 		$got = SiteFetcher::get( home_url( '/' ) );
-		if ( null === $got || 200 !== $got['status'] ) {
+		if ( SiteFetcher::was_turned_away( $got ) || 200 !== $got['status'] ) {
 			return array(
 				'live'   => null,
 				'reason' => 'unreachable',

@@ -8,6 +8,7 @@ use ReadinessIndex\Diagnostics\Result;
 use ReadinessIndex\Fixers\Content\RobotsMeta;
 use ReadinessIndex\Fixers\Hooks;
 use ReadinessIndex\Fixers\Runtime\LlmsTxt;
+use ReadinessIndex\Http\SiteFetcher;
 use ReadinessIndex\Tests\Support\WpTestCase;
 
 /**
@@ -89,5 +90,20 @@ final class DiagnosticPartsTest extends WpTestCase {
 		$this->assertSame( 304, LlmsTxt::response( $stored, '"abc"', '' )['status'] );
 		$this->assertSame( 304, LlmsTxt::response( $stored, '"x", "abc"', '' )['status'] );
 		$this->assertSame( 200, LlmsTxt::response( $stored, '"x"', 'Tue, 14 Nov 2023 22:13:20 GMT' )['status'], 'a validator that does not match is not rescued by a date' );
+	}
+
+	public function test_a_request_the_site_made_to_itself_that_was_turned_away_is_not_a_page_to_compare(): void {
+		$ok = array(
+			'status'  => 200,
+			'body'    => '',
+			'headers' => array(),
+		);
+		$this->assertFalse( SiteFetcher::was_turned_away( $ok ) );
+		$this->assertFalse( SiteFetcher::was_turned_away( array( 'status' => 404 ) + $ok ), 'a missing file is an answer: the change is not live' );
+		foreach ( array( 401, 403, 407, 429, 503 ) as $status ) {
+			$this->assertTrue( SiteFetcher::was_turned_away( array( 'status' => $status ) + $ok ), (string) $status );
+		}
+		$this->assertTrue( SiteFetcher::was_turned_away( array( 'headers' => array( 'cf-mitigated' => 'challenge' ) ) + $ok ) );
+		$this->assertTrue( SiteFetcher::was_turned_away( null ) );
 	}
 }

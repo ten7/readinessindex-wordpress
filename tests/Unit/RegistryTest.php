@@ -101,4 +101,12 @@ final class RegistryTest extends WpTestCase {
 			$this->assertSame( 'ReadinessIndex\\Fixers\\Permit', (string) $parameters[0]->getType(), $method );
 		}
 	}
+
+	public function test_every_page_cache_the_plugin_names_can_also_be_asked_to_clear(): void {
+		$code = (string) file_get_contents( dirname( __DIR__, 2 ) . '/src/Fixers/PageCache.php' );
+		foreach ( array_keys( \ReadinessIndex\Fixers\PageCache::NAMES ) as $key ) {
+			$this->assertStringContainsString( "return '" . $key . "';", $code, $key . ' is detected' );
+			$this->assertStringContainsString( "case '" . $key . "':", $code, $key . ' is purged' );
+		}
+	}
 }
