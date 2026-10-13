@@ -1,7 +1,5 @@
 {
-	"plugins": [
-		".",
-		"https://downloads.wordpress.org/plugin/plugin-check.latest-stable.zip",
-		"https://downloads.wordpress.org/plugin/seo-by-rank-math.latest-stable.zip"
-	]
+	"lifecycleScripts": {
+		"afterStart": "npx wp-env run cli wp plugin install plugin-check seo-by-rank-math --activate && npx wp-env run cli wp plugin activate readiness-index"
+	}
 }

@@ -5,5 +5,8 @@
   "license": "GPL-2.0-or-later",
   "devDependencies": {
     "@wordpress/env": "^10.0.0"
+  },
+  "allowScripts": {
+    "fs-ext-extra-prebuilt@2.2.7": true
   }
 }
