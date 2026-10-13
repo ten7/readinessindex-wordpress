@@ -170,8 +170,13 @@ end_marker="// END readiness-index api origin"
 grep -q "That's all, stop editing" "${wp_config}" || die "wp-config.php has no \"That's all, stop editing\" line to put the origin block above."
 awk -v begin="${begin_marker}" -v end="${end_marker}" -v origin="${origin}" '
 	$0 == begin { skipping = 1; next }
-	skipping && $0 == end { skipping = 0; next }
+	skipping && $0 == end { skipping = 0; after_block = 1; next }
 	skipping { next }
+	# The block is written with one blank line after it; dropping that line with the
+	# block is what keeps a rerun from adding one more blank line each time, which
+	# would make every deploy a commit.
+	after_block && $0 == "" { after_block = 0; next }
+	{ after_block = 0 }
 	/That.s all, stop editing/ && !done {
 		print begin
 		print "define( '\''READINESS_INDEX_API_ORIGIN'\'', '\''" origin "'\'' );"
@@ -188,6 +193,8 @@ if git -C "${clone}" diff --cached --quiet; then
 	say "The Pantheon repository already matches this build and origin. Nothing to commit."
 	pushed=0
 else
+	say "Changes to commit to the Pantheon repository:"
+	git -C "${clone}" diff --cached --stat
 	git -C "${clone}" commit --quiet -F - <<EOF
 Deploy readiness-index ${version} from plugin commit ${short_hash}
 

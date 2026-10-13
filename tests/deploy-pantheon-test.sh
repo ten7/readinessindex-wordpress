@@ -191,6 +191,7 @@ run --origin https://edge.example.com
 check "git-mode run succeeds" test "${rc}" -eq 0
 check "  skipped diffstat and the mode switch in git mode" lacks "env:diffstat\|connection:set" "${work}/log.txt"
 check "  one block only" test "$(grep -c 'BEGIN readiness-index' "${work}/out/wp-config.php")" -eq 1
+check "  a rerun adds no blank lines" test "$(grep -c '^$' "${work}/out/wp-config.php")" -eq 1
 check "  the old origin is gone" lacks "old.example.com" "${work}/out/wp-config.php"
 
 echo "-- origin validation"
