@@ -20,6 +20,9 @@ final class Registry {
 	const CLASSES = array(
 		Impl\RobotsTxtFixer::class,
 		Impl\LlmsTxtFixer::class,
+		Impl\RobotsDirectivesFixer::class,
+		Impl\DatesFixer::class,
+		Impl\EntityGraphFixer::class,
 	);
 
 	/**

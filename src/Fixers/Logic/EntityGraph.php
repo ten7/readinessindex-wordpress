@@ -119,7 +119,7 @@ final class EntityGraph {
 	 * @param array<string,mixed> $page The page.
 	 * @return array<int,array<string,string>>
 	 */
-	private static function trail( string $site, array $page ): array {
+	public static function trail( string $site, array $page ): array {
 		$trail = array(
 			array(
 				'name' => Strings::get( 'fixer.entity_graph.breadcrumb_home' ),
@@ -237,7 +237,7 @@ final class EntityGraph {
 	 * @param string|null $template The owner's search address.
 	 * @return array{0:array<int,array<string,mixed>>|null,1:bool}
 	 */
-	private static function search_action( ?string $template ): array {
+	public static function search_action( ?string $template ): array {
 		if ( ! self::has( $template ) ) {
 			return array( null, true );
 		}
@@ -271,7 +271,7 @@ final class EntityGraph {
 	 * @param string|null                         $language Language tag.
 	 * @return array<string,mixed>
 	 */
-	private static function page_graph( string $site, string $name, array $org, array $meta, array $page, ?array $search, ?string $language ): array {
+	public static function page_graph( string $site, string $name, array $org, array $meta, array $page, ?array $search, ?string $language ): array {
 		$home    = 'home' === $page['kind'];
 		$url     = $page['url'];
 		$website = array(

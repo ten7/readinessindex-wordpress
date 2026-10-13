@@ -25,6 +25,15 @@ final class Hooks {
 		if ( isset( $on['robots-txt'] ) ) {
 			Runtime\RobotsTxt::register( $on['robots-txt'] );
 		}
+		if ( isset( $on['robots-directives'] ) ) {
+			Runtime\Directives::register( $on['robots-directives'] );
+		}
+		if ( isset( $on['dates'] ) ) {
+			Runtime\Dates::register( $on['dates'] );
+		}
+		if ( isset( $on['entity-graph'] ) ) {
+			Runtime\EntityGraph::register( $on['entity-graph'] );
+		}
 		if ( isset( $on['llms-txt'] ) ) {
 			Runtime\LlmsTxt::register( $on['llms-txt'] );
 		}

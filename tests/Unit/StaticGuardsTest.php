@@ -159,6 +159,11 @@ final class StaticGuardsTest extends WpTestCase {
 				$this->assertSame( 2, preg_match_all( '/(update_option|add_option)\(/', $code ) );
 				continue;
 			}
+			if ( 'src/Fixers/Integration/RankMath.php' === $path ) {
+				// Writes Rank Math's own option, whose autoload setting is Rank Math's and is left as it is.
+				$this->assertSame( 2, preg_match_all( '/update_option\(\s*self::TITLES/', $code ) );
+				continue;
+			}
 			if ( preg_match_all( '/\b(update_option|add_option)\(([^;]*?)\);/s', $code, $m ) ) {
 				foreach ( $m[2] as $arguments ) {
 					$this->assertMatchesRegularExpression( '/false\s*(,\s*)?\)?\s*$/', trim( $arguments ) . ')', $path . ': ' . $arguments );

@@ -29,6 +29,7 @@ final class Actions {
 	const CAPABILITY = 'manage_options';
 
 	const SAVE_SETTINGS = 'readiness_index_save_settings';
+	const DIAGNOSE      = 'readiness_index_diagnose';
 
 	/**
 	 * Registers every action. The return from readinessindex.io is also registered for
@@ -44,6 +45,7 @@ final class Actions {
 		add_action( 'admin_post_readiness_index_refresh', array( self::class, 'handle_refresh' ) );
 		add_action( 'admin_post_readiness_index_dismiss', array( self::class, 'handle_dismiss' ) );
 		add_action( 'admin_post_' . self::SAVE_SETTINGS, array( self::class, 'handle_save_settings' ) );
+		add_action( 'admin_post_' . self::DIAGNOSE, array( self::class, 'handle_diagnose' ) );
 	}
 
 	/**
@@ -264,6 +266,18 @@ final class Actions {
 		self::guard( self::SAVE_SETTINGS );
 		Settings::set_remove_on_uninstall( isset( $_POST['remove_on_uninstall'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['remove_on_uninstall'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by guard above.
 		wp_safe_redirect( Urls::changes() );
+		exit;
+	}
+
+	/**
+	 * Runs a diagnostic that makes requests to this site, and returns to the Fixes tab.
+	 */
+	public static function handle_diagnose(): void {
+		self::guard( self::DIAGNOSE );
+		$key = isset( $_POST['diagnostic'] ) && is_string( $_POST['diagnostic'] ) ? sanitize_key( wp_unslash( $_POST['diagnostic'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by guard above.
+		// Only the two runnable keys; Runner::run refuses anything else.
+		\ReadinessIndex\Diagnostics\Runner::run( $key );
+		wp_safe_redirect( Urls::fixes() );
 		exit;
 	}
 }

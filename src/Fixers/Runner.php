@@ -116,6 +116,7 @@ final class Runner {
 				'reason'  => $preview['reason'],
 				'changes' => $preview['changes'],
 				'output'  => $preview['output'],
+				'writes'  => $preview['writes'] ?? array(),
 			)
 		);
 		return $preview;

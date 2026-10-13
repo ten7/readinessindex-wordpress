@@ -43,7 +43,7 @@ final class PreviewView {
 		if ( 'ready' === $preview['status'] || 'conflict' === $preview['status'] ) {
 			self::changes( $preview );
 		}
-		FindingsView::render( $fixer->id(), $preview['findings'] );
+		FindingsView::render( $fixer->id(), $preview );
 		self::apply_form( $fixer, $choices, $preview );
 		ScoreView::shell_end();
 	}

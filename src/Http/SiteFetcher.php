@@ -22,10 +22,11 @@ final class SiteFetcher {
 	/**
 	 * Fetches a URL of this site.
 	 *
-	 * @param string $url A URL on this site's host.
+	 * @param string      $url        A URL on this site's host.
+	 * @param string|null $user_agent The User-Agent to send, or null for a plain browser-like one.
 	 * @return array{status:int,body:string,headers:array<string,string>}|null Null when it is not this site's, or could not be fetched.
 	 */
-	public static function get( string $url ): ?array {
+	public static function get( string $url, ?string $user_agent = null ): ?array {
 		if ( ! self::is_own( $url ) ) {
 			return null;
 		}
@@ -42,7 +43,7 @@ final class SiteFetcher {
 					'Cache-Control' => 'no-cache',
 					'Pragma'        => 'no-cache',
 				),
-				'user-agent'  => 'Mozilla/5.0 (compatible; ReadinessIndexSiteCheck)',
+				'user-agent'  => $user_agent ?? 'Mozilla/5.0 (compatible; ReadinessIndexSiteCheck)',
 			)
 		);
 		if ( is_wp_error( $response ) ) {

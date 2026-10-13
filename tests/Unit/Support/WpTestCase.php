@@ -207,6 +207,15 @@ abstract class WpTestCase extends TestCase {
 				return $out;
 			}
 		);
+		Functions\when( 'selected' )->alias(
+			function ( $selected, $current = true, $display = true ) {
+				$out = (string) $selected === (string) $current ? " selected='selected'" : '';
+				if ( $display ) {
+					echo $out;
+				}
+				return $out;
+			}
+		);
 		Functions\when( 'absint' )->alias( fn( $n ) => abs( (int) $n ) );
 		Functions\when( 'sanitize_key' )->alias( fn( $k ) => preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $k ) ) );
 		Functions\when( 'esc_html' )->alias( fn( $text ) => htmlspecialchars( (string) $text, ENT_QUOTES ) );
