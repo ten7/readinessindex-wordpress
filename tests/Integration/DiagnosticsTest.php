@@ -74,6 +74,18 @@ final class DiagnosticsTest extends IntegrationCase {
 		$this->assertTrue( CdnAccess::run()->clean );
 	}
 
+	public function test_a_site_that_turns_its_own_request_away_is_not_reported_as_answering_everyone_alike(): void {
+		$this->answers[ home_url( '/' ) ] = array(
+			'status'  => 403,
+			'headers' => array( 'cf-mitigated' => 'challenge' ),
+			'body'    => '<title>Just a moment...</title>',
+		);
+		$result                           = CdnAccess::run();
+		$this->assertFalse( $result->clean );
+		$this->assertStringContainsString( 'could not request your own home page', $result->lines[0] );
+		$this->assertCount( 1, $this->requests, 'it stopped at the first refusal and did not probe eight crawlers behind it' );
+	}
+
 	public function test_no_diagnostic_asks_anything_but_this_sites_own_host(): void {
 		$this->assertNull( SiteFetcher::get( 'https://evil.example/collect' ) );
 		$this->assertNull( SiteFetcher::get( 'http://127.0.0.1:9/' ) );

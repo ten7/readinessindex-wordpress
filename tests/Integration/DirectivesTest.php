@@ -168,4 +168,16 @@ final class DirectivesTest extends IntegrationCase {
 			$this->assertSame( wp_parse_url( home_url() )['host'], wp_parse_url( $url )['host'], $url );
 		}
 	}
+
+	public function test_when_no_page_could_be_read_the_preview_says_so_instead_of_claiming_there_is_nothing(): void {
+		// No answers at all: every request fails.
+		$preview = Runner::preview( new RobotsDirectivesFixer(), array() );
+		$this->assertSame( array(), $preview['output']['pages'] );
+
+		ob_start();
+		\ReadinessIndex\Admin\FindingsView::render( 'robots-directives', $preview );
+		$html = (string) ob_get_clean();
+		$this->assertStringContainsString( 'could not read any of your pages', $html );
+		$this->assertStringNotContainsString( 'No page tells search engines', $html );
+	}
 }

@@ -94,5 +94,6 @@
   "diagnostic.js_only.cause.lazy_content": "A lazy-loading script holds back part of the content.",
   "fixer.dates.flag_row": "{path}: {reason}",
   "fixer.dates.flag.modified_before_published": "WordPress recorded a modified date earlier than the published date. The published date is used instead; the date stored in WordPress is not changed.",
-  "fixer.dates.flag.modified_in_future": "WordPress recorded a modified date in the future. The published date is used instead; the date stored in WordPress is not changed."
+  "fixer.dates.flag.modified_in_future": "WordPress recorded a modified date in the future. The published date is used instead; the date stored in WordPress is not changed.",
+  "fixer.robots_directives.could_not_look": "This module could not read any of your pages from the server, so it cannot say which of them carry these directives."
 }

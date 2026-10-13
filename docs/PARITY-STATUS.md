@@ -84,8 +84,25 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 - **Integration (a real WordPress in wp-env, WordPress 6.4 and the latest)**: the robots.txt adapter against all 17 vectors through the real `robots_txt` filter, options and changes tables, and a real file where a vector has one; what llms.txt lists and refuses; the directives found on pages; dates across a daylight-saving change in three site timezones; the graph each page prints and that a title cannot close its script element; the diagnostics asking only this site's own host; capability, nonce and method on every action; activation, upgrade, deactivation and both modes of uninstall.
 - **Real SEO plugins (integration)**: Yoast SEO 20.0, 22.0 and 28.7 and Rank Math 1.0.220 and 1.0.280 pass: exactly one Organization, one WebSite with a search action, no repeated `@id`, no block from this plugin, and every option back to its prior value after Undo. 22.0 and 1.0.220 also pass on WordPress 6.4.
 - **e2e (wp-env, the real plugin over HTTP)**: Preview, Apply, served and Undo for robots.txt, llms.txt (ETag, 304, rebuilt on publish, 404 after Undo, `/llms-full.txt` never served), the stray directives, the dates (sitemap `lastmod`), and the entity graph on a plain site, with Yoast SEO and with Rank Math.
-- **Live (Pantheon dev, API origin edge)**: see the end of this file.
+- **Live (Pantheon dev, API origin edge)**: see *Live on the Pantheon dev site* below.
 - **Plugin Check**: clean on the built zip, WordPress 7.1.3, PHP 8.1.
+
+## Live on the Pantheon dev site
+
+The plugin is active at 0.4.0 and its screens load. The fixers were run on the dev site through WP-CLI (`terminus wp ... eval`), as administrator 1, through the real runner, and each was undone afterwards, so the site is as it was found and the Changes tab shows the history.
+
+| Fixer | Result on the dev site |
+|---|---|
+| llms.txt | Applied; `/llms.txt` served by the site's public address as `text/plain; charset=utf-8` with `nosniff` and an ETag, listing the site's two pages and posts. After Undo it answers 404. |
+| Entity graph | Applied (no SEO plugin on the site); the home page printed one block with one Organization (with the legal name and `sameAs` given), one WebSite and one WebPage, no repeated `@id`, nothing else. After Undo the block is gone. |
+| robots.txt | Applied, previewed and recorded correctly; **not live here, and verify said so**: Pantheon serves its own platform `robots.txt` for a dev environment before WordPress is asked, which the plugin cannot see as a file. Undone. |
+| Dates | The site's dates were already honest: the preview said there was nothing to change. |
+| Stray directives | The site's pages were not readable from the server (see below), so the preview said it could not read any page. |
+
+Two things only the real host showed, both fixed:
+
+- The site's request to its own public address was answered by Cloudflare's challenge page (a 403). The plugin compared that page with what it had made and said "not live" about a change that was live. A refused request is now "could not look", with its own sentence, and a diagnostic whose own request was refused says so and does not claim the crawlers were answered alike.
+- The host's edge cache kept the old home page for a week. Pantheon's and WP Engine's documented purge functions are now detected, called after a change, and named.
 
 ## Decisions the contract leaves open
 

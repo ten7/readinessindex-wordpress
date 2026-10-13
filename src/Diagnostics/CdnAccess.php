@@ -43,7 +43,9 @@ final class CdnAccess {
 		$url    = $url ?? home_url( '/' );
 		$result = new Result( 'cdn' );
 		$base   = SiteFetcher::get( $url );
-		if ( null === $base ) {
+		// A request the site made to itself that a firewall or CDN turned away says nothing about
+		// crawlers: every answer would be the same refusal, and "answered alike" would be a lie.
+		if ( SiteFetcher::was_turned_away( $base ) ) {
 			$result->clean   = false;
 			$result->lines[] = Strings::get( 'diagnostic.cdn.unreachable' );
 			return $result;

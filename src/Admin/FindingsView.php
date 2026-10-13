@@ -115,6 +115,10 @@ final class FindingsView {
 	 */
 	private static function directives( array $f, array $preview ): array {
 		$lines = array();
+		if ( array() === (array) ( $preview['output']['pages'] ?? array() ) ) {
+			// Nothing was read, so nothing can be said about which pages carry a directive.
+			return array( Strings::get( 'fixer.robots_directives.could_not_look' ) );
+		}
 		$pages = (array) ( $f['pages'] ?? array() );
 		if ( array() === $pages && array() === (array) ( $f['deferred'] ?? array() ) ) {
 			$lines[] = Strings::get( 'fixer.robots_directives.none' );
