@@ -1,0 +1,7 @@
+{
+	"plugins": [
+		".",
+		"https://downloads.wordpress.org/plugin/plugin-check.latest-stable.zip",
+		"https://downloads.wordpress.org/plugin/seo-by-rank-math.latest-stable.zip"
+	]
+}

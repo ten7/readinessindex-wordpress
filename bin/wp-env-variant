@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Select which site wp-env builds: plain, yoast or rankmath.
+#
+# wp-env reads exactly one .wp-env.json and merges .wp-env.override.json over it,
+# so a variant is an override file. The override is gitignored: a committed one
+# would make every checkout silently run somebody's last experiment.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+variant="${1:-plain}"
+
+if [ ! -f ".wp-env/${variant}.json" ]; then
+	echo "Unknown variant '${variant}'. Choose one of:" >&2
+	ls .wp-env | sed 's/\.json$//' >&2
+	exit 1
+fi
+
+cp ".wp-env/${variant}.json" .wp-env.override.json
+echo "wp-env variant is now '${variant}'. Run: npx wp-env start --update"

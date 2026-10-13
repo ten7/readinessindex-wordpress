@@ -1,0 +1,9 @@
+{
+  "name": "readiness-index",
+  "private": true,
+  "description": "Development tooling for the Readiness Index WordPress plugin. Nothing here ships.",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0"
+  }
+}
