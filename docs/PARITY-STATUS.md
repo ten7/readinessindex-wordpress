@@ -1,8 +1,8 @@
 # WordPress column of the parity matrix
 
-This repository's view of `docs/contract/MATRIX.md` (the copy of the web repository's `docs/cms-parity/MATRIX.md`). The matrix itself is not edited here; the web repository owns it, and the WordPress cell of each row moves there when READY-254 is accepted. Status as of READY-254: 41 of 71 rows done.
+This repository's view of `docs/contract/MATRIX.md` (the copy of the web repository's `docs/cms-parity/MATRIX.md`). The matrix itself is not edited here; the web repository owns it, and the WordPress cell of each row moves there when READY-254 is accepted. Status as of READY-256: all 71 rows done for WordPress (READY-255 and READY-256).
 
-`Verified` says how a row is known to work: `tests` is the PHPUnit suite over the golden fixtures; `live` is a run against https://edge.readinessindex.io from the Pantheon dev site.
+`Verified` says how a row is known to work: `tests` is the PHPUnit suite over the golden fixtures; `live` is a run on the Pantheon dev site (API origin edge). `e2e` is the real plugin driven over HTTP in wp-env (`tests/e2e/lib.sh`).
 
 | Area | Capability | WordPress | Verified |
 |---|---|---|---|
@@ -16,11 +16,11 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | API call | `GET /cms/v1/site` | done | tests |
 | API call | `POST /cms/v1/scan` | done | tests |
 | API call | `GET /cms/v1/scan/{scan}` | done | tests |
-| API call | `GET /cms/v1/fixes/{check}` | in progress | tests (client method only; the Fixes screen is READY-255) |
+| API call | `GET /cms/v1/fixes/{check}` | done | tests (client method; the Hand it on row loads it when the row opens) |
 | API call | `POST /cms/v1/verify` | done | tests |
 | API call | Calls sent server to server with a Bearer key and the `User-Agent` the contract names | done | tests + live |
 | API call | Polling uses `If-None-Match` and treats 304 as unchanged | done | tests |
-| API call | Validates what it reads against `docs/cms-fixtures/openapi.json` | in progress | tests (runtime checks required fields; unknown fields are ignored, the fixture test is strict) |
+| API call | Validates what it reads against `docs/cms-fixtures/openapi.json` | done | tests (runtime checks required fields; unknown fields are ignored, the fixture test is strict) |
 | API error | Handles `unauthenticated` | done | tests + live |
 | API error | Handles `account_disabled` | done | tests |
 | API error | Handles `insufficient_scope` | done | tests |
@@ -48,39 +48,52 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | Screen: Score | Scan now spends a rescan and shows what is left | done | tests |
 | Screen: Score | Free account: five lifetime rescans, then Basic, never a pack | done | tests |
 | Screen: Score | Billing off shows no plan to buy | done | tests |
-| Screen: Fixes | Fixes listed in the server's order with points and who fixes them | planned |  |
-| Screen: Fixes | Fix it here: preview, apply, undo | planned |  |
-| Screen: Fixes | Fix it with an SEO tool the site already has | planned |  |
-| Screen: Fixes | Hand it on: the fix prompt with a copy button | planned |  |
-| Screen: Fixes | Points the fixers can reach, said before anything is applied | planned |  |
-| Screen: Changes | Every change listed with what, when, by whom and Undo | planned |  |
-| Screen: Changes | Empty state | planned |  |
-| Fixer | AIR-1.1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | planned |  |
-| Fixer | AIR-1.4 robots.txt: state what AI may do (Content Signals) | planned |  |
-| Fixer | AIR-1.5 robots.txt: the policy in plain words | planned |  |
-| Fixer | AIR-1.10 `/llms.txt` generated from the site's content | planned |  |
-| Fixer | AIR-1.6 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | planned |  |
-| Fixer | AIR-4.8 Sitemap `lastmod` from when the content really changed | planned |  |
-| Fixer | AIR-5.4 `datePublished` and `dateModified` from when the content really changed | planned |  |
-| Fixer | AIR-1.11 One linked entity graph with `@id` references | planned |  |
-| Fixer | AIR-1.12 `sameAs` links to authority records | planned |  |
-| Fixer | AIR-1.13 About, Contact and organizational detail | planned |  |
-| Fixer | AIR-3.2 `BreadcrumbList` below the home page | planned |  |
-| Fixer | AIR-3.7 `SearchAction` on the WebSite node | planned |  |
-| Fixer conflict | robots.txt: a physical file wins, so previewed to paste and not applied | planned |  |
-| Fixer conflict | llms.txt: a physical file or another tool serves it | planned |  |
-| Fixer conflict | Stray directives: a directive an SEO tool sets is deferred to it | planned |  |
-| Fixer conflict | Dates and entity graph: through the SEO tool, never a second copy | planned |  |
-| Fixer conflict | Applying twice is the same as once; undo restores the baseline exactly | planned |  |
-| Diagnostic | AIR-2.5 images without alt text: listed, linked to the media library, never written | planned |  |
-| Diagnostic | AIR-1.2 a CDN or firewall turning AI crawlers away: detected and handed on | planned |  |
-| Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | planned |  |
+| Screen: Fixes | Fixes listed in the server's order with points and who fixes them | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Fix it here: preview, apply, undo | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Fix it with an SEO tool the site already has | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Hand it on: the fix prompt with a copy button | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Points the fixers can reach, said before anything is applied | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Changes | Every change listed with what, when, by whom and Undo | done | tests + e2e (wp-env) + live (Pantheon dev) |
+| Screen: Changes | Empty state | done | tests + e2e (wp-env) + live (Pantheon dev) |
+| Fixer | AIR-1.1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.4 robots.txt: state what AI may do (Content Signals) | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.5 robots.txt: the policy in plain words | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.10 `/llms.txt` generated from the site's content | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.6 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-4.8 Sitemap `lastmod` from when the content really changed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-5.4 `datePublished` and `dateModified` from when the content really changed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.11 One linked entity graph with `@id` references | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.12 `sameAs` links to authority records | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.13 About, Contact and organizational detail | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-3.2 `BreadcrumbList` below the home page | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-3.7 `SearchAction` on the WebSite node | done | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer conflict | robots.txt: a physical file wins, so previewed to paste and not applied | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | llms.txt: a physical file or another tool serves it | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Stray directives: a directive an SEO tool sets is deferred to it | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Dates and entity graph: through the SEO tool, never a second copy | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Applying twice is the same as once; undo restores the baseline exactly | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Diagnostic | AIR-2.5 images without alt text: listed, linked to the media library, never written | done | tests |
+| Diagnostic | AIR-1.2 a CDN or firewall turning AI crawlers away: detected and handed on | done | tests |
+| Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | done | tests |
 | Shared | Every sentence shown comes from `strings/en.json` | done | tests |
-| Shared | CI runs `check_vectors.py` and the module's fixers against every vector | planned |  |
+| Shared | CI runs `check_vectors.py` and the module's fixers against every vector | done | tests + CI |
 
 ## What was checked where
 
-- **Tests**: 142 PHPUnit tests over the golden fixtures, run on PHP 7.4, 8.1 and 8.4 in CI.
-- **Real WordPress (wp-env, PHP 8.1)**: Plugin Check clean; the Readiness screen renders as an administrator, on desktop and at 375 px; Connect's redirect carries the platform, site, callback and state; a cross-site return without a cookie is relayed once and then stored; a replayed state is refused; the ownership file answers 200 with exactly the 32-character token; Scan now and the progress polling run against a local stand-in for the API that serves the golden fixtures.
-- **Live (Pantheon dev, API origin edge)**: the plugin is active at 0.2.0, the unconnected screen renders, and a call with a key edge does not know comes back as `unauthenticated` with the server's sentence and the reconnect flag.
-- **Not yet checked live**: the whole Connect round trip (edge's `/connect/cms` sits behind the staging password and a WorkOS sign-in, so it needs a person), a real scan and score on the dev site, the ownership proof, and Checkout's return. These are the manual steps for review.
+- **Unit (PHPUnit, Brain Monkey, PHP 7.4, 8.1 and 8.4 in CI)**: every one of the 64 golden vectors through the fixers' pure logic and through the runner (`VectorTest`, `RunnerTest`): the exact preview, apply, undo and apply-again. The runner's rules with a fake fixer (step order, conflict refusal, stale preview, throwing apply, failed verify, undo byte for byte, superseded undo, capability and nonce before anything, no apply on a GET). The Fixes, Changes and Preview screens, the three row kinds and the points banner with Yoast active and not. RFC 9309's own examples against the parser. Structure: every `Fixer` registered, nothing outside the runner can apply, undo or clean up, no sentence in code.
+- **Integration (a real WordPress in wp-env, WordPress 6.4 and the latest)**: the robots.txt adapter against all 17 vectors through the real `robots_txt` filter, options and changes tables, and a real file where a vector has one; what llms.txt lists and refuses; the directives found on pages; dates across a daylight-saving change in three site timezones; the graph each page prints and that a title cannot close its script element; the diagnostics asking only this site's own host; capability, nonce and method on every action; activation, upgrade, deactivation and both modes of uninstall.
+- **Real SEO plugins (integration)**: Yoast SEO 20.0, 22.0 and 28.7 and Rank Math 1.0.220 and 1.0.280 pass: exactly one Organization, one WebSite with a search action, no repeated `@id`, no block from this plugin, and every option back to its prior value after Undo. 22.0 and 1.0.220 also pass on WordPress 6.4.
+- **e2e (wp-env, the real plugin over HTTP)**: Preview, Apply, served and Undo for robots.txt, llms.txt (ETag, 304, rebuilt on publish, 404 after Undo, `/llms-full.txt` never served), the stray directives, the dates (sitemap `lastmod`), and the entity graph on a plain site, with Yoast SEO and with Rank Math.
+- **Live (Pantheon dev, API origin edge)**: see the end of this file.
+- **Plugin Check**: clean on the built zip, WordPress 7.1.3, PHP 8.1.
+
+## Decisions the contract leaves open
+
+- The sentences a screen needs and `strings/en.json` does not have (a stale preview, a refused Undo, the uninstall setting, the diagnostics' results) are in `strings/plugin.en.json`, kept from shadowing the contract's by a test, and proposed to the kit.
+- The robots.txt fixer does not treat an SEO plugin's robots.txt editor as a conflict, because the golden vector `yoast-edited-robots-is-just-the-baseline` says it is not: the editor feeds the baseline.
+- Yoast SEO and Rank Math are integrated by writing the organization's name, logo and profiles to their own options (previewed as before and after, recorded, restored by Undo) and adding the rest through their schema filters. Any other plugin that prints a graph gets the exact setting to change, and the plugin prints nothing beside it.
+
+## Not yet checked
+
+- The whole Connect round trip and a real scan on the dev site (edge's `/connect/cms` sits behind the staging password and a WorkOS sign-in, so it needs a person), and so the Fixes tab's list fed by the API, Hand it on's prompt, and the READY-256 criterion that a before and after scan on edge moves each fixer's tests.
+- Fixers' effect on a real score; the nightly real-scan loop (READY-257).
