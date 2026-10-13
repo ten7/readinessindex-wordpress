@@ -22,6 +22,7 @@ final class Menu {
 	 */
 	public static function register(): void {
 		add_action( 'admin_menu', array( self::class, 'add_menu' ) );
+		add_filter( 'admin_title', array( self::class, 'admin_title' ), 10, 2 );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue' ) );
 		Actions::register();
 		Ajax::register();
@@ -47,6 +48,22 @@ final class Menu {
 		// An empty parent registers a page that has no menu entry and is still reachable by its
 		// address, under the same capability. A null parent is deprecated.
 		add_submenu_page( '', Strings::get( 'fixes.preview' ), '', Actions::CAPABILITY, Urls::PREVIEW, array( self::class, 'render_preview' ) );
+	}
+
+	/**
+	 * Gives the hidden preview page a title in the browser tab. WordPress takes it from the menu
+	 * entry, and this page has none.
+	 *
+	 * @param string $admin_title The title WordPress built.
+	 * @param string $title       The page's own title, empty for this page.
+	 * @return string
+	 */
+	public static function admin_title( $admin_title, $title ) {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: a tab title.
+		if ( Urls::PREVIEW === $page && '' === (string) $title ) {
+			return Strings::get( 'fixes.preview' ) . ' ' . $admin_title;
+		}
+		return $admin_title;
 	}
 
 	/**

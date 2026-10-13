@@ -30,6 +30,7 @@ final class Uninstall {
 		State::OPTION,
 		Schema::VERSION_OPTION,
 		'readiness_index_llms',
+		'readiness_index_diagnostics',
 	);
 
 	/**
@@ -48,5 +49,7 @@ final class Uninstall {
 		delete_metadata( 'user', 0, 'readiness_index_dismissed_monitoring', '', true );
 		delete_metadata( 'post', 0, '_readiness_index_changed_gmt', '', true );
 		delete_transient( 'ri_backoff' );
+		delete_transient( 'ri_alt_count' );
+		delete_transient( 'ri_directives_sample' );
 	}
 }

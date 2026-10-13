@@ -125,7 +125,7 @@ final class PreviewView {
 		foreach ( $lines as $line ) {
 			$class = '-' === $line[0] ? 'ri-del' : ( '+' === $line[0] ? 'ri-add' : 'ri-same' );
 			$mark  = '=' === $line[0] ? ' ' : $line[0];
-			echo '<span class="' . esc_attr( $class ) . '"><span aria-hidden="true">' . esc_html( $mark ) . ' </span>' . esc_html( $line[1] ) . "</span>\n";
+			echo '<span class="' . esc_attr( $class ) . '"><span aria-hidden="true">' . esc_html( $mark ) . ' </span>' . esc_html( $line[1] ) . '</span>';
 		}
 		echo '</pre></div>';
 	}
