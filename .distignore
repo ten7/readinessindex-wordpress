@@ -1,0 +1,30 @@
+# Everything listed here is left out of the release zip. bin/build-zip reads this
+# file and then checks the result without it.
+/.git
+/.github
+/.claude
+/.wp-env
+/.wp-env.json
+/.wp-env.override.json
+/.gitignore
+/.gitattributes
+/.editorconfig
+/.distignore
+/.phpunit.result.cache
+/.phpcs.cache
+/.DS_Store
+.DS_Store
+/bin
+/dist
+/docs
+/node_modules
+/tests
+/vendor
+/CLAUDE.md
+/README.md
+/composer.json
+/composer.lock
+/package.json
+/package-lock.json
+/phpcs.xml.dist
+/phpunit.xml.dist

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Build the release zip exactly as wordpress.org will receive it, then fail if it
+# contains anything that is only for development.
+#
+# CI runs this same script, so the zip a person builds locally and the zip the
+# release job builds are the same operation. The check at the end does not read
+# .distignore: it asserts the outcome independently, so a pattern dropped from
+# .distignore fails the build instead of quietly shipping tests or vendor/.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+slug="readiness-index"
+version="$(sed -n 's/^ \* Version:[[:space:]]*//p' readiness-index.php | head -1)"
+if [ -z "${version}" ]; then
+	echo "Could not read Version from readiness-index.php" >&2
+	exit 1
+fi
+
+out="dist"
+stage="${out}/${slug}"
+zip_path="${out}/${slug}-${version}.zip"
+
+rm -rf "${out}"
+mkdir -p "${stage}"
+
+# --exclude-from takes .distignore as written: the same file wp dist-archive reads.
+rsync -a --exclude-from=.distignore --exclude="/${out}" ./ "${stage}/"
+
+# The zip's top-level folder is the slug, which is the directory WordPress
+# installs into. Anything else would install as a second, differently named plugin.
+(cd "${out}" && zip -qr -X "${slug}-${version}.zip" "${slug}")
+
+echo "Built ${zip_path}"
+echo
+echo "Contents:"
+unzip -Z1 "${zip_path}" | sort
+
+# Entries that must never ship. Matched against each path inside the zip, after the slug.
+forbidden='^readiness-index/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|docs|bin|dist)(/|$)|^readiness-index/(\.|composer\.|package|phpcs|phpunit|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
+bad="$(unzip -Z1 "${zip_path}" | grep -E "${forbidden}" || true)"
+
+if [ -n "${bad}" ]; then
+	echo >&2
+	echo "FAIL: the release zip contains development files:" >&2
+	echo "${bad}" >&2
+	exit 1
+fi
+
+for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php; do
+	if ! unzip -Z1 "${zip_path}" | grep -qx "${slug}/${required}"; then
+		echo "FAIL: the release zip is missing ${required}" >&2
+		exit 1
+	fi
+done
+
+echo
+echo "OK: ${zip_path} contains no development files."
