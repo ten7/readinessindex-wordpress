@@ -23,13 +23,12 @@ final class PageSample {
 		$urls  = array( home_url( '/' ) );
 		$posts = get_posts(
 			array(
-				'post_type'        => array( 'page', 'post' ),
-				'post_status'      => 'publish',
-				'has_password'     => false,
-				'numberposts'      => max( 0, $limit - 1 ),
-				'orderby'          => 'modified',
-				'order'            => 'DESC',
-				'suppress_filters' => true,
+				'post_type'    => array( 'page', 'post' ),
+				'post_status'  => 'publish',
+				'has_password' => false,
+				'numberposts'  => max( 0, $limit - 1 ),
+				'orderby'      => 'modified',
+				'order'        => 'DESC',
 			)
 		);
 		foreach ( $posts as $post ) {

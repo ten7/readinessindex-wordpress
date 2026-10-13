@@ -134,15 +134,13 @@ final class GraphPages {
 				'post_status'         => 'publish',
 				'post_parent__not_in' => array( 0 ),
 				'numberposts'         => 1,
-				'suppress_filters'    => true,
 			)
 		);
 		$more = array() !== $deep ? $deep : get_posts(
 			array(
-				'post_type'        => 'post',
-				'post_status'      => 'publish',
-				'numberposts'      => 1,
-				'suppress_filters' => true,
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'numberposts' => 1,
 			)
 		);
 		foreach ( $more as $post ) {

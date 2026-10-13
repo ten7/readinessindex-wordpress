@@ -57,13 +57,12 @@ final class DateItems {
 		$types = array_values( array_diff( get_post_types( array( 'public' => true ) ), array( 'attachment' ) ) );
 		$posts = get_posts(
 			array(
-				'post_type'        => $types,
-				'post_status'      => array( 'publish', 'future' ),
-				'has_password'     => false,
-				'numberposts'      => self::MAX,
-				'orderby'          => 'modified',
-				'order'            => 'DESC',
-				'suppress_filters' => true,
+				'post_type'    => $types,
+				'post_status'  => array( 'publish', 'future' ),
+				'has_password' => false,
+				'numberposts'  => self::MAX,
+				'orderby'      => 'modified',
+				'order'        => 'DESC',
 			)
 		);
 		return array_map( array( self::class, 'item' ), $posts );

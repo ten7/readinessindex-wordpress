@@ -69,7 +69,7 @@ final class Schema {
 	 */
 	public static function drop(): void {
 		global $wpdb;
-		$table = self::table();
+		$table = esc_sql( self::table() );
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table, named by this class and never by input.
 		delete_option( self::VERSION_OPTION );
 	}

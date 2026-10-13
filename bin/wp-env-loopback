@@ -10,18 +10,15 @@
 # nothing here ships, and a real host needs none of it.
 #
 #   bin/wp-env-loopback          # for the development site (port 8888)
-#   bin/wp-env-loopback tests    # for the test site (port 8889)
+#
+# Do not install it on the test site (`tests-cli`): the integration suite answers the plugin's
+# requests to its own site itself, and this helper would answer them first with a real request.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-target="${1:-cli}"
+target=cli
 port=8888
 web=wordpress
-if [ "${target}" = "tests" ]; then
-	target="tests-cli"
-	port=8889
-	web=tests-wordpress
-fi
 
 php_code=$(cat <<PHP
 <?php

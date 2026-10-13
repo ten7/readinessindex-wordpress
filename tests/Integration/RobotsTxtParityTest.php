@@ -158,4 +158,27 @@ final class RobotsTxtParityTest extends IntegrationCase {
 		$this->assertFalse( has_filter( 'wp_robots', array( \ReadinessIndex\Fixers\Runtime\Directives::class, 'filter' ) ) );
 		$this->assertFalse( has_action( 'wp_head', array( \ReadinessIndex\Fixers\Runtime\EntityGraph::class, 'print_graph' ) ) );
 	}
+
+	public function test_verify_reads_the_served_file_as_a_crawler_does_and_not_only_as_text(): void {
+		$vector = $this->vectors()['blocks-on-answer-engines-removed'][0];
+		$this->build_site( $vector['given'] );
+		$fixer = new RobotsTxtFixer();
+		Registry::use_fixers( array( $fixer ) );
+		$choices = $vector['given']['choices'];
+		Runner::apply( $fixer, $choices, Runner::preview( $fixer, $choices )['hash'], 1 );
+		$agent = $choices['allow_agents'][0];
+
+		$good                                       = $vector['apply']['output']['robots.txt'];
+		$this->answers[ home_url( '/robots.txt' ) ] = array( 'body' => $good );
+		$this->assertTrue( $fixer->verify( array( 'output' => array( 'robots.txt' => $good ) ) )['live'] );
+
+		// The text matches what was previewed, but the file blocks the crawler the owner let in.
+		$blocked                                    = "User-agent: {$agent}\nDisallow: /\n";
+		$this->answers[ home_url( '/robots.txt' ) ] = array( 'body' => $blocked );
+		$this->assertFalse( $fixer->verify( array( 'output' => array( 'robots.txt' => $blocked ) ) )['live'] );
+
+		// A page cache serving the old file: not live, and the runner names the cache it found.
+		$this->answers[ home_url( '/robots.txt' ) ] = array( 'body' => $vector['given']['baseline']['robots.txt'] );
+		$this->assertFalse( $fixer->verify( array( 'output' => array( 'robots.txt' => $good ) ) )['live'] );
+	}
 }

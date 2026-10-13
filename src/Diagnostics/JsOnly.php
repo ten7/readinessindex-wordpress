@@ -32,13 +32,12 @@ final class JsOnly {
 		$result  = new Result( 'js_only' );
 		$posts   = get_posts(
 			array(
-				'post_type'        => array( 'page', 'post' ),
-				'post_status'      => 'publish',
-				'has_password'     => false,
-				'numberposts'      => 5,
-				'orderby'          => 'modified',
-				'order'            => 'DESC',
-				'suppress_filters' => true,
+				'post_type'    => array( 'page', 'post' ),
+				'post_status'  => 'publish',
+				'has_password' => false,
+				'numberposts'  => 5,
+				'orderby'      => 'modified',
+				'order'        => 'DESC',
 			)
 		);
 		$flagged = 0;

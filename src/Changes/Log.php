@@ -76,7 +76,7 @@ final class Log {
 	 */
 	public static function find( int $id ): ?array {
 		global $wpdb;
-		$table = Schema::table();
+		$table = esc_sql( Schema::table() );
 		$row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table.
 		return is_array( $row ) ? self::decode_row( $row ) : null;
 	}
@@ -90,7 +90,7 @@ final class Log {
 	 */
 	public static function recent( int $limit = 50, int $offset = 0 ): array {
 		global $wpdb;
-		$table = Schema::table();
+		$table = esc_sql( Schema::table() );
 		$rows  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $limit, $offset ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table.
 		return array_map( array( self::class, 'decode_row' ), is_array( $rows ) ? $rows : array() );
 	}
@@ -103,7 +103,7 @@ final class Log {
 	 */
 	public static function latest_applied( string $fixer ): ?array {
 		global $wpdb;
-		$table = Schema::table();
+		$table = esc_sql( Schema::table() );
 		$row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE fixer = %s AND action = %s AND status = %s ORDER BY id DESC LIMIT 1", $fixer, self::APPLY, self::APPLIED ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table.
 		return is_array( $row ) ? self::decode_row( $row ) : null;
 	}
@@ -113,7 +113,7 @@ final class Log {
 	 */
 	public static function count(): int {
 		global $wpdb;
-		$table = Schema::table();
+		$table = esc_sql( Schema::table() );
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table.
 	}
 
@@ -124,7 +124,7 @@ final class Log {
 	 */
 	public static function supersede_applied( string $fixer ): void {
 		global $wpdb;
-		$table = Schema::table();
+		$table = esc_sql( Schema::table() );
 		$wpdb->query( $wpdb->prepare( "UPDATE {$table} SET status = %s WHERE fixer = %s AND action = %s AND status = %s", self::SUPERSEDED, $fixer, self::APPLY, self::APPLIED ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The plugin's own table.
 	}
 

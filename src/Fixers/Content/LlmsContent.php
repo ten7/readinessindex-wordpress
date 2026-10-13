@@ -78,20 +78,20 @@ final class LlmsContent {
 			$args['orderby'] = 'date';
 			$args['order']   = 'DESC';
 		}
-		// Whatever the site already leaves out of its own sitemap, this leaves out too.
+		// Whatever the site already leaves out of its own sitemap, this leaves out too. The exclusion
+		// is applied after the query, with room left in it for what is dropped, so the limit holds.
 		$sitemap = apply_filters( 'wp_sitemaps_posts_query_args', array( 'post_type' => $type ), $type ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core's own hook.
-		if ( is_array( $sitemap ) && ! empty( $sitemap['post__not_in'] ) ) {
-			$args['post__not_in'] = array_map( 'absint', (array) $sitemap['post__not_in'] );
+		$left    = is_array( $sitemap ) && ! empty( $sitemap['post__not_in'] ) ? array_map( 'absint', (array) $sitemap['post__not_in'] ) : array();
+
+		$args['posts_per_page'] = $limit + count( $left );
+		$query                  = new \WP_Query( $args );
+		$posts                  = array();
+		foreach ( $query->posts as $post ) {
+			if ( $post instanceof \WP_Post && ! in_array( $post->ID, $left, true ) ) {
+				$posts[] = $post;
+			}
 		}
-		$query = new \WP_Query( $args );
-		return array_values(
-			array_filter(
-				$query->posts,
-				static function ( $post ): bool {
-					return $post instanceof \WP_Post;
-				}
-			)
-		);
+		return array_slice( $posts, 0, $limit );
 	}
 
 	/**

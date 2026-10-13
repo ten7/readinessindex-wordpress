@@ -169,4 +169,17 @@ final class DatesTest extends IntegrationCase {
 		$this->assertSame( 'core', $preview['findings']['channels']['sitemap'] );
 		$this->assertSame( 'own', $preview['findings']['channels']['jsonld'] );
 	}
+
+	public function test_the_preview_flags_a_modified_date_before_the_published_date_and_one_in_the_future(): void {
+		$early = $this->post( '2026-03-10 09:00:00', '2026-03-01 09:00:00' );
+		$late  = $this->post( '2026-03-10 09:00:00', gmdate( 'Y-m-d H:i:s', time() + 10 * DAY_IN_SECONDS ) );
+		$flags = array();
+		foreach ( Runner::preview( new DatesFixer(), array() )['flags'] as $flag ) {
+			$flags[ $flag['path'] ] = $flag['reason'];
+		}
+		$this->assertSame( 'modified_before_published', $flags[ \ReadinessIndex\Fixers\Content\PageSample::path( get_permalink( $early ) ) ] );
+		$this->assertSame( 'modified_in_future', $flags[ \ReadinessIndex\Fixers\Content\PageSample::path( get_permalink( $late ) ) ] );
+		clean_post_cache( $early );
+		$this->assertSame( '2026-03-01 09:00:00', get_post( $early )->post_modified_gmt, 'the stored date is flagged, never rewritten' );
+	}
 }
