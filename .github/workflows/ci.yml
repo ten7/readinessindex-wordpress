@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same ref makes the older run's result meaningless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-unit:
+    name: Lint and unit tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.1', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+      # The lockfile is resolved for the oldest supported PHP (composer.json's
+      # platform pin), so one install works across the whole matrix.
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer lint
+      - run: composer test
+
+  plugin-check:
+    name: WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }} (activation and Plugin Check)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # trunk is allowed to fail the build on purpose: it is the early warning
+        # for what the next WordPress release will break.
+        wp: ['6.4', 'latest', 'trunk']
+        php: ['7.4', '8.1', '8.4']
+        exclude:
+          # WordPress 6.4 is not tested on PHP 8.4, and trunk does not support 7.4.
+          - wp: '6.4'
+            php: '8.4'
+          - wp: 'trunk'
+            php: '7.4'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Configure wp-env for this cell
+        run: |
+          case "${{ matrix.wp }}" in
+            latest) core=null ;;
+            trunk)  core='"WordPress/WordPress#master"' ;;
+            *)      core='"WordPress/WordPress#${{ matrix.wp }}"' ;;
+          esac
+          printf '{ "core": %s, "phpVersion": "%s" }\n' "$core" "${{ matrix.php }}" > .wp-env.override.json
+          cat .wp-env.override.json
+      - run: npx wp-env start
+      - name: The plugin is active
+        run: |
+          npx wp-env run cli wp plugin is-active readiness-index
+          npx wp-env run cli wp eval 'echo "WordPress " . get_bloginfo("version") . ", PHP " . PHP_VERSION . "\n";'
+      - name: Plugin Check
+        run: npx wp-env run cli wp plugin check readiness-index --format=table
+
+  release-zip:
+    name: Release zip has no development files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The same script a person runs locally. It fails when the zip holds tests,
+      # vendor, node_modules, .github, composer files or docs.
+      - run: bin/build-zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: readiness-index-zip
+          path: dist/*.zip
+          if-no-files-found: error
