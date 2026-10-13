@@ -1,0 +1,522 @@
+{
+  "schema": 1,
+  "fixer": "entity-graph",
+  "case": "about-and-contact-pages",
+  "title": "About and Contact pages are typed as such, and the organization's contact points name the contact page",
+  "covers": [
+    "AIR-1.13",
+    "AIR-1.11"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co",
+      "language": "en-US",
+      "about_url": "https://example.com/about/",
+      "contact_url": "https://example.com/contact/"
+    },
+    "tooling": [],
+    "files": {},
+    "pages": [
+      {
+        "url": "https://example.com/about/",
+        "kind": "page",
+        "title": "About us"
+      },
+      {
+        "url": "https://example.com/contact/",
+        "kind": "page",
+        "title": "Contact"
+      }
+    ],
+    "state": null,
+    "choices": {
+      "organization": {
+        "contact_points": [
+          {
+            "type": "customer service",
+            "email": "hello@example.com"
+          }
+        ]
+      },
+      "search_template": null
+    }
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "mode": "own_graph",
+      "tooling": null,
+      "search_template": "none"
+    },
+    "changes": [
+      {
+        "target": "structured data",
+        "before": "none",
+        "after": "one linked graph"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/about/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "AboutPage"
+                ],
+                "@id": "https://example.com/about/#webpage",
+                "url": "https://example.com/about/",
+                "name": "About us",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/about/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/about/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "About us",
+                    "item": "https://example.com/about/"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/contact/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "ContactPage"
+                ],
+                "@id": "https://example.com/contact/#webpage",
+                "url": "https://example.com/contact/",
+                "name": "Contact",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/contact/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/contact/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Contact",
+                    "item": "https://example.com/contact/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "entity-graph",
+      "prior": null,
+      "new": {
+        "organization": {
+          "contact_points": [
+            {
+              "type": "customer service",
+              "email": "hello@example.com"
+            }
+          ]
+        },
+        "search_template": null
+      }
+    },
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/about/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "AboutPage"
+                ],
+                "@id": "https://example.com/about/#webpage",
+                "url": "https://example.com/about/",
+                "name": "About us",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/about/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/about/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "About us",
+                    "item": "https://example.com/about/"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/contact/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "ContactPage"
+                ],
+                "@id": "https://example.com/contact/#webpage",
+                "url": "https://example.com/contact/",
+                "name": "Contact",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/contact/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/contact/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Contact",
+                    "item": "https://example.com/contact/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "entity-graph",
+      "prior": {
+        "organization": {
+          "contact_points": [
+            {
+              "type": "customer service",
+              "email": "hello@example.com"
+            }
+          ]
+        },
+        "search_template": null
+      },
+      "new": null
+    },
+    "output": {
+      "prints_graph": false
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/about/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "AboutPage"
+                ],
+                "@id": "https://example.com/about/#webpage",
+                "url": "https://example.com/about/",
+                "name": "About us",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/about/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/about/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "About us",
+                    "item": "https://example.com/about/"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/contact/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "hello@example.com",
+                    "url": "https://example.com/contact/"
+                  }
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": [
+                  "WebPage",
+                  "ContactPage"
+                ],
+                "@id": "https://example.com/contact/#webpage",
+                "url": "https://example.com/contact/",
+                "name": "Contact",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/contact/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/contact/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Contact",
+                    "item": "https://example.com/contact/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,438 @@
+{
+  "schema": 1,
+  "fixer": "entity-graph",
+  "case": "home-and-an-inner-page",
+  "title": "One organization and one site on every page, a page node that points at them, and a breadcrumb below the home page",
+  "covers": [
+    "AIR-1.11",
+    "AIR-1.12",
+    "AIR-1.13",
+    "AIR-3.2",
+    "AIR-3.7"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co",
+      "language": "en-US",
+      "about_url": null,
+      "contact_url": null
+    },
+    "tooling": [],
+    "files": {},
+    "pages": [
+      {
+        "url": "https://example.com/",
+        "kind": "home",
+        "title": "Example Co"
+      },
+      {
+        "url": "https://example.com/services/lawn/",
+        "kind": "page",
+        "title": "Lawn care",
+        "breadcrumb": [
+          {
+            "name": "Services",
+            "url": "https://example.com/services/"
+          }
+        ]
+      }
+    ],
+    "state": null,
+    "choices": {
+      "organization": {
+        "same_as": [
+          "https://www.wikidata.org/wiki/Q42"
+        ]
+      },
+      "search_template": null
+    }
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "mode": "own_graph",
+      "tooling": null,
+      "search_template": "none"
+    },
+    "changes": [
+      {
+        "target": "structured data",
+        "before": "none",
+        "after": "one linked graph"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/#webpage",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "about": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/services/lawn/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/services/lawn/#webpage",
+                "url": "https://example.com/services/lawn/",
+                "name": "Lawn care",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/services/lawn/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/services/lawn/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Services",
+                    "item": "https://example.com/services/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Lawn care",
+                    "item": "https://example.com/services/lawn/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "entity-graph",
+      "prior": null,
+      "new": {
+        "organization": {
+          "same_as": [
+            "https://www.wikidata.org/wiki/Q42"
+          ]
+        },
+        "search_template": null
+      }
+    },
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/#webpage",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "about": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/services/lawn/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/services/lawn/#webpage",
+                "url": "https://example.com/services/lawn/",
+                "name": "Lawn care",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/services/lawn/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/services/lawn/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Services",
+                    "item": "https://example.com/services/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Lawn care",
+                    "item": "https://example.com/services/lawn/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "entity-graph",
+      "prior": {
+        "organization": {
+          "same_as": [
+            "https://www.wikidata.org/wiki/Q42"
+          ]
+        },
+        "search_template": null
+      },
+      "new": null
+    },
+    "output": {
+      "prints_graph": false
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "prints_graph": true,
+      "pages": [
+        {
+          "url": "https://example.com/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/#webpage",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "about": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              }
+            ]
+          }
+        },
+        {
+          "url": "https://example.com/services/lawn/",
+          "graph": {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://example.com/#organization",
+                "name": "Example Co",
+                "url": "https://example.com/",
+                "sameAs": [
+                  "https://www.wikidata.org/wiki/Q42"
+                ]
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://example.com/#website",
+                "url": "https://example.com/",
+                "name": "Example Co",
+                "publisher": {
+                  "@id": "https://example.com/#organization"
+                },
+                "inLanguage": "en-US"
+              },
+              {
+                "@type": "WebPage",
+                "@id": "https://example.com/services/lawn/#webpage",
+                "url": "https://example.com/services/lawn/",
+                "name": "Lawn care",
+                "isPartOf": {
+                  "@id": "https://example.com/#website"
+                },
+                "inLanguage": "en-US",
+                "breadcrumb": {
+                  "@id": "https://example.com/services/lawn/#breadcrumb"
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": "https://example.com/services/lawn/#breadcrumb",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://example.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Services",
+                    "item": "https://example.com/services/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Lawn care",
+                    "item": "https://example.com/services/lawn/"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

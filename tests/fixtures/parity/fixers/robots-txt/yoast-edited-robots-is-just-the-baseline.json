@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "fixer": "robots-txt",
+  "case": "yoast-edited-robots-is-just-the-baseline",
+  "title": "Another plugin's robots.txt editor is not a conflict: what it produces is the baseline, and the result is the same as without it",
+  "covers": [
+    "AIR-1.4",
+    "AIR-1.5"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [
+      "yoast"
+    ],
+    "files": {
+      "robots.txt": false
+    },
+    "baseline": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n"
+    },
+    "state": null,
+    "choices": {
+      "allow_agents": [],
+      "content_signals": {
+        "search": "yes",
+        "ai-input": "yes",
+        "ai-train": "no"
+      },
+      "policy": true
+    }
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "blocked_agents": [],
+      "content_signals": "none",
+      "policy_comment": "none"
+    },
+    "changes": [
+      {
+        "target": "robots.txt",
+        "before": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n",
+        "after": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "robots-txt",
+      "prior": null,
+      "new": {
+        "allow_agents": [],
+        "content_signals": {
+          "search": "yes",
+          "ai-input": "yes",
+          "ai-train": "no"
+        },
+        "policy": true
+      }
+    },
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "robots-txt",
+      "prior": {
+        "allow_agents": [],
+        "content_signals": {
+          "search": "yes",
+          "ai-input": "yes",
+          "ai-train": "no"
+        },
+        "policy": true
+      },
+      "new": null
+    },
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n"
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+    }
+  }
+}

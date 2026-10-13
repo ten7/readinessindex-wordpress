@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "fixer": "robots-directives",
+  "case": "case-and-spacing",
+  "title": "Directives are matched without regard to case or spaces",
+  "covers": [
+    "AIR-1.6"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {},
+    "pages": [
+      {
+        "path": "/a/",
+        "directives": [
+          "NoArchive",
+          " nosnippet ",
+          "Max-Snippet:0",
+          "follow"
+        ],
+        "source": "core"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "pages": [
+        {
+          "path": "/a/",
+          "removed": [
+            "NoArchive",
+            " nosnippet ",
+            "Max-Snippet:0"
+          ]
+        }
+      ],
+      "deferred": [],
+      "headers": []
+    },
+    "changes": [
+      {
+        "target": "robots meta of /a/",
+        "before": "NoArchive,  nosnippet , Max-Snippet:0, follow",
+        "after": "follow"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "follow"
+          ]
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "robots-directives",
+      "prior": null,
+      "new": {}
+    },
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "follow"
+          ]
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "robots-directives",
+      "prior": {},
+      "new": null
+    },
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "NoArchive",
+            " nosnippet ",
+            "Max-Snippet:0",
+            "follow"
+          ]
+        }
+      ]
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "follow"
+          ]
+        }
+      ]
+    }
+  }
+}

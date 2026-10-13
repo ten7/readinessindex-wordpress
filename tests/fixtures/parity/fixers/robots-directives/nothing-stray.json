@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "fixer": "robots-directives",
+  "case": "nothing-stray",
+  "title": "No page carries one: nothing to do",
+  "covers": [
+    "AIR-1.6"
+  ],
+  "tags": [
+    "noop"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {},
+    "pages": [
+      {
+        "path": "/",
+        "directives": [
+          "index",
+          "follow"
+        ],
+        "source": "core"
+      },
+      {
+        "path": "/a/",
+        "directives": [
+          "index"
+        ],
+        "source": "core"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "findings": {
+      "pages": [],
+      "deferred": [],
+      "headers": []
+    },
+    "changes": [],
+    "paste": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow"
+          ]
+        },
+        {
+          "path": "/a/",
+          "directives": [
+            "index"
+          ]
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "recorded": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow"
+          ]
+        },
+        {
+          "path": "/a/",
+          "directives": [
+            "index"
+          ]
+        }
+      ]
+    }
+  }
+}

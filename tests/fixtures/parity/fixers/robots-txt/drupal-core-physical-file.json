@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "fixer": "robots-txt",
+  "case": "drupal-core-physical-file",
+  "title": "Drupal core ships a physical robots.txt, which wins until it is removed",
+  "covers": [
+    "AIR-1.1",
+    "AIR-1.4"
+  ],
+  "tags": [
+    "conflict"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {
+      "robots.txt": true
+    },
+    "baseline": {
+      "robots.txt": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n"
+    },
+    "state": null,
+    "choices": {
+      "allow_agents": [],
+      "content_signals": {
+        "search": "yes",
+        "ai-input": "yes",
+        "ai-train": "no"
+      },
+      "policy": false
+    }
+  },
+  "preview": {
+    "status": "conflict",
+    "reason": "physical_file",
+    "findings": {
+      "blocked_agents": [],
+      "content_signals": "none",
+      "policy_comment": "none"
+    },
+    "changes": [
+      {
+        "target": "robots.txt",
+        "before": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n",
+        "after": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n\n# BEGIN Readiness Index\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+      }
+    ],
+    "paste": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n\n# BEGIN Readiness Index\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n",
+    "output": {
+      "robots.txt": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n\n# BEGIN Readiness Index\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+    }
+  },
+  "apply": {
+    "status": "refused",
+    "reason": "physical_file",
+    "recorded": null,
+    "output": {
+      "robots.txt": "User-agent: *\nCrawl-delay: 10\nDisallow: /core/\nDisallow: /profiles/\nDisallow: /admin/\nDisallow: /user/login/\n"
+    }
+  }
+}

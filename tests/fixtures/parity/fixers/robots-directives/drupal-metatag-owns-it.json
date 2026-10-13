@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "fixer": "robots-directives",
+  "case": "drupal-metatag-owns-it",
+  "title": "Drupal's Metatag module is treated the same way",
+  "covers": [
+    "AIR-1.6"
+  ],
+  "tags": [
+    "defer"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [
+      "metatag"
+    ],
+    "files": {},
+    "pages": [
+      {
+        "path": "/node/1",
+        "directives": [
+          "noarchive"
+        ],
+        "source": "tooling:metatag"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "defer",
+    "reason": "tooling_owns_it",
+    "findings": {
+      "pages": [],
+      "deferred": [
+        {
+          "path": "/node/1",
+          "tooling": "metatag"
+        }
+      ],
+      "headers": []
+    },
+    "changes": [],
+    "paste": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/node/1",
+          "directives": [
+            "noarchive"
+          ]
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "refused",
+    "reason": "tooling_owns_it",
+    "recorded": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/node/1",
+          "directives": [
+            "noarchive"
+          ]
+        }
+      ]
+    }
+  }
+}

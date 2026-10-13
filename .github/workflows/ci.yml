@@ -32,6 +32,9 @@ jobs:
       # platform pin), so one install works across the whole matrix.
       - run: composer install --no-interaction --prefer-dist
       - run: composer lint
+      - name: The golden vectors and the parity matrix are well formed
+        run: |
+          python3 tests/fixtures/parity/check_vectors.py tests/fixtures/parity/fixers
       - run: composer test
 
   plugin-check:
@@ -112,6 +115,8 @@ jobs:
           diff web/docs/cms-parity/strings/en.json strings/en.json
           diff web/docs/cms-parity/screens.md docs/contract/screens.md
           diff web/docs/cms-parity/MATRIX.md docs/contract/MATRIX.md
+          diff -r -x '*.md' web/docs/cms-parity/fixers tests/fixtures/parity/fixers
+          diff web/docs/cms-parity/check_vectors.py tests/fixtures/parity/check_vectors.py
       - name: No token, so only the hash pin is checked
         if: ${{ hashFiles('web/docs/cms-fixtures/openapi.json') == '' }}
         run: echo "::notice::WEB_REPO_READ_TOKEN is not set; the copy was checked against the pin's hashes only (ContractTest)."

@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "fixer": "robots-directives",
+  "case": "yoast-owns-it",
+  "title": "A directive that comes from Yoast's own setting is not removed behind its back: the owner is told where to change it",
+  "covers": [
+    "AIR-1.6"
+  ],
+  "tags": [
+    "defer"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [
+      "yoast"
+    ],
+    "files": {},
+    "pages": [
+      {
+        "path": "/a/",
+        "directives": [
+          "noarchive"
+        ],
+        "source": "tooling:yoast"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "defer",
+    "reason": "tooling_owns_it",
+    "findings": {
+      "pages": [],
+      "deferred": [
+        {
+          "path": "/a/",
+          "tooling": "yoast"
+        }
+      ],
+      "headers": []
+    },
+    "changes": [],
+    "paste": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "noarchive"
+          ]
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "refused",
+    "reason": "tooling_owns_it",
+    "recorded": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/a/",
+          "directives": [
+            "noarchive"
+          ]
+        }
+      ]
+    }
+  }
+}

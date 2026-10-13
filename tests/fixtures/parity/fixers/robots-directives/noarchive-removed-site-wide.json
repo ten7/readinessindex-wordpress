@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "fixer": "robots-directives",
+  "case": "noarchive-removed-site-wide",
+  "title": "A leftover noarchive on every page is removed",
+  "covers": [
+    "AIR-1.6"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {},
+    "pages": [
+      {
+        "path": "/",
+        "directives": [
+          "index",
+          "follow",
+          "noarchive",
+          "max-image-preview:large"
+        ],
+        "source": "core"
+      },
+      {
+        "path": "/about/",
+        "directives": [
+          "index",
+          "follow",
+          "noarchive",
+          "max-image-preview:large"
+        ],
+        "source": "core"
+      },
+      {
+        "path": "/blog/hello/",
+        "directives": [
+          "index",
+          "follow",
+          "noarchive"
+        ],
+        "source": "core"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "pages": [
+        {
+          "path": "/",
+          "removed": [
+            "noarchive"
+          ]
+        },
+        {
+          "path": "/about/",
+          "removed": [
+            "noarchive"
+          ]
+        },
+        {
+          "path": "/blog/hello/",
+          "removed": [
+            "noarchive"
+          ]
+        }
+      ],
+      "deferred": [],
+      "headers": []
+    },
+    "changes": [
+      {
+        "target": "robots meta of /",
+        "before": "index, follow, noarchive, max-image-preview:large",
+        "after": "index, follow, max-image-preview:large"
+      },
+      {
+        "target": "robots meta of /about/",
+        "before": "index, follow, noarchive, max-image-preview:large",
+        "after": "index, follow, max-image-preview:large"
+      },
+      {
+        "target": "robots meta of /blog/hello/",
+        "before": "index, follow, noarchive",
+        "after": "index, follow"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/about/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/blog/hello/",
+          "directives": [
+            "index",
+            "follow"
+          ]
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "robots-directives",
+      "prior": null,
+      "new": {}
+    },
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/about/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/blog/hello/",
+          "directives": [
+            "index",
+            "follow"
+          ]
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "robots-directives",
+      "prior": {},
+      "new": null
+    },
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow",
+            "noarchive",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/about/",
+          "directives": [
+            "index",
+            "follow",
+            "noarchive",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/blog/hello/",
+          "directives": [
+            "index",
+            "follow",
+            "noarchive"
+          ]
+        }
+      ]
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "pages": [
+        {
+          "path": "/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/about/",
+          "directives": [
+            "index",
+            "follow",
+            "max-image-preview:large"
+          ]
+        },
+        {
+          "path": "/blog/hello/",
+          "directives": [
+            "index",
+            "follow"
+          ]
+        }
+      ]
+    }
+  }
+}

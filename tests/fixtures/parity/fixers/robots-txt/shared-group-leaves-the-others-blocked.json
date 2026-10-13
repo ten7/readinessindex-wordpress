@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "fixer": "robots-txt",
+  "case": "shared-group-leaves-the-others-blocked",
+  "title": "One agent leaves a group it shared; the others stay blocked by the same rule",
+  "covers": [
+    "AIR-1.1"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {
+      "robots.txt": false
+    },
+    "baseline": {
+      "robots.txt": "User-agent: GPTBot\nUser-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+    },
+    "state": null,
+    "choices": {
+      "allow_agents": [
+        "GPTBot"
+      ],
+      "content_signals": null,
+      "policy": false
+    }
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "blocked_agents": [
+        "GPTBot",
+        "CCBot",
+        "Bytespider"
+      ],
+      "content_signals": "none",
+      "policy_comment": "none"
+    },
+    "changes": [
+      {
+        "target": "robots.txt",
+        "before": "User-agent: GPTBot\nUser-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n",
+        "after": "User-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "robots.txt": "User-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "robots-txt",
+      "prior": null,
+      "new": {
+        "allow_agents": [
+          "GPTBot"
+        ],
+        "content_signals": null,
+        "policy": false
+      }
+    },
+    "output": {
+      "robots.txt": "User-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "robots-txt",
+      "prior": {
+        "allow_agents": [
+          "GPTBot"
+        ],
+        "content_signals": null,
+        "policy": false
+      },
+      "new": null
+    },
+    "output": {
+      "robots.txt": "User-agent: GPTBot\nUser-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "robots.txt": "User-agent: CCBot\nUser-agent: Bytespider\nDisallow: /\n"
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "fixer": "dates",
+  "case": "drupal-without-a-sitemap-tool",
+  "title": "A Drupal site with no sitemap module: the dates are fixed, and the finding says the sitemap cannot be",
+  "covers": [
+    "AIR-4.8",
+    "AIR-5.4"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {},
+    "now": "2026-10-13T12:00:00+00:00",
+    "platform_sitemap": "none",
+    "items": [
+      {
+        "path": "/node/1",
+        "url": "https://example.com/node/1",
+        "published": "2026-01-05T09:00:00+00:00",
+        "modified_recorded": "2026-10-12T03:00:00+00:00",
+        "content_changed_at": "2026-03-02T10:30:00+00:00"
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "channels": {
+        "jsonld": "own",
+        "sitemap": "none"
+      },
+      "clustered": false,
+      "touched_without_change": [
+        "/node/1"
+      ],
+      "skipped": []
+    },
+    "changes": [
+      {
+        "target": "/node/1",
+        "before": "{\"datePublished\": \"2026-01-05T09:00:00+00:00\", \"dateModified\": \"2026-10-12T03:00:00+00:00\", \"lastmod\": \"2026-10-12T03:00:00+00:00\"}",
+        "after": "{\"datePublished\": \"2026-01-05T09:00:00+00:00\", \"dateModified\": \"2026-03-02T10:30:00+00:00\", \"lastmod\": \"2026-03-02T10:30:00+00:00\"}"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "items": [
+        {
+          "path": "/node/1",
+          "url": "https://example.com/node/1",
+          "datePublished": "2026-01-05T09:00:00+00:00",
+          "dateModified": "2026-03-02T10:30:00+00:00",
+          "lastmod": "2026-03-02T10:30:00+00:00"
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "dates",
+      "prior": null,
+      "new": {}
+    },
+    "output": {
+      "items": [
+        {
+          "path": "/node/1",
+          "url": "https://example.com/node/1",
+          "datePublished": "2026-01-05T09:00:00+00:00",
+          "dateModified": "2026-03-02T10:30:00+00:00",
+          "lastmod": "2026-03-02T10:30:00+00:00"
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "dates",
+      "prior": {},
+      "new": null
+    },
+    "output": {
+      "items": [
+        {
+          "path": "/node/1",
+          "url": "https://example.com/node/1",
+          "datePublished": "2026-01-05T09:00:00+00:00",
+          "dateModified": "2026-10-12T03:00:00+00:00",
+          "lastmod": "2026-10-12T03:00:00+00:00"
+        }
+      ]
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "items": [
+        {
+          "path": "/node/1",
+          "url": "https://example.com/node/1",
+          "datePublished": "2026-01-05T09:00:00+00:00",
+          "dateModified": "2026-03-02T10:30:00+00:00",
+          "lastmod": "2026-03-02T10:30:00+00:00"
+        }
+      ]
+    }
+  }
+}

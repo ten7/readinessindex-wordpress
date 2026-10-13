@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "fixer": "robots-txt",
+  "case": "physical-file-wins",
+  "title": "A real robots.txt on the server beats anything the CMS generates: the change is previewed to paste and nothing is applied",
+  "covers": [
+    "AIR-1.1",
+    "AIR-1.4",
+    "AIR-1.5"
+  ],
+  "tags": [
+    "conflict"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {
+      "robots.txt": true
+    },
+    "baseline": {
+      "robots.txt": "User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nDisallow: /admin/\n"
+    },
+    "state": null,
+    "choices": {
+      "allow_agents": [
+        "GPTBot"
+      ],
+      "content_signals": {
+        "search": "yes",
+        "ai-input": "yes",
+        "ai-train": "no"
+      },
+      "policy": true
+    }
+  },
+  "preview": {
+    "status": "conflict",
+    "reason": "physical_file",
+    "findings": {
+      "blocked_agents": [
+        "GPTBot"
+      ],
+      "content_signals": "none",
+      "policy_comment": "none"
+    },
+    "changes": [
+      {
+        "target": "robots.txt",
+        "before": "User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nDisallow: /admin/\n",
+        "after": "User-agent: *\nDisallow: /admin/\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+      }
+    ],
+    "paste": "User-agent: *\nDisallow: /admin/\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n",
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /admin/\n\n# BEGIN Readiness Index\n# Example Co publishes this site for people, and this file says what automated systems may do with it.\n# Search engines may crawl these pages and list them in search results.\n# AI assistants may read these pages to answer people's questions.\n# These pages may not be used to train AI models without a license from Example Co.\n# Anyone who wants to use this content in another way should ask for permission first.\n\nUser-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\n# END Readiness Index\n"
+    }
+  },
+  "apply": {
+    "status": "refused",
+    "reason": "physical_file",
+    "recorded": null,
+    "output": {
+      "robots.txt": "User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nDisallow: /admin/\n"
+    }
+  }
+}

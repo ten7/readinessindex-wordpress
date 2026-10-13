@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "fixer": "llms-txt",
+  "case": "clipped-and-cleaned",
+  "title": "Long descriptions are clipped, brackets and blank titles are handled, a page with no address is skipped and whitespace is collapsed",
+  "covers": [
+    "AIR-1.10"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co",
+      "description": "A family-run garden center."
+    },
+    "tooling": [],
+    "files": {
+      "llms.txt": false
+    },
+    "content": {
+      "sections": [
+        {
+          "name": "Pages",
+          "items": [
+            {
+              "title": "Guide [2026]",
+              "url": "https://example.com/guide/",
+              "description": "A very long description that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going "
+            },
+            {
+              "title": "",
+              "url": "https://example.com/untitled/",
+              "description": "  spaced \n out  "
+            },
+            {
+              "title": "No address",
+              "url": "",
+              "description": "skipped"
+            }
+          ]
+        }
+      ],
+      "sitemap_count": 3
+    },
+    "baseline": {
+      "llms.txt": ""
+    },
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "listed": 2,
+      "sitemap_count": 3,
+      "coverage_percent": 66,
+      "tracks_sitemap": false,
+      "truncated": false
+    },
+    "changes": [
+      {
+        "target": "llms.txt",
+        "before": "",
+        "after": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [Guide (2026)](https://example.com/guide/): A very long description that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going…\n- [https://example.com/untitled/](https://example.com/untitled/): spaced out\n"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [Guide (2026)](https://example.com/guide/): A very long description that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going…\n- [https://example.com/untitled/](https://example.com/untitled/): spaced out\n"
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "llms-txt",
+      "prior": null,
+      "new": {}
+    },
+    "output": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [Guide (2026)](https://example.com/guide/): A very long description that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going…\n- [https://example.com/untitled/](https://example.com/untitled/): spaced out\n"
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "llms-txt",
+      "prior": {},
+      "new": null
+    },
+    "output": {
+      "llms.txt": ""
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [Guide (2026)](https://example.com/guide/): A very long description that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going that keeps going…\n- [https://example.com/untitled/](https://example.com/untitled/): spaced out\n"
+    }
+  }
+}

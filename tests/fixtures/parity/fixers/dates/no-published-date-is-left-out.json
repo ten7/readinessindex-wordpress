@@ -1,0 +1,161 @@
+{
+  "schema": 1,
+  "fixer": "dates",
+  "case": "no-published-date-is-left-out",
+  "title": "A page with no published date is left out and listed",
+  "covers": [
+    "AIR-5.4"
+  ],
+  "tags": [
+    "apply",
+    "undo",
+    "idempotent"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {},
+    "now": "2026-10-13T12:00:00+00:00",
+    "platform_sitemap": "core",
+    "items": [
+      {
+        "path": "/a/",
+        "url": "https://example.com/a/",
+        "published": null,
+        "modified_recorded": "2026-05-06T09:00:00+00:00",
+        "content_changed_at": null
+      },
+      {
+        "path": "/b/",
+        "url": "https://example.com/b/",
+        "published": "2026-05-05T09:00:00+00:00",
+        "modified_recorded": "2026-05-06T09:00:00+00:00",
+        "content_changed_at": null
+      }
+    ],
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "ready",
+    "reason": null,
+    "findings": {
+      "channels": {
+        "jsonld": "own",
+        "sitemap": "core"
+      },
+      "clustered": false,
+      "touched_without_change": [],
+      "skipped": [
+        {
+          "path": "/a/",
+          "reason": "no_published_date"
+        }
+      ]
+    },
+    "changes": [
+      {
+        "target": "/a/",
+        "before": "{\"datePublished\": null, \"dateModified\": \"2026-05-06T09:00:00+00:00\", \"lastmod\": \"2026-05-06T09:00:00+00:00\"}",
+        "after": "{\"datePublished\": null, \"dateModified\": null, \"lastmod\": null}"
+      }
+    ],
+    "paste": null,
+    "output": {
+      "items": [
+        {
+          "path": "/a/",
+          "url": "https://example.com/a/",
+          "datePublished": null,
+          "dateModified": null,
+          "lastmod": null
+        },
+        {
+          "path": "/b/",
+          "url": "https://example.com/b/",
+          "datePublished": "2026-05-05T09:00:00+00:00",
+          "dateModified": "2026-05-06T09:00:00+00:00",
+          "lastmod": "2026-05-06T09:00:00+00:00"
+        }
+      ]
+    }
+  },
+  "apply": {
+    "status": "applied",
+    "reason": null,
+    "recorded": {
+      "fixer": "dates",
+      "prior": null,
+      "new": {}
+    },
+    "output": {
+      "items": [
+        {
+          "path": "/a/",
+          "url": "https://example.com/a/",
+          "datePublished": null,
+          "dateModified": null,
+          "lastmod": null
+        },
+        {
+          "path": "/b/",
+          "url": "https://example.com/b/",
+          "datePublished": "2026-05-05T09:00:00+00:00",
+          "dateModified": "2026-05-06T09:00:00+00:00",
+          "lastmod": "2026-05-06T09:00:00+00:00"
+        }
+      ]
+    }
+  },
+  "undo": {
+    "status": "undone",
+    "recorded": {
+      "fixer": "dates",
+      "prior": {},
+      "new": null
+    },
+    "output": {
+      "items": [
+        {
+          "path": "/a/",
+          "url": "https://example.com/a/",
+          "datePublished": null,
+          "dateModified": "2026-05-06T09:00:00+00:00",
+          "lastmod": "2026-05-06T09:00:00+00:00"
+        },
+        {
+          "path": "/b/",
+          "url": "https://example.com/b/",
+          "datePublished": "2026-05-05T09:00:00+00:00",
+          "dateModified": "2026-05-06T09:00:00+00:00",
+          "lastmod": "2026-05-06T09:00:00+00:00"
+        }
+      ]
+    }
+  },
+  "reapply": {
+    "status": "unchanged",
+    "recorded": null,
+    "output": {
+      "items": [
+        {
+          "path": "/a/",
+          "url": "https://example.com/a/",
+          "datePublished": null,
+          "dateModified": null,
+          "lastmod": null
+        },
+        {
+          "path": "/b/",
+          "url": "https://example.com/b/",
+          "datePublished": "2026-05-05T09:00:00+00:00",
+          "dateModified": "2026-05-06T09:00:00+00:00",
+          "lastmod": "2026-05-06T09:00:00+00:00"
+        }
+      ]
+    }
+  }
+}

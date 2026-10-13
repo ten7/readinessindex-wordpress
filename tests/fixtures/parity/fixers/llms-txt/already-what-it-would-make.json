@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "fixer": "llms-txt",
+  "case": "already-what-it-would-make",
+  "title": "The baseline is exactly what the fixer would write",
+  "covers": [
+    "AIR-1.10"
+  ],
+  "tags": [
+    "noop"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co",
+      "description": "A family-run garden center."
+    },
+    "tooling": [],
+    "files": {
+      "llms.txt": false
+    },
+    "content": {
+      "sections": [
+        {
+          "name": "Pages",
+          "items": [
+            {
+              "title": "About us",
+              "url": "https://example.com/about/",
+              "description": "Who we are."
+            },
+            {
+              "title": "Contact",
+              "url": "https://example.com/contact/",
+              "description": ""
+            },
+            {
+              "title": "Services",
+              "url": "https://example.com/services/",
+              "description": "What we plant, prune and design."
+            }
+          ]
+        }
+      ],
+      "sitemap_count": 3
+    },
+    "baseline": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [About us](https://example.com/about/): Who we are.\n- [Contact](https://example.com/contact/)\n- [Services](https://example.com/services/): What we plant, prune and design.\n"
+    },
+    "state": null,
+    "choices": {}
+  },
+  "preview": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "findings": {
+      "listed": 3,
+      "sitemap_count": 3,
+      "coverage_percent": 100,
+      "tracks_sitemap": true,
+      "truncated": false
+    },
+    "changes": [],
+    "paste": null,
+    "output": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [About us](https://example.com/about/): Who we are.\n- [Contact](https://example.com/contact/)\n- [Services](https://example.com/services/): What we plant, prune and design.\n"
+    }
+  },
+  "apply": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "recorded": null,
+    "output": {
+      "llms.txt": "# Example Co\n\n> A family-run garden center.\n\n## Pages\n\n- [About us](https://example.com/about/): Who we are.\n- [Contact](https://example.com/contact/)\n- [Services](https://example.com/services/): What we plant, prune and design.\n"
+    }
+  }
+}

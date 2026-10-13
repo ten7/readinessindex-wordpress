@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "fixer": "robots-txt",
+  "case": "nothing-chosen-nothing-changes",
+  "title": "No crawlers chosen and no position stated: nothing to do",
+  "covers": [
+    "AIR-1.1"
+  ],
+  "tags": [
+    "noop"
+  ],
+  "given": {
+    "site": {
+      "url": "https://example.com",
+      "name": "Example Co"
+    },
+    "tooling": [],
+    "files": {
+      "robots.txt": false
+    },
+    "baseline": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n"
+    },
+    "state": null,
+    "choices": {
+      "allow_agents": [],
+      "content_signals": null,
+      "policy": false
+    }
+  },
+  "preview": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "findings": {
+      "blocked_agents": [],
+      "content_signals": "none",
+      "policy_comment": "none"
+    },
+    "changes": [],
+    "paste": null,
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n"
+    }
+  },
+  "apply": {
+    "status": "unchanged",
+    "reason": "nothing_to_change",
+    "recorded": null,
+    "output": {
+      "robots.txt": "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: https://example.com/wp-sitemap.xml\n"
+    }
+  }
+}
