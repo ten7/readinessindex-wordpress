@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+# Deploy this plugin's built zip to the Pantheon dev site Ivan reviews it on.
+#
+# The plugin repository and the Pantheon site repository are separate git repositories
+# with no link between them; this script is the link. What it ships is the release zip
+# that bin/build-zip produces, unpacked, and never the working tree, so a test, vendor/
+# or a CLAUDE.md cannot reach the site: whatever .distignore leaves out stays out.
+#
+# SAFETY. The Pantheon account holds about sixty client sites. The allowlist below is
+# the whole of what this script may touch: one site, one environment. It is checked
+# before any other work, before the first terminus call, and a flag cannot widen it.
+# Do not make it configurable, and do not add a second entry.
+#
+# Usage: bin/deploy-pantheon [--origin <url>] [--allow-dirty] [--dry-run]
+#                            [--site <name>] [--env <name>]   (both must match the allowlist)
+set -euo pipefail
+
+readonly ALLOWED_SITE="readiness-index-wordpress-plugin"
+readonly ALLOWED_ENV="dev"
+readonly TARGET="${ALLOWED_SITE}.${ALLOWED_ENV}"
+readonly PLUGIN_SLUG="readiness-index"
+# The web repository's environment guide, which says where edge lives.
+readonly EDGE_DOC="${READINESS_EDGE_DOC:-/Users/ivan/git/ai-readiness-index/docs/EDGE.md}"
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+site="${ALLOWED_SITE}"
+env_name="${ALLOWED_ENV}"
+origin=""
+allow_dirty=0
+dry_run=0
+
+die() {
+	echo "deploy-pantheon: $*" >&2
+	exit 1
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--site)        [ $# -ge 2 ] || die "--site needs a value"; site="$2"; shift 2 ;;
+		--env)         [ $# -ge 2 ] || die "--env needs a value"; env_name="$2"; shift 2 ;;
+		--origin)      [ $# -ge 2 ] || die "--origin needs a value"; origin="$2"; shift 2 ;;
+		--allow-dirty) allow_dirty=1; shift ;;
+		--dry-run)     dry_run=1; shift ;;
+		-h|--help)     sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit 0 ;;
+		*)             die "unknown option: $1" ;;
+	esac
+done
+
+# The allowlist. Exact string comparison, so "readiness-index-wordpress-plugin.dev",
+# "live", a trailing space or a client's site name all fail here.
+if [ "${site}" != "${ALLOWED_SITE}" ]; then
+	die "refusing site '${site}': this script deploys only to '${ALLOWED_SITE}'. Every other Pantheon site on the account is a client's."
+fi
+if [ "${env_name}" != "${ALLOWED_ENV}" ]; then
+	die "refusing environment '${env_name}': this script deploys only to '${ALLOWED_ENV}'."
+fi
+
+say() { echo "==> $*"; }
+
+# A terminus call that changes something on Pantheon. In a dry run it is printed and not
+# run, so the dry run's output is the list of writes a real run would make.
+terminus_write() {
+	if [ "${dry_run}" -eq 1 ]; then
+		echo "DRY RUN, not run: terminus $*"
+		return 0
+	fi
+	terminus "$@"
+}
+
+# 1. The plugin repository must be in a state worth naming in a commit message.
+tree_dirty=0
+if [ -n "$(git -C "${ROOT}" status --porcelain)" ]; then
+	tree_dirty=1
+	if [ "${allow_dirty}" -ne 1 ]; then
+		die "the plugin working tree is dirty. Commit or stash, or pass --allow-dirty to deploy it anyway (the Pantheon commit will say so)."
+	fi
+fi
+short_hash="$(git -C "${ROOT}" rev-parse --short HEAD)"
+if [ "${tree_dirty}" -eq 1 ]; then
+	dirty_words="with uncommitted changes in the working tree"
+else
+	dirty_words="from a clean working tree"
+fi
+
+# The API origin: the flag, else edge as the web repository's own guide names it.
+if [ -z "${origin}" ]; then
+	[ -r "${EDGE_DOC}" ] || die "no --origin given and ${EDGE_DOC} is not readable."
+	# The environments table row that starts with "Edge", third column.
+	edge_host="$(awk -F'|' '$2 ~ /^ *Edge *$/ { gsub(/[ `]/, "", $4); print $4; exit }' "${EDGE_DOC}")"
+	[ -n "${edge_host}" ] || die "no --origin given and no Edge row found in ${EDGE_DOC}."
+	origin="https://${edge_host}"
+	say "No --origin given. ${EDGE_DOC} lists the edge host as ${edge_host}, so the API origin is ${origin}."
+fi
+# The value is written into PHP source. A strict shape means a quote or a semicolon
+# cannot become code in wp-config.php.
+if ! printf '%s' "${origin}" | grep -Eq '^https?://[A-Za-z0-9.-]+(:[0-9]+)?$'; then
+	die "--origin must look like https://host or https://host:port, with no path (got '${origin}')."
+fi
+
+# Both temporary directories live under one mktemp -d, outside this repository and
+# outside the Pantheon one, and go away however the script ends.
+work="$(mktemp -d "${TMPDIR:-/tmp}/readiness-index-deploy.XXXXXX")"
+trap 'rm -rf "${work}"' EXIT
+case "${work}/" in
+	"${ROOT}/"*) die "the temporary directory is inside the plugin repository: ${work}" ;;
+esac
+unpacked="${work}/unpacked"
+clone="${work}/pantheon-repo"
+
+# 2. Build and unpack. bin/build-zip fails when the zip holds development files, so a
+# zip that exists here is one that is safe to ship.
+say "Building the release zip."
+"${ROOT}/bin/build-zip" > "${work}/build.log" || { cat "${work}/build.log" >&2; die "bin/build-zip failed."; }
+zips=( "${ROOT}"/dist/${PLUGIN_SLUG}-*.zip )
+[ "${#zips[@]}" -eq 1 ] && [ -f "${zips[0]}" ] || die "expected exactly one zip in dist/, found ${#zips[@]}."
+mkdir -p "${unpacked}"
+unzip -q "${zips[0]}" -d "${unpacked}"
+[ -f "${unpacked}/${PLUGIN_SLUG}/${PLUGIN_SLUG}.php" ] || die "the unpacked zip has no ${PLUGIN_SLUG}/${PLUGIN_SLUG}.php."
+version="$(basename "${zips[0]}" .zip)"
+version="${version#"${PLUGIN_SLUG}"-}"
+say "Built ${PLUGIN_SLUG} ${version}."
+
+# 3. Do not overwrite work somebody did over SFTP, and switch to git mode if needed.
+mode="$(terminus env:info "${TARGET}" --format=json | python3 -c 'import json,sys; print(json.load(sys.stdin).get("connection_mode",""))')"
+say "${TARGET} is in ${mode} mode."
+if [ "${mode}" = "sftp" ]; then
+	# A switch to git mode with pending SFTP changes would orphan them. env:diffstat
+	# prints [] when there are none; anything else is somebody's unsaved work.
+	diffstat="$(terminus env:diffstat "${TARGET}" --format=json 2>/dev/null || true)"
+	if [ -n "${diffstat}" ] && [ "${diffstat}" != "[]" ] && [ "${diffstat}" != "{}" ]; then
+		echo "${diffstat}" >&2
+		die "${TARGET} has uncommitted SFTP changes (above). Commit or discard them in the Pantheon dashboard first; this script will not overwrite them."
+	fi
+	say "No uncommitted SFTP changes. Switching to git mode."
+	terminus_write connection:set "${TARGET}" git
+elif [ "${mode}" != "git" ]; then
+	die "unexpected connection mode '${mode}'."
+fi
+
+# 4. Clone the Pantheon repository. The URL is taken from terminus's own output by
+# parsing, never by evaluating the string it prints.
+git_command="$(terminus connection:info "${TARGET}" --format=json | python3 -c 'import json,sys; print(json.load(sys.stdin).get("git_command",""))')"
+repo_url=""
+for word in ${git_command}; do
+	case "${word}" in ssh://*) repo_url="${word}"; break ;; esac
+done
+# Pantheon's code servers are on drush.in. Anything else means the output changed shape
+# or was tampered with, and pushing there is not what this script is for.
+printf '%s' "${repo_url}" | grep -Eq '^ssh://[A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.drush\.in:[0-9]+/~/repository\.git$' \
+	|| die "could not find a Pantheon ssh:// repository URL in terminus's git_command."
+say "Cloning the Pantheon repository into a temporary directory."
+GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}" git clone --quiet "${repo_url}" "${clone}"
+
+plugins_dir="${clone}/wp-content/plugins"
+wp_config="${clone}/wp-config.php"
+[ -d "${plugins_dir}" ] || die "the Pantheon repository has no wp-content/plugins directory."
+[ -f "${wp_config}" ] || die "the Pantheon repository has no wp-config.php at its root."
+
+# --delete is limited to the one plugin directory: the trailing slashes make rsync
+# compare the two directories' contents, and the destination is that directory alone.
+mkdir -p "${plugins_dir}/${PLUGIN_SLUG}"
+rsync -a --delete "${unpacked}/${PLUGIN_SLUG}/" "${plugins_dir}/${PLUGIN_SLUG}/"
+
+# 6. The API origin, in the Pantheon repository's wp-config.php only. The block is
+# delimited so a rerun replaces it, and sits above the stop-editing line because
+# wp-settings.php loads right after that line and the constant must exist by then.
+begin_marker="// BEGIN readiness-index api origin (written by bin/deploy-pantheon, do not edit)"
+end_marker="// END readiness-index api origin"
+grep -q "That's all, stop editing" "${wp_config}" || die "wp-config.php has no \"That's all, stop editing\" line to put the origin block above."
+awk -v begin="${begin_marker}" -v end="${end_marker}" -v origin="${origin}" '
+	$0 == begin { skipping = 1; next }
+	skipping && $0 == end { skipping = 0; next }
+	skipping { next }
+	/That.s all, stop editing/ && !done {
+		print begin
+		print "define( '\''READINESS_INDEX_API_ORIGIN'\'', '\''" origin "'\'' );"
+		print end
+		print ""
+		done = 1
+	}
+	{ print }
+' "${wp_config}" > "${work}/wp-config.new"
+cat "${work}/wp-config.new" > "${wp_config}"
+
+git -C "${clone}" add -A -- "wp-content/plugins/${PLUGIN_SLUG}" wp-config.php
+if git -C "${clone}" diff --cached --quiet; then
+	say "The Pantheon repository already matches this build and origin. Nothing to commit."
+	pushed=0
+else
+	git -C "${clone}" commit --quiet -F - <<EOF
+Deploy readiness-index ${version} from plugin commit ${short_hash}
+
+This is the plugin repository's commit ${short_hash}, built into its release zip and
+unpacked here ${dirty_words}. Only the zip's contents were copied, so no development
+files are in this tree. The API origin in wp-config.php is ${origin}.
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+EOF
+	if [ "${dry_run}" -eq 1 ]; then
+		echo "DRY RUN, not run: git push origin HEAD:master"
+		pushed=0
+	else
+		push_started="$(date +%s)"
+		say "Pushing to the Pantheon master branch."
+		GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}" git -C "${clone}" push origin HEAD:master
+		pushed=1
+	fi
+fi
+
+# 5. Wait for Pantheon to finish syncing the code, then activate.
+if [ "${pushed}" -eq 1 ]; then
+	say "Waiting for the Pantheon code sync."
+	terminus workflow:wait "${TARGET}" --start="${push_started}" --max=600
+fi
+terminus_write wp "${TARGET}" -- plugin activate "${PLUGIN_SLUG}"
+
+# 7. Show what is there. Reads only.
+domain="$(terminus env:info "${TARGET}" --format=json | python3 -c 'import json,sys; print(json.load(sys.stdin).get("domain",""))')"
+echo
+say "PHP loads cleanly (this prints 1):"
+terminus wp "${TARGET}" -- eval 'echo 1;' || true
+echo
+terminus wp "${TARGET}" -- plugin list --fields=name,status,version || true
+echo
+status="$(curl -s -o /dev/null -w '%{http_code}' "https://${domain}/" || true)"
+say "Front page https://${domain}/ answered HTTP ${status}."
+echo "wp-admin:  https://${domain}/wp-admin/ (the plugin's menu is under it)"
+echo "Login:     this script creates and prints no credentials. Use the Pantheon dashboard's"
+echo "           login link for ${ALLOWED_SITE}, or list users with:"
+echo "           terminus wp ${TARGET} -- user list"
+if [ "${dry_run}" -eq 1 ]; then
+	echo
+	say "Dry run: nothing was pushed and no terminus write was made."
+fi

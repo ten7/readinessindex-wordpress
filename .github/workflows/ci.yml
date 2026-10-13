@@ -88,6 +88,8 @@ jobs:
       # The same script a person runs locally. It fails when the zip holds tests,
       # vendor, node_modules, .github, composer files or docs.
       - run: bin/build-zip
+      - name: The Pantheon deploy script's tests (shimmed, no network)
+        run: tests/deploy-pantheon-test.sh
       # Plugin Requires PHP: 7.4, but wp-env cannot build a 7.4 site (see the
       # plugin-check matrix), so the shipped files are parsed by a real 7.4 binary here.
       # It reads the unpacked zip and not the working tree: syntax that only a file

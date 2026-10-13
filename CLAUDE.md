@@ -22,6 +22,8 @@ composer lint               # PHPCS: WordPress Coding Standards, PHP 7.4 to late
 composer lint:fix           # phpcbf
 composer test               # PHPUnit unit suite (Brain Monkey, no WordPress)
 bin/build-zip               # build dist/readiness-index-<version>.zip and fail on dev files
+bin/deploy-pantheon --dry-run   # deploy to the Pantheon dev site; docs/DEPLOY-PANTHEON.md
+tests/deploy-pantheon-test.sh   # shim-based test of that script; no network
 
 npm install
 bin/wp-env-variant plain    # or yoast, rankmath, dist
@@ -105,6 +107,15 @@ Comments and commit messages are written to be read by Ivan, who notices.
 tests, `vendor`, `node_modules`, `.github`, composer files or docs, checking the outcome
 without reading `.distignore`. CI runs the same script. Add a new development-only file
 to `.distignore`; if the check trips, the file is in the zip and a reviewer would see it.
+
+## Pantheon
+
+`bin/deploy-pantheon` ships the built zip to one Pantheon dev site and nowhere else. Its
+allowlist (site `readiness-index-wordpress-plugin`, environment `dev`) is hard-coded on
+purpose: the account holds client sites, and the script must never run a command against
+one. Never widen it, never add a flag that bypasses it, never run `terminus auth:*` or read
+the machine token. `READINESS_INDEX_API_ORIGIN` is defined only in the Pantheon repository's
+`wp-config.php` by that script, never in this repository. See `docs/DEPLOY-PANTHEON.md`.
 
 ## CI and PHP 7.4
 
