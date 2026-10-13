@@ -104,6 +104,12 @@ Two things only the real host showed, both fixed:
 - The site's request to its own public address was answered by Cloudflare's challenge page (a 403). The plugin compared that page with what it had made and said "not live" about a change that was live. A refused request is now "could not look", with its own sentence, and a diagnostic whose own request was refused says so and does not claim the crawlers were answered alike.
 - The host's edge cache kept the old home page for a week. Pantheon's and WP Engine's documented purge functions are now detected, called after a change, and named.
 
+## Hardening and release (READY-257), as far as it can go without Ivan
+
+Written and tested: `docs/SECURITY.md` and a test that fails when an entry point is added without it; `docs/COMPATIBILITY.md` with the failure drills mapped to tests; a front-end performance budget test; `bin/check-version` (CI), checksums beside the zip, a tag-triggered workflow that builds the zip and attaches it to the run, `docs/RELEASING.md`, `bin/release-svn` (never run); the privacy policy paragraph; the readme's pretty-permalinks note; the Playwright suite against the stand-in API. The kit has no string for an unreachable-screen permalinks hint, so none was added; it is a kit proposal.
+
+Needs Ivan: submitting to wordpress.org, making the repository public, a public release, a signing key, a dedicated edge test account (the Playwright run against edge and the nightly real-scan loop), the security-disclosure address and support path, the name check, listing banner, icon and screenshots.
+
 ## Decisions the contract leaves open
 
 - The sentences a screen needs and `strings/en.json` does not have (a stale preview, a refused Undo, the uninstall setting, the diagnostics' results) are in `strings/plugin.en.json`, kept from shadowing the contract's by a test, and proposed to the kit.

@@ -61,3 +61,18 @@ ri_preview_apply llms-txt
 What it cannot do is connect the site to Readiness Index: that needs a person at the staging password and
 a WorkOS sign-in, so the Fixes tab's list (fed by the API) is not driven from here. Each preview page is
 reachable by its address without the API: `admin.php?page=readiness-index-preview&fixer=robots-txt`.
+
+## Browser tests (Playwright, `tests/e2e/playwright`)
+
+The Fixes tab, a hand-it-on prompt, preview, Apply, the change being served and Undo, in Chromium at desktop and
+phone width, against the stand-in API (`tests/e2e/fake-api.php`) and never against edge. They sign in as wp-env's
+default administrator on localhost.
+
+```bash
+php -S 0.0.0.0:8099 tests/e2e/fake-api.php &        # and start wp-env with the origin pointed at it
+npx playwright install chromium
+npx playwright test -c tests/e2e/playwright
+```
+
+The run against edge (Connect through the real consent page, a real scan of a site we own, the score rising by what
+each fixer claims) needs a dedicated edge test account and is **not written**: creating the account is Ivan's.
