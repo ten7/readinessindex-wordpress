@@ -1,0 +1,60 @@
+{
+  "name": "site/no-rescans-left",
+  "description": "A free account with all five rescans spent: `rescans_left` 0 and the next step is Basic.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "SiteResponse",
+    "body": {
+      "site": {
+        "host": "example.com",
+        "verified": false
+      },
+      "scan": {
+        "state": "done",
+        "token": "scan-token-6",
+        "finished_at": "2026-10-10T12:00:00+00:00",
+        "pages_read": null,
+        "truncated": {
+          "pages": false,
+          "time": false
+        },
+        "problem": null
+      },
+      "score": null,
+      "fixes": [],
+      "allowance": {
+        "rescans_left": 0,
+        "rescans_total": 5,
+        "plan": "Full report",
+        "lifetime": true,
+        "can_buy_pack": false,
+        "standing": {
+          "state": "unstarted",
+          "days_left": null,
+          "writable": true
+        },
+        "next_step": {
+          "key": "upgrade_basic",
+          "label": "See the Basic plan",
+          "url": "https://readinessindex.io/billing/checkout/basic",
+          "message": "All of this account's rescans are used. Basic includes rescans every month and weekly monitoring."
+        },
+        "pack_url": null
+      },
+      "index": {
+        "version": "11.5",
+        "date": "2026-10-11"
+      },
+      "notices": []
+    }
+  }
+}

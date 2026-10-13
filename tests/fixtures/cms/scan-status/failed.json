@@ -1,0 +1,24 @@
+{
+  "name": "scan-status/failed",
+  "description": "Failed, with one plain sentence.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/scan/scan-token-4",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "ScanStatus",
+    "body": {
+      "scan": "scan-token-4",
+      "state": "failed",
+      "finished_at": "2026-10-10T12:00:00+00:00",
+      "progress": null,
+      "problem": "The site took too long to answer, so the scan stopped. Run it again, or try later."
+    }
+  }
+}

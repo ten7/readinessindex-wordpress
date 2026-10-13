@@ -1,0 +1,21 @@
+{
+  "name": "errors/account-disabled",
+  "description": "The account behind the key is disabled.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 403,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "account_disabled",
+      "message": "This Readiness Index account is disabled, so its sites cannot be scanned or read."
+    }
+  }
+}

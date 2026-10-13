@@ -1,0 +1,46 @@
+{
+  "name": "errors/quota",
+  "description": "The sixth request on a free account: nothing is created or spent, and the answer carries the allowance and the next step.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/scan",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 409,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "quota",
+      "message": "A free account includes 5 rescans in all, and you have used them. A paid plan includes rescans every month; the plans are on the pricing page (/pricing).",
+      "allowance": {
+        "rescans_left": 0,
+        "rescans_total": 5,
+        "plan": "Full report",
+        "lifetime": true,
+        "can_buy_pack": false,
+        "standing": {
+          "state": "unstarted",
+          "days_left": null,
+          "writable": true
+        },
+        "next_step": {
+          "key": "upgrade_basic",
+          "label": "See the Basic plan",
+          "url": "https://readinessindex.io/billing/checkout/basic",
+          "message": "All of this account's rescans are used. Basic includes rescans every month and weekly monitoring."
+        },
+        "pack_url": null
+      },
+      "next_step": {
+        "key": "upgrade_basic",
+        "label": "See the Basic plan",
+        "url": "https://readinessindex.io/billing/checkout/basic",
+        "message": "All of this account's rescans are used. Basic includes rescans every month and weekly monitoring."
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "verify/already-verified",
+  "description": "A proof that stands is not looked for again; the answer does not change.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/verify",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "VerifyResponse",
+    "body": {
+      "verified": true,
+      "state": "verified"
+    }
+  }
+}

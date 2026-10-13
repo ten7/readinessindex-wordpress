@@ -1,0 +1,21 @@
+{
+  "name": "verify/verified",
+  "description": "The ownership file is served and matches: verified.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/verify",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "VerifyResponse",
+    "body": {
+      "verified": true,
+      "state": "verified"
+    }
+  }
+}

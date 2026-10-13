@@ -1,0 +1,22 @@
+{
+  "name": "errors/unreachable-no-answer",
+  "description": "The scanner cannot read the site (`no_answer`): nothing was used.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/scan",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 422,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "unreachable",
+      "message": "We could not reach this site from the internet. A site on a local address, behind a firewall or switched off cannot be scanned. Nothing was used.",
+      "reason": "no_answer"
+    }
+  }
+}

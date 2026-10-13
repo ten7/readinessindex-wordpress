@@ -1,0 +1,23 @@
+{
+  "name": "errors/unauthenticated",
+  "description": "No key, a revoked key and a key for another kind of caller all look the same.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "<none>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "www-authenticate": "Bearer"
+    },
+    "shape": "ErrorBody",
+    "body": {
+      "error": "unauthenticated",
+      "message": "This site is not connected to a Readiness Index account, or its connection was removed, so connect it again."
+    }
+  }
+}

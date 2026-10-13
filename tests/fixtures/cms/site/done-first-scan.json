@@ -1,0 +1,217 @@
+{
+  "name": "site/done-first-scan",
+  "description": "A finished first scan: score, grade, the seven dimensions, the ranked fixes, and `change.comparable` null because there is nothing to compare with.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "SiteResponse",
+    "body": {
+      "site": {
+        "host": "example.com",
+        "verified": false
+      },
+      "scan": {
+        "state": "done",
+        "token": "scan-token-2",
+        "finished_at": "2026-10-09T12:00:00+00:00",
+        "pages_read": 187,
+        "truncated": {
+          "pages": false,
+          "time": false
+        },
+        "problem": null
+      },
+      "score": {
+        "scan": "scan-token-2",
+        "finished_at": "2026-10-09T12:00:00+00:00",
+        "value": 91,
+        "grade": "Exemplary",
+        "verdict": "AI assistants are being turned away from your site.",
+        "gated": true,
+        "dimensions": [
+          {
+            "id": 1,
+            "name": "Primary Indicators",
+            "earned": 26,
+            "possible": 30
+          },
+          {
+            "id": 2,
+            "name": "Rendering and extraction",
+            "earned": 12,
+            "possible": 15
+          },
+          {
+            "id": 3,
+            "name": "Structured data and the entity graph",
+            "earned": 15,
+            "possible": 15
+          },
+          {
+            "id": 4,
+            "name": "Crawl, index and licensing hygiene",
+            "earned": 10,
+            "possible": 12
+          },
+          {
+            "id": 5,
+            "name": "Authorship, provenance, freshness",
+            "earned": 12,
+            "possible": 12
+          },
+          {
+            "id": 6,
+            "name": "Agent interfaces",
+            "earned": 8,
+            "possible": 8
+          },
+          {
+            "id": 7,
+            "name": "Alternate representations",
+            "earned": 8,
+            "possible": 8
+          }
+        ],
+        "change": {
+          "comparable": null,
+          "message": "This is the first finished full scan."
+        }
+      },
+      "fixes": [
+        {
+          "rank": 1,
+          "check": "AIR-1.1",
+          "title": "No blanket robots.txt blocks on AI crawler user-agents",
+          "points": 4,
+          "why": "Your robots.txt tells crawlers what they may read. One stale line, often copied from an old template, can shut out the assistants people now use to find you.",
+          "severity": "critical",
+          "effort": "small",
+          "fixed_by": [
+            {
+              "role": "Search specialist",
+              "who": "SEO and digital marketing, analytics"
+            },
+            {
+              "role": "Site owner",
+              "who": "Leadership, the communications head, counsel"
+            }
+          ],
+          "untrusted_site_text": {
+            "summary": "An example finding.",
+            "evidence": [
+              {
+                "url": null,
+                "note": "robots.txt blocks OAI-SearchBot"
+              }
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "check": "AIR-2.1",
+          "title": "Primary content is present without JavaScript",
+          "points": 3,
+          "why": "If your content only appears after JavaScript runs, a crawler that does not run it sees an empty page. This is the heaviest check in the Index.",
+          "severity": "major",
+          "effort": "large",
+          "fixed_by": [
+            {
+              "role": "Front-end developer",
+              "who": "Themer, UI engineer, accessibility developer"
+            },
+            {
+              "role": "Back-end developer",
+              "who": "CMS developer, platform engineer, module developer"
+            }
+          ],
+          "untrusted_site_text": {
+            "summary": "An example finding.",
+            "evidence": []
+          }
+        },
+        {
+          "rank": 3,
+          "check": "AIR-4.2",
+          "title": "RSL terms propagated to feeds and schema",
+          "points": 1,
+          "why": "Licensing that travels with the content — in your feeds and your structured data, not only in one file nobody fetches.",
+          "severity": "minor",
+          "effort": "small",
+          "fixed_by": [
+            {
+              "role": "Back-end developer",
+              "who": "CMS developer, platform engineer, module developer"
+            }
+          ],
+          "untrusted_site_text": {
+            "summary": "RSL terms propagated to feeds and schema",
+            "evidence": [
+              {
+                "url": null,
+                "heading": "What we looked for",
+                "looked_for": "RSL terms propagated to feeds and schema",
+                "found": "the test this one builds on is not passing yet",
+                "scored_as": "band 0 of 4"
+              }
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "check": "AIR-4.1",
+          "title": "RSL licensing document published and referenced",
+          "points": 1,
+          "why": "Machine-readable licensing terms, so an AI company can find out what you allow without emailing you first.",
+          "severity": "minor",
+          "effort": "medium",
+          "fixed_by": [
+            {
+              "role": "Site owner",
+              "who": "Leadership, the communications head, counsel"
+            },
+            {
+              "role": "Back-end developer",
+              "who": "CMS developer, platform engineer, module developer"
+            }
+          ],
+          "untrusted_site_text": {
+            "summary": "An example finding.",
+            "evidence": []
+          }
+        }
+      ],
+      "allowance": {
+        "rescans_left": 5,
+        "rescans_total": 5,
+        "plan": "Full report",
+        "lifetime": true,
+        "can_buy_pack": false,
+        "standing": {
+          "state": "unstarted",
+          "days_left": null,
+          "writable": true
+        },
+        "next_step": {
+          "key": "monitoring_basic",
+          "label": "Watch this site every week",
+          "url": "https://readinessindex.io/billing/checkout/basic",
+          "message": "Basic scans this site every week and emails you when the score drops."
+        },
+        "pack_url": null
+      },
+      "index": {
+        "version": "11.5",
+        "date": "2026-10-11"
+      },
+      "notices": []
+    }
+  }
+}

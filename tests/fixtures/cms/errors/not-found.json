@@ -1,0 +1,21 @@
+{
+  "name": "errors/not-found",
+  "description": "A scan that is not this site's, or does not exist.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/scan/nope",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "not_found",
+      "message": "There is no such scan for this site."
+    }
+  }
+}

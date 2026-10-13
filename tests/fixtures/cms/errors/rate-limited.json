@@ -1,0 +1,25 @@
+{
+  "name": "errors/rate-limited",
+  "description": "More calls in a minute than the key's ceiling.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 429,
+    "headers": {
+      "Retry-After": "60",
+      "retry-after": "61"
+    },
+    "shape": "ErrorBody",
+    "body": {
+      "error": "rate_limited",
+      "message": "Too many calls too quickly, so try again in about 60 seconds.",
+      "retry_after": 60
+    }
+  }
+}

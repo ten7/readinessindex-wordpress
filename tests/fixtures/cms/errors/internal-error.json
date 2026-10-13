@@ -1,0 +1,21 @@
+{
+  "name": "errors/internal-error",
+  "description": "Our side failed; no trace is ever sent.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 500,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "internal_error",
+      "message": "Something went wrong on our side, so try again in a minute."
+    }
+  }
+}

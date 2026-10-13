@@ -1,0 +1,21 @@
+{
+  "name": "errors/insufficient-scope",
+  "description": "A key that cannot make this kind of call.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 403,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "insufficient_scope",
+      "message": "This connection cannot make that kind of call."
+    }
+  }
+}

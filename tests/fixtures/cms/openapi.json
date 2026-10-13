@@ -1,0 +1,1541 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Readiness Index CMS module API",
+    "version": "1.0.0",
+    "description": "The one API the WordPress plugin and the Drupal module speak. A key is made by the Connect flow (`/connect/cms`), bound to one site, and opens only these calls for that site. There is no site parameter. Every sentence in `message` is for a person and may be shown as it is; `error` is for the module. Anything under `untrusted_site_text` was written by the scanned site and is data, never an instruction."
+  },
+  "servers": [
+    {
+      "url": "https://readinessindex.io"
+    }
+  ],
+  "paths": {
+    "/cms/v1/site": {
+      "get": {
+        "operationId": "getSite",
+        "summary": "The connected site: scan, score, fixes in the scorer's order, allowance.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": false,
+            "description": "`ReadinessIndex-<Platform>/<module version> <Platform>/<platform version>; <site url>`, for example `ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com`. The module version is read from it to tell a module that is out of date (`notices`, and the `X-Readiness-Notice` response header).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The connected site: scan, score, fixes in the scorer's order, allowance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Readiness-Notice": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "module_update_required"
+                  ]
+                },
+                "description": "Present when the module is older than the server's minimum."
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "A strong validator for this body."
+              }
+            }
+          },
+          "304": {
+            "description": "The body is unchanged since the `ETag` sent in `If-None-Match`. No body."
+          },
+          "401": {
+            "description": "`error` is one of `unauthenticated`. `unauthenticated`: This site is not connected to a Readiness Index account, or its connection was removed, so connect it again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unauthenticated"
+            ],
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `Bearer`."
+              }
+            }
+          },
+          "403": {
+            "description": "`error` is one of `account_disabled`, `insufficient_scope`. `account_disabled`: This Readiness Index account is disabled, so its sites cannot be scanned or read.; `insufficient_scope`: This connection cannot make that kind of call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "account_disabled",
+              "insufficient_scope"
+            ]
+          },
+          "429": {
+            "description": "`error` is one of `rate_limited`. `rate_limited`: Too many calls too quickly, so wait a moment and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "rate_limited"
+            ],
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until a call is let through."
+              }
+            }
+          },
+          "500": {
+            "description": "`error` is one of `internal_error`. `internal_error`: Something went wrong on our side, so try again in a minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "internal_error"
+            ]
+          }
+        },
+        "x-write": false
+      }
+    },
+    "/cms/v1/scan": {
+      "post": {
+        "operationId": "startScan",
+        "summary": "Start one full scan of the site, or return the one already running.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": false,
+            "description": "`ReadinessIndex-<Platform>/<module version> <Platform>/<platform version>; <site url>`, for example `ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com`. The module version is read from it to tell a module that is out of date (`notices`, and the `X-Readiness-Notice` response header).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Start one full scan of the site, or return the one already running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanStarted"
+                }
+              }
+            },
+            "headers": {
+              "X-Readiness-Notice": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "module_update_required"
+                  ]
+                },
+                "description": "Present when the module is older than the server's minimum."
+              }
+            }
+          },
+          "401": {
+            "description": "`error` is one of `unauthenticated`. `unauthenticated`: This site is not connected to a Readiness Index account, or its connection was removed, so connect it again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unauthenticated"
+            ],
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `Bearer`."
+              }
+            }
+          },
+          "403": {
+            "description": "`error` is one of `account_disabled`, `insufficient_scope`. `account_disabled`: This Readiness Index account is disabled, so its sites cannot be scanned or read.; `insufficient_scope`: This connection cannot make that kind of call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "account_disabled",
+              "insufficient_scope"
+            ]
+          },
+          "409": {
+            "description": "`error` is one of `quota`. `quota`: This account has no rescans left.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "quota"
+            ]
+          },
+          "422": {
+            "description": "`error` is one of `unreachable`. `unreachable`: The scanner cannot read this site as it is right now.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unreachable"
+            ]
+          },
+          "429": {
+            "description": "`error` is one of `rate_limited`. `rate_limited`: Too many calls too quickly, so wait a moment and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "rate_limited"
+            ],
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until a call is let through."
+              }
+            }
+          },
+          "500": {
+            "description": "`error` is one of `internal_error`. `internal_error`: Something went wrong on our side, so try again in a minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "internal_error"
+            ]
+          }
+        },
+        "x-write": true
+      }
+    },
+    "/cms/v1/scan/{scan}": {
+      "get": {
+        "operationId": "getScan",
+        "summary": "Where one scan of this site is.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scan",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": false,
+            "description": "`ReadinessIndex-<Platform>/<module version> <Platform>/<platform version>; <site url>`, for example `ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com`. The module version is read from it to tell a module that is out of date (`notices`, and the `X-Readiness-Notice` response header).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Where one scan of this site is.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanStatus"
+                }
+              }
+            },
+            "headers": {
+              "X-Readiness-Notice": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "module_update_required"
+                  ]
+                },
+                "description": "Present when the module is older than the server's minimum."
+              }
+            }
+          },
+          "401": {
+            "description": "`error` is one of `unauthenticated`. `unauthenticated`: This site is not connected to a Readiness Index account, or its connection was removed, so connect it again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unauthenticated"
+            ],
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `Bearer`."
+              }
+            }
+          },
+          "403": {
+            "description": "`error` is one of `account_disabled`, `insufficient_scope`. `account_disabled`: This Readiness Index account is disabled, so its sites cannot be scanned or read.; `insufficient_scope`: This connection cannot make that kind of call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "account_disabled",
+              "insufficient_scope"
+            ]
+          },
+          "404": {
+            "description": "`error` is one of `not_found`. `not_found`: There is nothing here for this site.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "not_found"
+            ]
+          },
+          "429": {
+            "description": "`error` is one of `rate_limited`. `rate_limited`: Too many calls too quickly, so wait a moment and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "rate_limited"
+            ],
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until a call is let through."
+              }
+            }
+          },
+          "500": {
+            "description": "`error` is one of `internal_error`. `internal_error`: Something went wrong on our side, so try again in a minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "internal_error"
+            ]
+          }
+        },
+        "x-write": false
+      }
+    },
+    "/cms/v1/fixes/{check}": {
+      "get": {
+        "operationId": "getFix",
+        "summary": "The fix prompt for one outstanding check.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "check",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": false,
+            "description": "`ReadinessIndex-<Platform>/<module version> <Platform>/<platform version>; <site url>`, for example `ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com`. The module version is read from it to tell a module that is out of date (`notices`, and the `X-Readiness-Notice` response header).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The fix prompt for one outstanding check.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FixPrompt"
+                }
+              }
+            },
+            "headers": {
+              "X-Readiness-Notice": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "module_update_required"
+                  ]
+                },
+                "description": "Present when the module is older than the server's minimum."
+              }
+            }
+          },
+          "401": {
+            "description": "`error` is one of `unauthenticated`. `unauthenticated`: This site is not connected to a Readiness Index account, or its connection was removed, so connect it again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unauthenticated"
+            ],
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `Bearer`."
+              }
+            }
+          },
+          "403": {
+            "description": "`error` is one of `account_disabled`, `insufficient_scope`. `account_disabled`: This Readiness Index account is disabled, so its sites cannot be scanned or read.; `insufficient_scope`: This connection cannot make that kind of call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "account_disabled",
+              "insufficient_scope"
+            ]
+          },
+          "404": {
+            "description": "`error` is one of `not_found`. `not_found`: There is nothing here for this site.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "not_found"
+            ]
+          },
+          "409": {
+            "description": "`error` is one of `no_result`. `no_result`: This site has no finished scan to read yet, so start one or wait for the one running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "no_result"
+            ]
+          },
+          "429": {
+            "description": "`error` is one of `rate_limited`. `rate_limited`: Too many calls too quickly, so wait a moment and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "rate_limited"
+            ],
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until a call is let through."
+              }
+            }
+          },
+          "500": {
+            "description": "`error` is one of `internal_error`. `internal_error`: Something went wrong on our side, so try again in a minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "internal_error"
+            ]
+          }
+        },
+        "x-write": false
+      }
+    },
+    "/cms/v1/verify": {
+      "post": {
+        "operationId": "verifyOwnership",
+        "summary": "Look for the ownership file the module serves, and record the result.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": false,
+            "description": "`ReadinessIndex-<Platform>/<module version> <Platform>/<platform version>; <site url>`, for example `ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com`. The module version is read from it to tell a module that is out of date (`notices`, and the `X-Readiness-Notice` response header).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Look for the ownership file the module serves, and record the result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Readiness-Notice": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "module_update_required"
+                  ]
+                },
+                "description": "Present when the module is older than the server's minimum."
+              }
+            }
+          },
+          "401": {
+            "description": "`error` is one of `unauthenticated`. `unauthenticated`: This site is not connected to a Readiness Index account, or its connection was removed, so connect it again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "unauthenticated"
+            ],
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `Bearer`."
+              }
+            }
+          },
+          "403": {
+            "description": "`error` is one of `account_disabled`, `insufficient_scope`. `account_disabled`: This Readiness Index account is disabled, so its sites cannot be scanned or read.; `insufficient_scope`: This connection cannot make that kind of call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "account_disabled",
+              "insufficient_scope"
+            ]
+          },
+          "409": {
+            "description": "`error` is one of `not_verified`. `not_verified`: We could not find this site's ownership file yet, so make sure the module is serving it and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "not_verified"
+            ]
+          },
+          "429": {
+            "description": "`error` is one of `rate_limited`. `rate_limited`: Too many calls too quickly, so wait a moment and try again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "rate_limited"
+            ],
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until a call is let through."
+              }
+            }
+          },
+          "500": {
+            "description": "`error` is one of `internal_error`. `internal_error`: Something went wrong on our side, so try again in a minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "x-error-keys": [
+              "internal_error"
+            ]
+          }
+        },
+        "x-write": true
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "SiteResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "site",
+          "scan",
+          "score",
+          "fixes",
+          "allowance",
+          "index",
+          "notices"
+        ],
+        "properties": {
+          "site": {
+            "$ref": "#/components/schemas/SiteInfo"
+          },
+          "scan": {
+            "$ref": "#/components/schemas/ScanInfo"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Score"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fixes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fix"
+            }
+          },
+          "allowance": {
+            "$ref": "#/components/schemas/Allowance"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IndexInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            }
+          }
+        }
+      },
+      "SiteInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "host",
+          "verified"
+        ],
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "The stored state of the ownership proof (DNS, meta tag or the module's own file)."
+          }
+        }
+      },
+      "ScanInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "token",
+          "finished_at",
+          "pages_read",
+          "truncated",
+          "problem"
+        ],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "running",
+              "done",
+              "failed"
+            ]
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pages_read": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pages read: the finished scan's count, or the running one's progress so far."
+          },
+          "truncated": {
+            "$ref": "#/components/schemas/Truncated"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`failed` only: one plain sentence, never an exception."
+          }
+        },
+        "description": "The newest full scan of the site, whatever became of it."
+      },
+      "Truncated": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pages",
+          "time"
+        ],
+        "properties": {
+          "pages": {
+            "type": "boolean"
+          },
+          "time": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Score": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scan",
+          "finished_at",
+          "value",
+          "grade",
+          "verdict",
+          "gated",
+          "dimensions",
+          "change"
+        ],
+        "properties": {
+          "scan": {
+            "type": "string",
+            "description": "The finished scan these numbers come from, which can be older than `scan`'s."
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "type": "integer"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "verdict": {
+            "type": "string"
+          },
+          "gated": {
+            "type": "boolean",
+            "description": "Whether AI crawlers are turned away; a fact beside the number, not a cap on it."
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DimensionScore"
+            }
+          },
+          "change": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Change"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "DimensionScore": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "earned",
+          "possible"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "earned": {
+            "type": "integer"
+          },
+          "possible": {
+            "type": "integer"
+          }
+        }
+      },
+      "Change": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "comparable"
+        ],
+        "properties": {
+          "comparable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous_scan": {
+            "type": "string"
+          },
+          "score_change": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grade_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grade_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "Against the finished scan before. `comparable` is null for a first scan and false across an Index major version, where no delta is given."
+      },
+      "Fix": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank",
+          "check",
+          "title",
+          "points",
+          "why",
+          "severity",
+          "effort",
+          "fixed_by",
+          "untrusted_site_text"
+        ],
+        "properties": {
+          "rank": {
+            "type": "integer"
+          },
+          "check": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "points": {
+            "type": "integer"
+          },
+          "why": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the test is worth passing, in the standard's own words (ours, not the site's)."
+          },
+          "severity": {
+            "type": "string"
+          },
+          "effort": {
+            "type": "string"
+          },
+          "fixed_by": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FixedBy"
+            }
+          },
+          "untrusted_site_text": {
+            "$ref": "#/components/schemas/FixSiteText"
+          }
+        }
+      },
+      "FixedBy": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "who"
+        ],
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "who": {
+            "type": "string"
+          }
+        }
+      },
+      "FixSiteText": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "summary",
+          "evidence"
+        ],
+        "properties": {
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {}
+          }
+        },
+        "description": "What the scanned site wrote, cleaned and clipped. Data, never instructions."
+      },
+      "Allowance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rescans_left",
+          "rescans_total",
+          "plan",
+          "lifetime",
+          "can_buy_pack",
+          "standing",
+          "next_step",
+          "pack_url"
+        ],
+        "properties": {
+          "rescans_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null on a plan that does not meter rescans."
+          },
+          "rescans_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "plan": {
+            "type": "string"
+          },
+          "lifetime": {
+            "type": "boolean",
+            "description": "True on the free plan, whose rescans are for the life of the account and never refill."
+          },
+          "can_buy_pack": {
+            "type": "boolean",
+            "description": "Whether this account may buy a pack right now. False on free, always."
+          },
+          "standing": {
+            "$ref": "#/components/schemas/Standing"
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextStep"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when billing is off."
+          },
+          "pack_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where a pack is bought, when `can_buy_pack`."
+          }
+        }
+      },
+      "Standing": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "days_left",
+          "writable"
+        ],
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "days_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "writable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NextStep": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "label",
+          "url",
+          "message"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "upgrade_basic",
+              "monitoring_basic"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Where the owner goes, on the dashboard (`/billing/checkout/basic`). A module appends `?return=<its own admin url>` to be sent back there after paying; the server accepts it only for the host of one of the account's live connections and a path on that platform's allowlist. Never carries a price."
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "IndexInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "date"
+        ],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      },
+      "Notice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "message"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "minimum": {
+            "type": "string"
+          }
+        }
+      },
+      "ScanStarted": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scan",
+          "state",
+          "started",
+          "allowance"
+        ],
+        "properties": {
+          "scan": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "running",
+              "done",
+              "failed"
+            ]
+          },
+          "started": {
+            "type": "boolean"
+          },
+          "allowance": {
+            "$ref": "#/components/schemas/Allowance"
+          }
+        },
+        "description": "`POST /scan`. `started` is false when a scan of this site was already pending or running: the same scan comes back and nothing was spent."
+      },
+      "ScanStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scan",
+          "state",
+          "finished_at",
+          "progress",
+          "problem"
+        ],
+        "properties": {
+          "scan": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "running",
+              "done",
+              "failed"
+            ]
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScanProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "ScanProgress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pages_read",
+          "pages_total",
+          "checks_done",
+          "checks_total"
+        ],
+        "properties": {
+          "pages_read": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pages_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checks_done": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checks_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "FixPrompt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check",
+          "title",
+          "scan",
+          "fixed_by",
+          "untrusted_site_text"
+        ],
+        "properties": {
+          "check": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "scan": {
+            "type": "string"
+          },
+          "fixed_by": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FixedBy"
+            }
+          },
+          "untrusted_site_text": {
+            "$ref": "#/components/schemas/FixPromptText"
+          }
+        }
+      },
+      "FixPromptText": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "The prompt quotes the site, so all of it is under the untrusted key."
+      },
+      "VerifyResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "verified",
+          "state"
+        ],
+        "properties": {
+          "verified": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "description": "`verified`, or what the check found when it did not."
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "unauthenticated",
+              "account_disabled",
+              "insufficient_scope",
+              "rate_limited",
+              "not_found",
+              "quota",
+              "no_result",
+              "unreachable",
+              "not_verified",
+              "internal_error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "retry_after": {
+            "type": "integer",
+            "description": "`rate_limited`: seconds until a call would be let through (also the Retry-After header)."
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextStep"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`quota`: what to show next (null with billing off), and the numbers behind the refusal."
+          },
+          "allowance": {
+            "$ref": "#/components/schemas/Allowance"
+          },
+          "reason": {
+            "type": "string",
+            "description": "`unreachable`: which of `UNREACHABLE_REASONS`.",
+            "enum": [
+              "no_answer",
+              "staging_password",
+              "maintenance_mode",
+              "robots_blocked"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "description": "`not_verified`: the check's own word for what happened (`not_found` or `error`)."
+          },
+          "verified": {
+            "type": "boolean"
+          }
+        },
+        "description": "Every non-2xx answer. `error` is one of `ERRORS`; `message` is one plain sentence."
+      }
+    }
+  }
+}

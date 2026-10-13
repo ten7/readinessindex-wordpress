@@ -1,0 +1,22 @@
+{
+  "name": "errors/unreachable-maintenance-mode",
+  "description": "The scanner cannot read the site (`maintenance_mode`): nothing was used.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/scan",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 422,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "unreachable",
+      "message": "This site is in maintenance mode, so the scanner would read the maintenance page and not your site. Switch maintenance mode off, then scan again. Nothing was used.",
+      "reason": "maintenance_mode"
+    }
+  }
+}

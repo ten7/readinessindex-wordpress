@@ -1,0 +1,19 @@
+{
+  "name": "site/not-modified",
+  "description": "A poll with the last `ETag` in `If-None-Match`: 304 and no body, so a screen that is open costs almost nothing.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com",
+      "If-None-Match": "<the ETag last seen>"
+    }
+  },
+  "response": {
+    "status": 304,
+    "headers": {},
+    "shape": "none",
+    "body": null
+  }
+}

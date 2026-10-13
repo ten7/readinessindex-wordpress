@@ -17,6 +17,15 @@
 		<!-- PSR-4 means ClassName.php, not class-class-name.php. -->
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+		<!-- Errors travel as ApiError, whose throw sites are every Shape accessor; a @throws line on
+		     each one restates the class and drifts. -->
+		<exclude name="Squiz.Commenting.FunctionCommentThrowTag"/>
+	</rule>
+
+	<!-- ApiError messages and paths are never printed by the exception machinery: every screen
+	     escapes them where it prints them, so flagging each throw only adds noise. -->
+	<rule ref="WordPress.Security.EscapeOutput.ExceptionNotEscaped">
+		<severity>0</severity>
 	</rule>
 
 	<config name="minimum_wp_version" value="6.4"/>
@@ -46,6 +55,33 @@
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 	<rule ref="Squiz.Commenting.FunctionComment.Missing">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.ClassComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.VariableComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Files.OneObjectStructurePerFile">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Universal.Files.SeparateFunctionsFromOO">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 </ruleset>

@@ -1,0 +1,21 @@
+{
+  "name": "errors/no-result",
+  "description": "A fix prompt before any scan has finished.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/fixes/AIR-1.1",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 409,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "no_result",
+      "message": "This site has no finished scan to read yet, so start one or wait for the one running."
+    }
+  }
+}

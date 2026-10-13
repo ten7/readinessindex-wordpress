@@ -1,0 +1,29 @@
+{
+  "name": "scan-status/pending",
+  "description": "The queued scan.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/scan/scan-token-4",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "ScanStatus",
+    "body": {
+      "scan": "scan-token-4",
+      "state": "pending",
+      "finished_at": null,
+      "progress": {
+        "pages_read": null,
+        "pages_total": null,
+        "checks_done": null,
+        "checks_total": null
+      },
+      "problem": null
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "errors/unreachable-robots-blocked",
+  "description": "The scanner cannot read the site (`robots_blocked`): nothing was used.",
+  "request": {
+    "method": "POST",
+    "path": "/cms/v1/scan",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 422,
+    "headers": {},
+    "shape": "ErrorBody",
+    "body": {
+      "error": "unreachable",
+      "message": "This site's robots.txt shuts our scanner out, so there is nothing we are allowed to read. Allow the scanner in robots.txt, then scan again. Nothing was used.",
+      "reason": "robots_blocked"
+    }
+  }
+}

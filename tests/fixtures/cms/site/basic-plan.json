@@ -1,0 +1,55 @@
+{
+  "name": "site/basic-plan",
+  "description": "A Basic subscriber: monthly rescans, a pack may be bought (`can_buy_pack`), and no `next_step`.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "SiteResponse",
+    "body": {
+      "site": {
+        "host": "example.com",
+        "verified": false
+      },
+      "scan": {
+        "state": "none",
+        "token": null,
+        "finished_at": null,
+        "pages_read": null,
+        "truncated": {
+          "pages": false,
+          "time": false
+        },
+        "problem": null
+      },
+      "score": null,
+      "fixes": [],
+      "allowance": {
+        "rescans_left": 10,
+        "rescans_total": 10,
+        "plan": "Basic",
+        "lifetime": false,
+        "can_buy_pack": true,
+        "standing": {
+          "state": "subscribed",
+          "days_left": null,
+          "writable": true
+        },
+        "next_step": null,
+        "pack_url": "https://readinessindex.io/dashboard"
+      },
+      "index": {
+        "version": "11.5",
+        "date": "2026-10-11"
+      },
+      "notices": []
+    }
+  }
+}

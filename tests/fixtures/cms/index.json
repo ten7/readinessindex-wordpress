@@ -1,0 +1,210 @@
+{
+  "api_revision": "1.0.0",
+  "index_version": "11.5",
+  "shapes": [
+    "ErrorBody",
+    "FixPrompt",
+    "ScanStarted",
+    "ScanStatus",
+    "SiteResponse",
+    "VerifyResponse"
+  ],
+  "errors": [
+    "account_disabled",
+    "insufficient_scope",
+    "internal_error",
+    "no_result",
+    "not_found",
+    "not_verified",
+    "quota",
+    "rate_limited",
+    "unauthenticated",
+    "unreachable"
+  ],
+  "fixtures": [
+    {
+      "path": "errors/account-disabled.json",
+      "status": 403,
+      "shape": "ErrorBody",
+      "error": "account_disabled"
+    },
+    {
+      "path": "errors/insufficient-scope.json",
+      "status": 403,
+      "shape": "ErrorBody",
+      "error": "insufficient_scope"
+    },
+    {
+      "path": "errors/internal-error.json",
+      "status": 500,
+      "shape": "ErrorBody",
+      "error": "internal_error"
+    },
+    {
+      "path": "errors/no-result.json",
+      "status": 409,
+      "shape": "ErrorBody",
+      "error": "no_result"
+    },
+    {
+      "path": "errors/not-found.json",
+      "status": 404,
+      "shape": "ErrorBody",
+      "error": "not_found"
+    },
+    {
+      "path": "errors/not-verified-error.json",
+      "status": 409,
+      "shape": "ErrorBody",
+      "error": "not_verified"
+    },
+    {
+      "path": "errors/not-verified-not-found.json",
+      "status": 409,
+      "shape": "ErrorBody",
+      "error": "not_verified"
+    },
+    {
+      "path": "errors/quota.json",
+      "status": 409,
+      "shape": "ErrorBody",
+      "error": "quota"
+    },
+    {
+      "path": "errors/rate-limited.json",
+      "status": 429,
+      "shape": "ErrorBody",
+      "error": "rate_limited"
+    },
+    {
+      "path": "errors/unauthenticated.json",
+      "status": 401,
+      "shape": "ErrorBody",
+      "error": "unauthenticated"
+    },
+    {
+      "path": "errors/unreachable-maintenance-mode.json",
+      "status": 422,
+      "shape": "ErrorBody",
+      "error": "unreachable"
+    },
+    {
+      "path": "errors/unreachable-no-answer.json",
+      "status": 422,
+      "shape": "ErrorBody",
+      "error": "unreachable"
+    },
+    {
+      "path": "errors/unreachable-robots-blocked.json",
+      "status": 422,
+      "shape": "ErrorBody",
+      "error": "unreachable"
+    },
+    {
+      "path": "errors/unreachable-staging-password.json",
+      "status": 422,
+      "shape": "ErrorBody",
+      "error": "unreachable"
+    },
+    {
+      "path": "fix-prompt/outstanding-check.json",
+      "status": 200,
+      "shape": "FixPrompt"
+    },
+    {
+      "path": "scan-status/done.json",
+      "status": 200,
+      "shape": "ScanStatus"
+    },
+    {
+      "path": "scan-status/failed.json",
+      "status": 200,
+      "shape": "ScanStatus"
+    },
+    {
+      "path": "scan-status/pending.json",
+      "status": 200,
+      "shape": "ScanStatus"
+    },
+    {
+      "path": "scan-status/running.json",
+      "status": 200,
+      "shape": "ScanStatus"
+    },
+    {
+      "path": "scan/already-running.json",
+      "status": 202,
+      "shape": "ScanStarted"
+    },
+    {
+      "path": "scan/started.json",
+      "status": 202,
+      "shape": "ScanStarted"
+    },
+    {
+      "path": "site/basic-plan.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/done-first-scan.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/done-with-change.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/failed.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/never-scanned.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/never-scanned-billing-off.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/no-rescans-left.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/not-modified.json",
+      "status": 304,
+      "shape": "none"
+    },
+    {
+      "path": "site/pending.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/running.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "site/update-required.json",
+      "status": 200,
+      "shape": "SiteResponse"
+    },
+    {
+      "path": "verify/already-verified.json",
+      "status": 200,
+      "shape": "VerifyResponse"
+    },
+    {
+      "path": "verify/verified.json",
+      "status": 200,
+      "shape": "VerifyResponse"
+    }
+  ]
+}

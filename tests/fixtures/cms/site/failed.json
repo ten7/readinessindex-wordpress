@@ -1,0 +1,60 @@
+{
+  "name": "site/failed",
+  "description": "The newest scan failed; `problem` is one plain sentence.",
+  "request": {
+    "method": "GET",
+    "path": "/cms/v1/site",
+    "headers": {
+      "Authorization": "Bearer <cms key>",
+      "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "shape": "SiteResponse",
+    "body": {
+      "site": {
+        "host": "example.com",
+        "verified": false
+      },
+      "scan": {
+        "state": "failed",
+        "token": "scan-token-1",
+        "finished_at": null,
+        "pages_read": null,
+        "truncated": {
+          "pages": false,
+          "time": false
+        },
+        "problem": "The site took too long to answer, so the scan stopped. Run it again, or try later."
+      },
+      "score": null,
+      "fixes": [],
+      "allowance": {
+        "rescans_left": 5,
+        "rescans_total": 5,
+        "plan": "Full report",
+        "lifetime": true,
+        "can_buy_pack": false,
+        "standing": {
+          "state": "unstarted",
+          "days_left": null,
+          "writable": true
+        },
+        "next_step": {
+          "key": "monitoring_basic",
+          "label": "Watch this site every week",
+          "url": "https://readinessindex.io/billing/checkout/basic",
+          "message": "Basic scans this site every week and emails you when the score drops."
+        },
+        "pack_url": null
+      },
+      "index": {
+        "version": "11.5",
+        "date": "2026-10-11"
+      },
+      "notices": []
+    }
+  }
+}

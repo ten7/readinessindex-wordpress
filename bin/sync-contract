@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Copy the CMS module contract out of the web repository and pin it.
+#
+# The API fixtures, the OpenAPI document and the shared strings are written in the
+# web repository (ai-readiness-index) and generated there; nothing here is edited by
+# hand. This script copies them in and records which web commit they came from and a
+# SHA-256 of every file, so tests/Unit/ContractPinTest.php can fail when a copied file
+# is edited or the pin is stale, and CI can say which web commit to compare against.
+#
+#   bin/sync-contract [path-to-web-repo]
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+web="${1:-../ai-readiness-index}"
+
+if [ ! -f "${web}/docs/cms-fixtures/openapi.json" ] || [ ! -f "${web}/docs/cms-parity/strings/en.json" ]; then
+	echo "${web} does not look like the web repository (no docs/cms-fixtures or docs/cms-parity)." >&2
+	exit 1
+fi
+
+# A contract copied from a tree with local edits cannot be reproduced from the commit
+# the pin names.
+if [ -n "$(git -C "${web}" status --porcelain -- docs/cms-fixtures docs/cms-parity)" ]; then
+	echo "The web repository has uncommitted changes under docs/cms-fixtures or docs/cms-parity." >&2
+	exit 1
+fi
+commit="$(git -C "${web}" rev-parse HEAD)"
+
+rm -rf tests/fixtures/cms
+mkdir -p tests/fixtures/cms strings
+rsync -a "${web}/docs/cms-fixtures/" tests/fixtures/cms/
+cp "${web}/docs/cms-parity/strings/en.json" strings/en.json
+cp "${web}/docs/cms-parity/screens.md" docs/contract/screens.md
+cp "${web}/docs/cms-parity/MATRIX.md" docs/contract/MATRIX.md
+
+{
+	echo "# Written by bin/sync-contract. Do not edit."
+	echo "web_commit ${commit}"
+	( find tests/fixtures/cms -type f | sort; echo strings/en.json; echo docs/contract/screens.md; echo docs/contract/MATRIX.md ) |
+		while read -r f; do
+			printf 'sha256 %s  %s\n' "$(shasum -a 256 "${f}" | cut -d' ' -f1)" "${f}"
+		done
+} > docs/contract/PIN
+
+echo "Pinned to web commit ${commit}"
