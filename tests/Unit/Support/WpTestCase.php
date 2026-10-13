@@ -175,6 +175,22 @@ abstract class WpTestCase extends TestCase {
 			}
 		);
 		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'admin_url' )->alias( fn( $path = '' ) => 'https://example.com/wp-admin/' . $path );
+		Functions\when( 'wp_nonce_field' )->alias(
+			function ( $action ) {
+				echo '<input type="hidden" name="_wpnonce" value="nonce-' . htmlspecialchars( (string) $action, ENT_QUOTES ) . '" />';
+			}
+		);
+		Functions\when( 'wp_date' )->alias( fn( $format, $time ) => gmdate( $format, $time ) );
+		Functions\when( 'get_user_meta' )->justReturn( '' );
+		Functions\when( 'esc_url_raw' )->alias(
+			function ( $url, $protocols = null ) {
+				$url     = (string) $url;
+				$allowed = $protocols ?? array( 'http', 'https' );
+				$scheme  = strtolower( (string) parse_url( $url, PHP_URL_SCHEME ) );
+				return in_array( $scheme, $allowed, true ) ? $url : '';
+			}
+		);
 		Functions\when( 'wp_unslash' )->returnArg();
 		Functions\when( 'sanitize_text_field' )->alias(
 			function ( $value ) {

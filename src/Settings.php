@@ -27,12 +27,14 @@ final class Settings {
 
 	/**
 	 * The shape the server mints: `air_`, eight hex characters, then a url-safe secret.
-	 * A callback carrying anything else is refused before it is stored.
+	 * A callback carrying anything else is refused before it is stored. The `D` modifier
+	 * matters: without it `$` also matches before a trailing newline, and a key with one
+	 * would be stored and later sent in an Authorization header.
 	 */
-	const KEY_PATTERN = '/^air_[0-9a-f]{8}_[A-Za-z0-9_-]{20,}$/';
+	const KEY_PATTERN = '/^air_[0-9a-f]{8}_[A-Za-z0-9_-]{20,}$/D';
 
 	/** The ownership token is 32 hex characters (verification.new_token on the server). */
-	const TOKEN_PATTERN = '/^[0-9a-f]{32}$/';
+	const TOKEN_PATTERN = '/^[0-9a-f]{32}$/D';
 
 	/**
 	 * The API origin, without a trailing slash.

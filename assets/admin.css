@@ -1,0 +1,54 @@
+/* Native wp-admin markup does the work; this only spaces the plugin's own pieces.
+   Logical properties keep it correct in a right-to-left admin, and every colour is
+   inherited, so a dark admin color scheme needs no separate rules. */
+.readiness-index .ri-card {
+	max-width: 52rem;
+	padding-block: 0.5rem 1rem;
+	padding-inline: 1.25rem;
+}
+
+.readiness-index .ri-score-value {
+	font-size: 2rem;
+	line-height: 1.2;
+}
+
+.readiness-index .ri-grade,
+.readiness-index .ri-facts,
+.readiness-index .ri-sample,
+.readiness-index .ri-rescans {
+	opacity: 0.85;
+}
+
+.readiness-index .ri-dimensions {
+	max-width: 40rem;
+	margin-block: 1rem;
+}
+
+.readiness-index .ri-dimensions caption {
+	text-align: start;
+	font-weight: 600;
+	padding-block: 0.5rem;
+}
+
+.readiness-index .ri-meter {
+	inline-size: 30%;
+}
+
+.readiness-index .ri-meter meter {
+	inline-size: 100%;
+}
+
+.readiness-index .ri-form {
+	margin-block: 0.5rem;
+}
+
+.readiness-index .ri-preflight {
+	padding-inline-start: 0.75rem;
+	border-inline-start: 4px solid currentColor;
+}
+
+@media (max-width: 782px) {
+	.readiness-index .ri-meter {
+		display: none;
+	}
+}

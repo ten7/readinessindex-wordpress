@@ -33,3 +33,5 @@ define( 'READINESS_INDEX_DIR', plugin_dir_path( __FILE__ ) );
 require_once READINESS_INDEX_DIR . 'src/Autoloader.php';
 
 Autoloader::register( 'ReadinessIndex\\', READINESS_INDEX_DIR . 'src/' );
+
+Plugin::boot();
