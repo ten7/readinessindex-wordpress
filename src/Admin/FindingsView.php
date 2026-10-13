@@ -38,7 +38,7 @@ final class FindingsView {
 				$lines = self::directives( $findings, $preview );
 				break;
 			case 'dates':
-				$lines = self::dates( $findings );
+				$lines = self::dates( $findings, $preview );
 				break;
 			case 'entity-graph':
 				$lines = self::graph( $findings, $preview );
@@ -157,10 +157,11 @@ final class FindingsView {
 	/**
 	 * The dates findings.
 	 *
-	 * @param array<string,mixed> $f Findings.
+	 * @param array<string,mixed> $f       Findings.
+	 * @param array<string,mixed> $preview The preview.
 	 * @return string[]
 	 */
-	private static function dates( array $f ): array {
+	private static function dates( array $f, array $preview ): array {
 		$lines = array();
 		if ( ! empty( $f['clustered'] ) ) {
 			$lines[] = Strings::get( 'fixer.dates.clustered' );
@@ -175,6 +176,15 @@ final class FindingsView {
 				array(
 					'path'   => (string) $row['path'],
 					'reason' => Strings::get( 'fixer.dates.skipped.' . $row['reason'] ),
+				)
+			);
+		}
+		foreach ( (array) ( $preview['flags'] ?? array() ) as $row ) {
+			$lines[] = Strings::get(
+				'fixer.dates.flag_row',
+				array(
+					'path'   => (string) $row['path'],
+					'reason' => Strings::get( 'fixer.dates.flag.' . $row['reason'] ),
 				)
 			);
 		}

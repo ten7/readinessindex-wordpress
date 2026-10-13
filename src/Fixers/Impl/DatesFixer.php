@@ -63,6 +63,40 @@ final class DatesFixer extends AbstractFixer {
 	}
 
 	/**
+	 * Flags what the dates fixer corrects in what WordPress recorded: a modified date before the
+	 * published date, and one in the future. They are flagged, shown and corrected only in what is
+	 * published; the date stored in WordPress is never rewritten.
+	 *
+	 * @param array<string,mixed> $ev    The evaluation.
+	 * @param array<string,mixed> $given The facts.
+	 * @return array<string,mixed>
+	 */
+	protected function annotate( array $ev, array $given ): array {
+		$flags = array();
+		$now   = Dates::utc( (string) ( $given['now'] ?? '' ) );
+		foreach ( (array) ( $given['items'] ?? array() ) as $item ) {
+			$published = Dates::utc( $item['published'] ?? null );
+			$recorded  = Dates::utc( $item['modified_recorded'] ?? null );
+			if ( null === $published || null === $recorded || null === $now || $published > $now ) {
+				continue;
+			}
+			if ( $recorded < $published ) {
+				$flags[] = array(
+					'path'   => $item['path'],
+					'reason' => 'modified_before_published',
+				);
+			} elseif ( $recorded > $now ) {
+				$flags[] = array(
+					'path'   => $item['path'],
+					'reason' => 'modified_in_future',
+				);
+			}
+		}
+		$ev['flags'] = $flags;
+		return $ev;
+	}
+
+	/**
 	 * Looks at the sitemap the site serves and compares each entry's `lastmod` with the dates
 	 * worked out.
 	 *

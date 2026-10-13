@@ -9,8 +9,10 @@ namespace ReadinessIndex\Fixers\Impl;
 
 use ReadinessIndex\Fixers\Files;
 use ReadinessIndex\Fixers\Logic\RobotsTxt;
+use ReadinessIndex\Fixers\Robots\Parser;
 use ReadinessIndex\Fixers\Runtime;
 use ReadinessIndex\Fixers\SeoTools;
+use ReadinessIndex\Fixers\State;
 use ReadinessIndex\Http\SiteFetcher;
 
 /**
@@ -149,7 +151,19 @@ final class RobotsTxtFixer extends AbstractFixer {
 			);
 		}
 		$want = str_replace( "\r\n", "\n", (string) $ev['output']['robots.txt'] );
-		$live = str_replace( "\r\n", "\n", $got['body'] ) === $want;
+		$body = str_replace( "\r\n", "\n", $got['body'] );
+		$live = $body === $want;
+		// The text is the same, and the file is read the way a crawler reads it: every crawler the
+		// owner chose to let in may now fetch the home page, by RFC 9309's rules and not by a
+		// search for a string.
+		if ( $live ) {
+			$choices = (array) ( State::get( $this->id() ) ?? array() );
+			foreach ( (array) ( $choices['allow_agents'] ?? array() ) as $agent ) {
+				if ( ! Parser::allows( $body, (string) $agent, '/' ) ) {
+					$live = false;
+				}
+			}
+		}
 		return array(
 			'live'   => $live,
 			'reason' => $live ? '' : 'different',
