@@ -3,7 +3,7 @@ Tags: seo, ai, llms-txt, robots-txt, schema
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,12 @@ The connection key is stored in one non-autoloaded option in your database, or r
 The terms are at https://readinessindex.io/terms and the privacy policy is at https://readinessindex.io/privacy.
 
 == Changelog ==
+
+= 0.3.0 =
+* The Fixes tab: the service's ranked list of what to fix, each row one of fix it here, fix it with a tool your site already has, or hand it on, with a count of the points this plugin can reach.
+* Preview, apply and undo: every change is previewed first, applied only by a click, checked as a visitor would see it, and undoable. Nothing runs by itself.
+* The Changes tab: everything the plugin changed, when, by whom, with Undo.
+* Deactivating keeps the record of your changes; deleting the plugin removes its own data, and undoes nothing unless you turn that on.
 
 = 0.2.0 =
 * Connect to a Readiness Index account from the new Readiness menu.

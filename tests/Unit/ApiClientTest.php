@@ -48,7 +48,7 @@ final class ApiClientTest extends WpTestCase {
 		$this->assertSame( 'https://api.test' . $fixture['request']['path'], $call['url'] );
 		$this->assertSame( $fixture['request']['method'], $call['args']['method'] );
 		$this->assertSame( 'Bearer ' . self::KEY, $call['args']['headers']['Authorization'] );
-		$this->assertSame( 'ReadinessIndex-WordPress/0.2.0 WordPress/6.6; https://example.com', $call['args']['headers']['User-Agent'] );
+		$this->assertSame( 'ReadinessIndex-WordPress/' . READINESS_INDEX_VERSION . ' WordPress/6.6; https://example.com', $call['args']['headers']['User-Agent'] );
 		$this->assertTrue( $call['args']['sslverify'] );
 		$this->assertSame( 0, $call['args']['redirection'] );
 	}
