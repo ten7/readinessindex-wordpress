@@ -164,7 +164,7 @@ final class Actions {
 			echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '" />';
 		}
 		echo '<input type="hidden" name="ri_relayed" value="1" />';
-		echo '<noscript><button type="submit">' . esc_html( \ReadinessIndex\Strings::get( 'common.retry' ) ) . '</button></noscript>';
+		echo '<noscript><button type="submit">' . esc_html( \ReadinessIndex\Strings::get( 'common.connect' ) ) . '</button></noscript>';
 		echo '</form>';
 		wp_print_inline_script_tag( 'document.getElementById("ri-relay").submit();' );
 		echo '</body></html>';

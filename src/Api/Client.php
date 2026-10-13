@@ -70,7 +70,8 @@ final class Client {
 		if ( 304 === $answer['status'] ) {
 			if ( null === $cached ) {
 				// A 304 to a request that carried no validator: the server is broken, not the cache.
-				throw Shape::fail( 'etag' );
+				$error = Shape::fail( 'etag' );
+				throw $error;
 			}
 			return Model\SiteResponse::from_array( $cached['body'] );
 		}
@@ -133,7 +134,8 @@ final class Client {
 	 */
 	private function segment( string $value ): string {
 		if ( 1 !== preg_match( '/^[A-Za-z0-9._-]{1,100}$/', $value ) ) {
-			throw new ApiError( 'not_found', Strings::get( 'error.not_found' ), 404 );
+			$error = new ApiError( 'not_found', Strings::get( 'error.not_found' ), 404 );
+			throw $error;
 		}
 		return rawurlencode( $value );
 	}
@@ -160,7 +162,8 @@ final class Client {
 	 */
 	private function send( string $method, string $path, array $headers, bool $retry ): array {
 		if ( '' === $this->key ) {
-			throw new ApiError( 'unauthenticated', Strings::get( 'error.unauthenticated' ), 401 );
+			$error = new ApiError( 'unauthenticated', Strings::get( 'error.unauthenticated' ), 401 );
+			throw $error;
 		}
 
 		$args = array(
@@ -193,7 +196,8 @@ final class Client {
 			}
 			return $this->read( $status, $response );
 		}
-		throw $failure ?? new ApiError( ApiError::OFFLINE, Strings::get( 'state.offline.body' ) );
+		$error = $failure ?? new ApiError( ApiError::OFFLINE, Strings::get( 'state.offline.body' ) );
+		throw $error;
 	}
 
 	/**
@@ -213,11 +217,13 @@ final class Client {
 			);
 		}
 		if ( $status < 200 || $status >= 300 ) {
-			throw $this->error_from( $status, $response );
+			$error = $this->error_from( $status, $response );
+			throw $error;
 		}
 		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 		if ( ! is_array( $body ) ) {
-			throw Shape::fail( '$' );
+			$error = Shape::fail( '$' );
+			throw $error;
 		}
 		$etag = wp_remote_retrieve_header( $response, 'etag' );
 		return array(

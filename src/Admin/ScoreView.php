@@ -36,7 +36,8 @@ final class ScoreView {
 	public static function render( ViewModel $model ): void {
 		$poll = $model->polling ? ' data-ri-poll="1"' : '';
 		echo '<div class="wrap readiness-index"' . $poll . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup, no variable data.
-		echo '<h1>' . esc_html( Strings::get( 'app.name' ) ) . '</h1>';
+		// The empty hr is where WordPress moves its own admin notices to, below the heading.
+		echo '<h1>' . esc_html( Strings::get( 'app.name' ) ) . '</h1><hr class="wp-header-end" />';
 
 		self::flash( $model );
 		if ( null !== $model->site && $model->site->update_required() ) {

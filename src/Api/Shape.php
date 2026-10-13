@@ -38,7 +38,8 @@ final class Shape {
 	 */
 	public static function object( $value, string $where ): array {
 		if ( ! is_array( $value ) || ( array() !== $value && array_keys( $value ) === range( 0, count( $value ) - 1 ) ) ) {
-			throw self::fail( $where );
+			$error = self::fail( $where );
+			throw $error;
 		}
 		return $value;
 	}
@@ -53,7 +54,8 @@ final class Shape {
 	 */
 	public static function items( $value, string $where ): array {
 		if ( ! is_array( $value ) || ( array() !== $value && array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) ) {
-			throw self::fail( $where );
+			$error = self::fail( $where );
+			throw $error;
 		}
 		return $value;
 	}
@@ -69,7 +71,8 @@ final class Shape {
 	 */
 	public static function need( array $data, string $key, string $where ) {
 		if ( ! array_key_exists( $key, $data ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $data[ $key ];
 	}
@@ -85,7 +88,8 @@ final class Shape {
 	public static function str( array $data, string $key, string $where ): string {
 		$value = self::need( $data, $key, $where );
 		if ( ! is_string( $value ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}
@@ -101,7 +105,8 @@ final class Shape {
 	public static function str_or_null( array $data, string $key, string $where ): ?string {
 		$value = self::need( $data, $key, $where );
 		if ( null !== $value && ! is_string( $value ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}
@@ -117,7 +122,8 @@ final class Shape {
 	public static function int( array $data, string $key, string $where ): int {
 		$value = self::need( $data, $key, $where );
 		if ( ! is_int( $value ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}
@@ -133,7 +139,8 @@ final class Shape {
 	public static function int_or_null( array $data, string $key, string $where ): ?int {
 		$value = self::need( $data, $key, $where );
 		if ( null !== $value && ! is_int( $value ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}
@@ -149,7 +156,8 @@ final class Shape {
 	public static function bool( array $data, string $key, string $where ): bool {
 		$value = self::need( $data, $key, $where );
 		if ( ! is_bool( $value ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}
@@ -166,7 +174,8 @@ final class Shape {
 	public static function one_of( array $data, string $key, string $where, array $allowed ): string {
 		$value = self::str( $data, $key, $where );
 		if ( ! in_array( $value, $allowed, true ) ) {
-			throw self::fail( $where . '.' . $key );
+			$error = self::fail( $where . '.' . $key );
+			throw $error;
 		}
 		return $value;
 	}

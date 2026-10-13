@@ -22,12 +22,6 @@
 		<exclude name="Squiz.Commenting.FunctionCommentThrowTag"/>
 	</rule>
 
-	<!-- ApiError messages and paths are never printed by the exception machinery: every screen
-	     escapes them where it prints them, so flagging each throw only adds noise. -->
-	<rule ref="WordPress.Security.EscapeOutput.ExceptionNotEscaped">
-		<severity>0</severity>
-	</rule>
-
 	<config name="minimum_wp_version" value="6.4"/>
 	<rule ref="WordPress.WP.I18n">
 		<properties>

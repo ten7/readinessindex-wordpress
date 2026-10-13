@@ -39,7 +39,8 @@ final class Change {
 		$out        = new self();
 		$comparable = Shape::need( $data, 'comparable', $at );
 		if ( null !== $comparable && ! is_bool( $comparable ) ) {
-			throw Shape::fail( $at . '.comparable' );
+			$error = Shape::fail( $at . '.comparable' );
+			throw $error;
 		}
 		$out->comparable   = $comparable;
 		$delta             = array_key_exists( 'score_change', $data ) ? $data['score_change'] : null;
