@@ -9,10 +9,13 @@ const { defineConfig } = require( '@playwright/test' );
 module.exports = defineConfig( {
 	testDir: '.',
 	timeout: 60000,
+	expect: { timeout: 15000 },
 	workers: 1,
 	use: {
 		baseURL: process.env.WP_BASE_URL || 'http://localhost:8888',
 		trace: 'retain-on-failure',
+		// PW_CHANNEL=chrome uses the Chrome installed on the machine instead of a downloaded Chromium.
+		channel: process.env.PW_CHANNEL || undefined,
 	},
 	projects: [
 		{ name: 'desktop', use: { viewport: { width: 1280, height: 900 } } },

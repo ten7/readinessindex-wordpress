@@ -70,7 +70,7 @@ default administrator on localhost.
 
 ```bash
 php -S 0.0.0.0:8099 tests/e2e/fake-api.php &        # and start wp-env with the origin pointed at it
-npx playwright install chromium
+npx playwright install chromium     # or PW_CHANNEL=chrome to use the Chrome on the machine
 npx playwright test -c tests/e2e/playwright
 ```
 

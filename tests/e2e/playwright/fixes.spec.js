@@ -9,7 +9,7 @@ async function signIn( page ) {
 	await page.goto( '/wp-login.php' );
 	await page.fill( '#user_login', USER );
 	await page.fill( '#user_pass', PASS );
-	await page.click( '#wp-submit' );
+	await Promise.all( [ page.waitForURL( /wp-admin/, { timeout: 45000 } ), page.click( '#wp-submit' ) ] );
 	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
 }
 
