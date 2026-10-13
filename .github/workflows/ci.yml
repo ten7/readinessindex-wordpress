@@ -56,6 +56,10 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      # The site runs the built zip's contents, not the working tree, so activation
+      # and Plugin Check judge what wordpress.org would actually receive: Plugin Check
+      # on the working tree flags .github and CLAUDE.md, which never ship.
+      - run: bin/build-zip
       - name: Configure wp-env for this cell
         run: |
           case "${{ matrix.wp }}" in
@@ -63,7 +67,7 @@ jobs:
             trunk)  core='"WordPress/WordPress#master"' ;;
             *)      core='"WordPress/WordPress#${{ matrix.wp }}"' ;;
           esac
-          printf '{ "core": %s, "phpVersion": "%s" }\n' "$core" "${{ matrix.php }}" > .wp-env.override.json
+          printf '{ "core": %s, "phpVersion": "%s", "mappings": { "wp-content/plugins/readiness-index": "./dist/readiness-index" } }\n' "$core" "${{ matrix.php }}" > .wp-env.override.json
           cat .wp-env.override.json
       - run: npx wp-env start
       - name: The plugin is active

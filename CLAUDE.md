@@ -24,10 +24,19 @@ composer test               # PHPUnit unit suite (Brain Monkey, no WordPress)
 bin/build-zip               # build dist/readiness-index-<version>.zip and fail on dev files
 
 npm install
-bin/wp-env-variant plain    # or yoast, or rankmath
+bin/wp-env-variant plain    # or yoast, rankmath, dist
 npx wp-env start --update
 npx wp-env run cli wp plugin check readiness-index
 ```
+
+`dist` runs the site from the built zip's contents (run `bin/build-zip` first and restart
+wp-env after every rebuild, since the zip's folder is recreated). Run Plugin Check there:
+on the working tree it reports `.github` and `CLAUDE.md`, which never ship. Plugin Check and
+the SEO plugins are installed by wp-env's `afterStart` script with WP-CLI, not listed as
+`plugins` zip URLs: on Node 26 wp-env 10's zip extraction hangs, and `wp-env start` exits 0
+having started only MySQL, with no message. The plugin is mapped to
+`wp-content/plugins/readiness-index` explicitly, because wp-env otherwise installs it under
+the checkout's directory name and `wp plugin is-active readiness-index` fails.
 
 `composer test:integration` runs the suite that needs a real WordPress (`wp-phpunit`).
 The unit suite must stay free of WordPress so it stays fast; a test that needs `$wpdb`
