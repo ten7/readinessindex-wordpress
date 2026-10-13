@@ -18,10 +18,10 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | API call | `GET /cms/v1/scan/{scan}` | done | tests |
 | API call | `GET /cms/v1/fixes/{check}` | in progress | tests (client method only; the Fixes screen is READY-255) |
 | API call | `POST /cms/v1/verify` | done | tests |
-| API call | Calls sent server to server with a Bearer key and the `User-Agent` the contract names | done | tests |
+| API call | Calls sent server to server with a Bearer key and the `User-Agent` the contract names | done | tests + live |
 | API call | Polling uses `If-None-Match` and treats 304 as unchanged | done | tests |
 | API call | Validates what it reads against `docs/cms-fixtures/openapi.json` | in progress | tests (runtime checks required fields; unknown fields are ignored, the fixture test is strict) |
-| API error | Handles `unauthenticated` | done | tests |
+| API error | Handles `unauthenticated` | done | tests + live |
 | API error | Handles `account_disabled` | done | tests |
 | API error | Handles `insufficient_scope` | done | tests |
 | API error | Handles `rate_limited` | done | tests |
@@ -77,3 +77,10 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | planned |  |
 | Shared | Every sentence shown comes from `strings/en.json` | done | tests |
 | Shared | CI runs `check_vectors.py` and the module's fixers against every vector | planned |  |
+
+## What was checked where
+
+- **Tests**: 142 PHPUnit tests over the golden fixtures, run on PHP 7.4, 8.1 and 8.4 in CI.
+- **Real WordPress (wp-env, PHP 8.1)**: Plugin Check clean; the Readiness screen renders as an administrator, on desktop and at 375 px; Connect's redirect carries the platform, site, callback and state; a cross-site return without a cookie is relayed once and then stored; a replayed state is refused; the ownership file answers 200 with exactly the 32-character token; Scan now and the progress polling run against a local stand-in for the API that serves the golden fixtures.
+- **Live (Pantheon dev, API origin edge)**: the plugin is active at 0.2.0, the unconnected screen renders, and a call with a key edge does not know comes back as `unauthenticated` with the server's sentence and the reconnect flag.
+- **Not yet checked live**: the whole Connect round trip (edge's `/connect/cms` sits behind the staging password and a WorkOS sign-in, so it needs a person), a real scan and score on the dev site, the ownership proof, and Checkout's return. These are the manual steps for review.
