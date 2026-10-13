@@ -27,6 +27,13 @@ final class Strings {
 	private static $all = null;
 
 	/**
+	 * The plugin's own sentences, loaded once.
+	 *
+	 * @var array<string,string>|null
+	 */
+	private static $local = null;
+
+	/**
 	 * The path of the strings file, overridable by a test.
 	 *
 	 * @var string|null
@@ -39,8 +46,9 @@ final class Strings {
 	 * @param string|null $path File path, or null for the shipped file.
 	 */
 	public static function use_file( ?string $path ): void {
-		self::$path = $path;
-		self::$all  = null;
+		self::$path  = $path;
+		self::$all   = null;
+		self::$local = null;
 	}
 
 	/**
@@ -71,7 +79,8 @@ final class Strings {
 	}
 
 	/**
-	 * Every string, for a test that walks them.
+	 * Every string, for a test that walks them: the shared contract's, then the plugin's own
+	 * for the situations the contract has no sentence for yet.
 	 *
 	 * @return array<string,string>
 	 */
@@ -79,18 +88,50 @@ final class Strings {
 		if ( null !== self::$all ) {
 			return self::$all;
 		}
-		$path = self::$path ?? ( dirname( __DIR__ ) . '/strings/en.json' );
-		$raw  = is_readable( $path ) ? file_get_contents( $path ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A local file inside the plugin, not a URL.
-		$data = false === $raw ? null : json_decode( $raw, true );
-
-		self::$all = array();
-		if ( is_array( $data ) ) {
-			foreach ( $data as $key => $value ) {
-				if ( is_string( $key ) && is_string( $value ) ) {
-					self::$all[ $key ] = $value;
-				}
+		$path      = self::$path ?? ( dirname( __DIR__ ) . '/strings/en.json' );
+		self::$all = self::read( $path );
+		// A key the contract has always wins, so a sentence the web repository later adds
+		// replaces the plugin's own without an edit here. `StringsTest` fails on the overlap, so
+		// the stale local copy is deleted rather than quietly shadowed.
+		foreach ( self::local() as $key => $value ) {
+			if ( ! isset( self::$all[ $key ] ) ) {
+				self::$all[ $key ] = $value;
 			}
 		}
 		return self::$all;
+	}
+
+	/**
+	 * The sentences that exist only in this plugin: every one a screen of this module needs and
+	 * `strings/en.json` does not have. They are proposed to the web repository's kit, and each
+	 * is deleted here when the kit adds it.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function local(): array {
+		if ( null === self::$local ) {
+			self::$local = self::read( dirname( __DIR__ ) . '/strings/plugin.en.json' );
+		}
+		return self::$local;
+	}
+
+	/**
+	 * Reads one flat JSON file of strings.
+	 *
+	 * @param string $path File path.
+	 * @return array<string,string>
+	 */
+	private static function read( string $path ): array {
+		$raw  = is_readable( $path ) ? file_get_contents( $path ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A local file inside the plugin, not a URL.
+		$data = false === $raw ? null : json_decode( $raw, true );
+		$out  = array();
+		if ( is_array( $data ) ) {
+			foreach ( $data as $key => $value ) {
+				if ( is_string( $key ) && is_string( $value ) ) {
+					$out[ $key ] = $value;
+				}
+			}
+		}
+		return $out;
 	}
 }

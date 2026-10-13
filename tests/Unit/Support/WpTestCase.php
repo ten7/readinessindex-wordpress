@@ -197,6 +197,18 @@ abstract class WpTestCase extends TestCase {
 				return trim( wp_strip_double( (string) $value ) );
 			}
 		);
+		Functions\when( 'esc_textarea' )->alias( fn( $text ) => htmlspecialchars( (string) $text, ENT_QUOTES ) );
+		Functions\when( 'checked' )->alias(
+			function ( $checked, $current = true, $display = true ) {
+				$out = (string) $checked === (string) $current ? " checked='checked'" : '';
+				if ( $display ) {
+					echo $out;
+				}
+				return $out;
+			}
+		);
+		Functions\when( 'absint' )->alias( fn( $n ) => abs( (int) $n ) );
+		Functions\when( 'sanitize_key' )->alias( fn( $k ) => preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $k ) ) );
 		Functions\when( 'esc_html' )->alias( fn( $text ) => htmlspecialchars( (string) $text, ENT_QUOTES ) );
 		Functions\when( 'esc_attr' )->alias( fn( $text ) => htmlspecialchars( (string) $text, ENT_QUOTES ) );
 		Functions\when( 'esc_url' )->alias(

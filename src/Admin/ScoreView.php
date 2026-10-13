@@ -34,10 +34,28 @@ final class ScoreView {
 	 * @param ViewModel $model The model.
 	 */
 	public static function render( ViewModel $model ): void {
-		$poll = $model->polling ? ' data-ri-poll="1"' : '';
+		self::shell_start( $model, Urls::SCORE );
+		if ( $model->confirming_disconnect && Settings::is_connected() ) {
+			self::confirm_disconnect();
+		} else {
+			self::body( $model );
+		}
+		self::shell_end();
+	}
+
+	/**
+	 * Opens the page every tab shares: heading, tabs, the last action's result and the notices
+	 * that sit above whatever else is shown.
+	 *
+	 * @param ViewModel $model The model.
+	 * @param string    $tab   The tab being drawn, a slug from `Urls`.
+	 */
+	public static function shell_start( ViewModel $model, string $tab ): void {
+		$poll = $model->polling && Urls::SCORE === $tab ? ' data-ri-poll="1"' : '';
 		echo '<div class="wrap readiness-index"' . $poll . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup, no variable data.
 		// The empty hr is where WordPress moves its own admin notices to, below the heading.
 		echo '<h1>' . esc_html( Strings::get( 'app.name' ) ) . '</h1><hr class="wp-header-end" />';
+		Tabs::render( $tab );
 
 		self::flash( $model );
 		if ( null !== $model->site && $model->site->update_required() ) {
@@ -46,12 +64,12 @@ final class ScoreView {
 		if ( $model->returned ) {
 			self::notice( 'success', '', Strings::get( 'upgrade.returned' ) );
 		}
+	}
 
-		if ( $model->confirming_disconnect && Settings::is_connected() ) {
-			self::confirm_disconnect();
-		} else {
-			self::body( $model );
-		}
+	/**
+	 * Closes the page `shell_start` opened.
+	 */
+	public static function shell_end(): void {
 		echo '</div>';
 	}
 
@@ -61,27 +79,8 @@ final class ScoreView {
 	 * @param ViewModel $model The model.
 	 */
 	private static function body( ViewModel $model ): void {
-		switch ( $model->state ) {
-			case ViewModel::UNCONNECTED:
-				self::unconnected( $model );
-				return;
-			case ViewModel::OFFLINE:
-				self::panel( Strings::get( 'state.offline.title' ), Strings::get( 'state.offline.body' ) );
-				self::form( 'readiness_index_refresh', Strings::get( 'common.retry' ), 'button' );
-				return;
-			case ViewModel::DISABLED:
-				self::panel( Strings::get( 'state.disabled.title' ), Strings::get( 'state.disabled.body' ) );
-				return;
-			case ViewModel::REVOKED:
-				self::revoked( $model );
-				return;
-			case ViewModel::RATE_LIMITED:
-				self::panel( '', Strings::get( 'state.rate_limited.body' ) );
-				return;
-			case ViewModel::ERROR:
-				self::panel( '', null !== $model->error ? $model->error->getMessage() : Strings::get( 'error.internal_error' ) );
-				self::form( 'readiness_index_refresh', Strings::get( 'common.retry' ), 'button' );
-				return;
+		if ( self::without_site( $model ) ) {
+			return;
 		}
 
 		// A site answer, fresh or the last one: the state of its newest scan.
@@ -99,6 +98,40 @@ final class ScoreView {
 		self::upgrade( $model, $site );
 		self::ownership( $site );
 		self::settings( $model );
+	}
+
+	/**
+	 * Draws the states that have no site answer to show (unconnected, offline, disabled,
+	 * revoked, rate limited with nothing remembered, an error), for every tab alike.
+	 *
+	 * @param ViewModel $model The model.
+	 * @return bool Whether one was drawn, in which case the tab has nothing more to show.
+	 */
+	public static function without_site( ViewModel $model ): bool {
+		switch ( $model->state ) {
+			case ViewModel::UNCONNECTED:
+				self::unconnected( $model );
+				return true;
+			case ViewModel::OFFLINE:
+				self::panel( Strings::get( 'state.offline.title' ), Strings::get( 'state.offline.body' ) );
+				self::form( 'readiness_index_refresh', Strings::get( 'common.retry' ), 'button' );
+				return true;
+			case ViewModel::DISABLED:
+				self::panel( Strings::get( 'state.disabled.title' ), Strings::get( 'state.disabled.body' ) );
+				return true;
+			case ViewModel::REVOKED:
+				self::revoked( $model );
+				return true;
+			case ViewModel::RATE_LIMITED:
+				self::panel( '', Strings::get( 'state.rate_limited.body' ) );
+				return true;
+			case ViewModel::ERROR:
+				self::panel( '', null !== $model->error ? $model->error->getMessage() : Strings::get( 'error.internal_error' ) );
+				self::form( 'readiness_index_refresh', Strings::get( 'common.retry' ), 'button' );
+				return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -380,7 +413,7 @@ final class ScoreView {
 	 * @param string $body  Body, or empty for none.
 	 * @param bool   $live  Whether the polling script rewrites it.
 	 */
-	private static function panel( string $title, string $body, bool $live = false ): void {
+	public static function panel( string $title, string $body, bool $live = false ): void {
 		echo '<div class="card ri-card" id="ri-state"' . ( $live ? ' aria-live="polite"' : '' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup.
 		if ( '' !== $title ) {
 			echo '<h2 id="ri-state-title">' . esc_html( $title ) . '</h2>';
@@ -396,7 +429,7 @@ final class ScoreView {
 	 *
 	 * @param ViewModel $model The model.
 	 */
-	private static function flash( ViewModel $model ): void {
+	public static function flash( ViewModel $model ): void {
 		$flash = $model->flash;
 		if ( null === $flash ) {
 			return;
@@ -482,7 +515,7 @@ final class ScoreView {
 	 * @param string $title Bold lead, or empty.
 	 * @param string $body  Sentence.
 	 */
-	private static function notice( string $type, string $title, string $body ): void {
+	public static function notice( string $type, string $title, string $body ): void {
 		$class = in_array( $type, array( 'success', 'info', 'warning', 'error' ), true ) ? $type : 'info';
 		echo '<div class="notice notice-' . esc_attr( $class ) . '" role="status">';
 		if ( '' !== $title ) {
@@ -500,7 +533,7 @@ final class ScoreView {
 	 * @param bool   $disabled Whether the button is disabled.
 	 * @param bool   $inline   Whether the form is displayed inline.
 	 */
-	private static function form( string $action, string $label, string $classes, bool $disabled = false, bool $inline = false ): void {
+	public static function form( string $action, string $label, string $classes, bool $disabled = false, bool $inline = false ): void {
 		echo '<form method="post" class="ri-form" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"' . ( $inline ? ' style="display:inline"' : '' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup.
 		echo '<input type="hidden" name="action" value="' . esc_attr( $action ) . '" />';
 		wp_nonce_field( $action );
@@ -513,7 +546,7 @@ final class ScoreView {
 	 *
 	 * @param string|null $iso An ISO 8601 time.
 	 */
-	private static function date( ?string $iso ): string {
+	public static function date( ?string $iso ): string {
 		$time = null === $iso ? false : strtotime( $iso );
 		if ( false === $time ) {
 			return Strings::get( 'common.never' );
@@ -527,7 +560,7 @@ final class ScoreView {
 	 * @param string $origin The API origin.
 	 * @return array<int,string>
 	 */
-	private static function protocols( string $origin ): array {
+	public static function protocols( string $origin ): array {
 		return 0 === strpos( $origin, 'http://' ) ? array( 'https', 'http' ) : array( 'https' );
 	}
 

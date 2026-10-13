@@ -41,6 +41,13 @@ final class StaticGuardsTest extends WpTestCase {
 				$this->assertStringContainsString( 'wp_remote_request', $code );
 				continue;
 			}
+			if ( 'src/Http/SiteFetcher.php' === $path ) {
+				// The one other place that makes a request: to this site's own host, and nowhere else.
+				$this->assertStringContainsString( 'wp_safe_remote_get', $code );
+				$this->assertStringContainsString( 'is_own( $url )', $code );
+				$this->assertDoesNotMatchRegularExpression( '/\b(wp_remote_(?!retrieve_)|curl_|fsockopen|stream_socket_client)/', $code, $path );
+				continue;
+			}
 			$this->assertDoesNotMatchRegularExpression( '/\b(wp_remote_|curl_|wp_safe_remote_|fsockopen|stream_socket_client|file_get_contents\(\s*[\'"]https?)/', $code, $path );
 			$this->assertDoesNotMatchRegularExpression( '/\bfetch\(/', str_replace( 'window.fetch( config.ajaxUrl', '', $code ), $path . ' (the only fetch is the same-origin admin-ajax poll)' );
 		}
@@ -105,7 +112,7 @@ final class StaticGuardsTest extends WpTestCase {
 			}
 			$relative = substr( $file->getPathname(), strlen( $root ) + 1, -4 );
 			$class    = 'ReadinessIndex\\' . str_replace( '/', '\\', $relative );
-			$this->assertTrue( class_exists( $class ), $class . ' is not where the autoloader looks.' );
+			$this->assertTrue( class_exists( $class ) || interface_exists( $class ), $class . ' is not where the autoloader looks.' );
 			++$seen;
 		}
 		$this->assertGreaterThan( 30, $seen );
@@ -114,7 +121,9 @@ final class StaticGuardsTest extends WpTestCase {
 	public function test_a_front_end_request_registers_no_admin_code(): void {
 		Functions\when( 'is_admin' )->justReturn( false );
 		Functions\when( 'register_deactivation_hook' )->justReturn( null );
+		Functions\when( 'register_activation_hook' )->justReturn( null );
 		Actions\expectAdded( 'admin_menu' )->never();
+		Actions\expectAdded( 'admin_init' )->never();
 		Actions\expectAdded( 'admin_enqueue_scripts' )->never();
 		Actions\expectAdded( 'admin_post_readiness_index_scan' )->never();
 		Actions\expectAdded( 'init' )->once();
@@ -125,7 +134,13 @@ final class StaticGuardsTest extends WpTestCase {
 	public function test_the_admin_registers_its_menu_and_actions(): void {
 		Functions\when( 'is_admin' )->justReturn( true );
 		Functions\when( 'register_deactivation_hook' )->justReturn( null );
+		Functions\when( 'register_activation_hook' )->justReturn( null );
+		Functions\when( 'plugin_basename' )->justReturn( 'readiness-index/readiness-index.php' );
 		Actions\expectAdded( 'admin_menu' )->once();
+		Actions\expectAdded( 'admin_post_readiness_index_apply' )->once();
+		Actions\expectAdded( 'admin_post_readiness_index_undo' )->once();
+		Actions\expectAdded( 'admin_post_nopriv_readiness_index_apply' )->never();
+		Actions\expectAdded( 'admin_post_nopriv_readiness_index_undo' )->never();
 		Actions\expectAdded( 'admin_post_readiness_index_scan' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_connect' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_callback' )->once();
@@ -138,6 +153,12 @@ final class StaticGuardsTest extends WpTestCase {
 
 	public function test_every_option_the_plugin_writes_is_not_autoloaded(): void {
 		foreach ( $this->shipped() as $path => $code ) {
+			if ( 'src/Fixers/State.php' === $path ) {
+				// The one option the front end needs on every request: it says which filters to add.
+				// Autoloaded, an empty map costs no query; otherwise it would cost one on every page.
+				$this->assertSame( 2, preg_match_all( '/(update_option|add_option)\(/', $code ) );
+				continue;
+			}
 			if ( preg_match_all( '/\b(update_option|add_option)\(([^;]*?)\);/s', $code, $m ) ) {
 				foreach ( $m[2] as $arguments ) {
 					$this->assertMatchesRegularExpression( '/false\s*(,\s*)?\)?\s*$/', trim( $arguments ) . ')', $path . ': ' . $arguments );

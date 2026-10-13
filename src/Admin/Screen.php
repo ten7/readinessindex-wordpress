@@ -71,6 +71,18 @@ final class Screen {
 	}
 
 	/**
+	 * A model for a screen that makes no API call: the Changes tab and the preview page. Only
+	 * what every screen shows is filled in.
+	 *
+	 * @param int $user_id The signed-in administrator.
+	 */
+	public static function light( int $user_id ): ViewModel {
+		$model        = new ViewModel();
+		$model->flash = Flash::take( $user_id );
+		return $model;
+	}
+
+	/**
 	 * Fills the model from a fresh answer: `scan.state` is the state.
 	 *
 	 * @param ViewModel                              $model Model.

@@ -18,6 +18,7 @@ final class Plugin {
 	 * Registers hooks. Called once, from the main plugin file.
 	 */
 	public static function boot(): void {
+		register_activation_hook( READINESS_INDEX_FILE, array( self::class, 'activate' ) );
 		register_deactivation_hook( READINESS_INDEX_FILE, array( self::class, 'deactivate' ) );
 
 		// First on `init`, so a request for the ownership file is answered before any theme
@@ -30,11 +31,26 @@ final class Plugin {
 
 		if ( is_admin() ) {
 			Admin\Menu::register();
+			// A comparison of two numbers; the table is created or upgraded only when it is behind.
+			add_action( 'admin_init', array( Changes\Schema::class, 'maybe_upgrade' ) );
+			Admin\Notices::register();
 		}
 	}
 
 	/**
-	 * Deactivation: stops every scheduled event, so nothing keeps calling the API.
+	 * Activation: the empty map of fixers (so the front end reads it for free) and the table.
+	 * A network activation runs this once for the network, and each site creates its own table
+	 * the first time its admin loads, which `maybe_upgrade` does.
+	 */
+	public static function activate(): void {
+		Fixers\State::seed();
+		Changes\Schema::install();
+	}
+
+	/**
+	 * Deactivation: stops every scheduled event, so nothing keeps calling the API. The changes
+	 * stay on record and resume when the plugin is activated again; nothing is undone, and the
+	 * Changes tab and the Plugins screen say so.
 	 */
 	public static function deactivate(): void {
 		Scan\Poller::clear_all();

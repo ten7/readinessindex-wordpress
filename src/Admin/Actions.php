@@ -28,6 +28,8 @@ final class Actions {
 
 	const CAPABILITY = 'manage_options';
 
+	const SAVE_SETTINGS = 'readiness_index_save_settings';
+
 	/**
 	 * Registers every action. The return from readinessindex.io is also registered for
 	 * visitors who are not signed in, which is explained at `handle_callback`.
@@ -41,6 +43,7 @@ final class Actions {
 		add_action( 'admin_post_readiness_index_verify', array( self::class, 'handle_verify' ) );
 		add_action( 'admin_post_readiness_index_refresh', array( self::class, 'handle_refresh' ) );
 		add_action( 'admin_post_readiness_index_dismiss', array( self::class, 'handle_dismiss' ) );
+		add_action( 'admin_post_' . self::SAVE_SETTINGS, array( self::class, 'handle_save_settings' ) );
 	}
 
 	/**
@@ -48,7 +51,7 @@ final class Actions {
 	 *
 	 * @param string $nonce_action The nonce action, which is the `admin-post` action's name.
 	 */
-	private static function guard( string $nonce_action ): void {
+	public static function guard( string $nonce_action ): void {
 		if ( ! current_user_can( self::CAPABILITY ) ) {
 			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'default' ), '', array( 'response' => 403 ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- A WordPress core sentence, in the visitor's language.
 		}
@@ -252,5 +255,15 @@ final class Actions {
 		self::guard( 'readiness_index_dismiss' );
 		update_user_meta( get_current_user_id(), Screen::DISMISS_META, '1' );
 		self::back();
+	}
+
+	/**
+	 * Saves the one setting on the Changes tab.
+	 */
+	public static function handle_save_settings(): void {
+		self::guard( self::SAVE_SETTINGS );
+		Settings::set_remove_on_uninstall( isset( $_POST['remove_on_uninstall'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['remove_on_uninstall'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by guard above.
+		wp_safe_redirect( Urls::changes() );
+		exit;
 	}
 }
