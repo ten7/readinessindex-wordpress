@@ -1,4 +1,5 @@
 {
+  "score.view_report": "View the full report",
   "fixes.filter.all": "All",
   "fixes.copy_all": "Copy all as Markdown",
   "fixes.stale": "Your site changed after you previewed this, so nothing was applied. Review the preview below and apply again.",

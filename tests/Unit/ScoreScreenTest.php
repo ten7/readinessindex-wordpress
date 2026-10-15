@@ -164,6 +164,55 @@ final class ScoreScreenTest extends WpTestCase {
 		$this->assertDoesNotMatchRegularExpression( '/\d+\.\d+ out of|\d\.0\b/', $text );
 	}
 
+	public function test_done_links_to_the_full_report_in_a_new_tab_without_a_window_opener(): void {
+		$this->respond( Fixtures::response( 'site/done-first-scan' ) );
+		$html  = $this->html();
+		$token = Fixtures::load( 'site/done-first-scan' )['response']['body']['score']['scan'];
+
+		$this->assertSame( 'scan-token-2', $token );
+		$this->assertSame( 1, preg_match( '#<a href="([^"]*)" target="_blank" rel="noopener">View the full report</a>#', $html, $m ), $html );
+		$this->assertSame( Settings::origin() . '/report/scan-token-2', $m[1] );
+		$this->assertSame( 'https://readinessindex.io/report/scan-token-2', $m[1] );
+		$this->assertStringContainsString( 'View the full report', $this->text( $html ) );
+	}
+
+	public function test_the_report_link_follows_the_score_not_the_newest_scan_and_is_escaped(): void {
+		$body                  = Fixtures::load( 'site/done-first-scan' )['response']['body'];
+		$body['score']['scan'] = 'a"><script>alert(1)</script>/../x';
+		$this->respond(
+			array(
+				'response' => array( 'code' => 200 ),
+				'headers'  => array(),
+				'body'     => json_encode( $body ),
+			)
+		);
+		$html = $this->html();
+		$this->assertStringNotContainsString( '<script>', $html );
+		$this->assertStringContainsString( 'href="https://readinessindex.io/report/a%22%3E%3Cscript%3Ealert%281%29%3C%2Fscript%3E%2F..%2Fx"', $html );
+	}
+
+	public function test_a_failed_rescan_still_links_to_the_report_of_the_last_finished_scan(): void {
+		$this->respond( Fixtures::response( 'site/failed' ) );
+		$html  = $this->html();
+		$score = Fixtures::load( 'site/failed' )['response']['body']['score'] ?? null;
+		if ( null === $score ) {
+			$this->assertStringNotContainsString( '/report/', $html );
+			return;
+		}
+		$this->assertStringContainsString( 'href="https://readinessindex.io/report/' . rawurlencode( $score['scan'] ) . '"', $html );
+	}
+
+	public function test_there_is_no_report_link_without_a_finished_scan(): void {
+		foreach ( array( 'site/never-scanned-billing-off', 'site/pending', 'site/running' ) as $fixture ) {
+			SiteCache::clear();
+			$this->respond( Fixtures::response( $fixture ) );
+			$this->assertStringNotContainsString( '/report/', $this->html(), $fixture );
+			$this->assertStringNotContainsString( 'View the full report', $this->html(), $fixture );
+		}
+		unset( $this->options[ Settings::OPTION_KEY ] );
+		$this->assertStringNotContainsString( '/report/', $this->html() );
+	}
+
 	public function test_the_change_sentences_up_down_same_not_comparable_and_first(): void {
 		$base  = Fixtures::load( 'site/done-with-change' )['response']['body'];
 		$cases = array(

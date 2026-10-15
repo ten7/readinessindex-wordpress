@@ -273,7 +273,37 @@ final class ScoreView {
 		if ( $site->allowance->lifetime ) {
 			echo '<p class="ri-sample">' . esc_html( Strings::get( 'score.sample_note' ) ) . '</p>';
 		}
+		self::report_link( $score );
 		echo '</div>';
+	}
+
+	/**
+	 * The link to the full report on readinessindex.io, for the finished scan the numbers above
+	 * come from. It opens in a new tab with `noopener`, so the report page cannot reach back
+	 * into wp-admin through `window.opener`. The token is the API's, so it is encoded as a path
+	 * segment and an empty one draws nothing rather than a link to the report index.
+	 *
+	 * @param Score $score The score.
+	 */
+	private static function report_link( Score $score ): void {
+		$url = self::report_url( $score );
+		if ( '' === $url ) {
+			return;
+		}
+		echo '<p class="ri-report"><a href="' . esc_url( $url, self::protocols( Settings::origin() ) ) . '" target="_blank" rel="noopener">' . esc_html( Strings::get( 'score.view_report' ) ) . '</a></p>';
+	}
+
+	/**
+	 * The address of the full report of a finished scan: the configured API origin, the same one
+	 * the client uses, then `/report/` and the scan's token. Empty when there is no token.
+	 *
+	 * @param Score $score The score.
+	 */
+	public static function report_url( Score $score ): string {
+		if ( '' === trim( $score->scan ) ) {
+			return '';
+		}
+		return Settings::origin() . '/report/' . rawurlencode( $score->scan );
 	}
 
 	/**
