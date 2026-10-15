@@ -1,7 +1,8 @@
 # Working in this repo
 
 The Readiness Index WordPress plugin: it puts a site's own AI readiness score inside
-wp-admin, and later fixes the part of the score that WordPress is in a position to fix.
+wp-admin. It will later fix the part of the score that WordPress is in a position to fix; that
+code is built and tested but switched off (see *The fixers*).
 Slug and directory `readiness-index`, text domain `readiness-index`, GPLv2 or later,
 `Requires at least: 6.4`, `Requires PHP: 7.4`. It is built for wordpress.org review, which
 is stricter than WordPress itself and is the reason for most rules below.
@@ -130,6 +131,17 @@ method (`Actions::callback_plan`) and the handler only executes it, because an `
 PHPUnit ends the whole run silently.
 
 ## The fixers
+
+**0.5.0 ships the Score alone, and `Features::fixers()` is the one switch** (the constant `READINESS_INDEX_FIXERS`,
+default off, or the `readiness_index_fixers` filter, strictly `true`). It is checked where things are registered
+and never inside a fixer: `Plugin::wire_fixers` (on `plugins_loaded` 20) adds the fixer hooks, the apply/undo,
+save-settings, diagnose and fix-prompt actions and the Plugins-screen note; `Menu::add_menu` adds the Fixes,
+Changes and preview pages; `Tabs::render` prints no tabs. Off, nothing of the fixer side runs, so a change a
+site applied under 0.4.0 is not served (its record stays; turning the switch on resumes it), and activation and
+upgrade store no table and no autoloaded option. `Uninstall` ignores the switch on purpose, so deleting the
+plugin still cleans up whatever the fixers ever stored. Unit tests of the fixer side call `fixers_on()`; the
+integration bootstrap defines the constant. A new fixer registration goes inside `wire_fixers` or a
+`register_fixers()` it calls, and `ScoreOnlyTest` lists the hooks that must not appear when off.
 
 **Every change goes through `Fixers\Runner`, and nothing else may apply, undo or clean up.** The runner
 checks capability and then nonce, refuses anything but a POST, compares the preview's hash with the one

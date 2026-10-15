@@ -1,6 +1,6 @@
 # WordPress column of the parity matrix
 
-This repository's view of `docs/contract/MATRIX.md` (the copy of the web repository's `docs/cms-parity/MATRIX.md`). The matrix itself is not edited here; the web repository owns it, and the WordPress cell of each row moves there when READY-254 is accepted. Status as of READY-256: all 71 rows done for WordPress (READY-255 and READY-256).
+This repository's view of `docs/contract/MATRIX.md` (the copy of the web repository's `docs/cms-parity/MATRIX.md`). The matrix itself is not edited here; the web repository owns it, and the WordPress cell of each row moves there when READY-254 is accepted. **As of 0.5.0 (2026-10-15) the plugin ships the Score only.** Ivan decided the plugin is not ready to ship fixing, so every row below under Screen: Fixes, Screen: Changes, Fixer, Fixer conflict and Diagnostic is *built, tested and switched off*: `Features::fixers()` (the constant `READINESS_INDEX_FIXERS`, default off, or the `readiness_index_fixers` filter) gates every screen, action, filter and diagnostic, and the unit and integration suites run those rows with the switch on. Those rows are not live in a release until the switch ships on; the Connect, API, API error and Screen: Score rows are the shipped surface. The Score screen also links to the full report at `<API origin>/report/<score.scan>`, which the matrix has no row for. Status as of READY-256: all 71 rows built for WordPress (READY-255 and READY-256).
 
 `Verified` says how a row is known to work: `tests` is the PHPUnit suite over the golden fixtures; `live` is a run on the Pantheon dev site (API origin edge). `e2e` is the real plugin driven over HTTP in wp-env (`tests/e2e/lib.sh`).
 
@@ -39,6 +39,7 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | Screen: Score | State: pending | done | tests |
 | Screen: Score | State: running | done | tests |
 | Screen: Score | State: done | done | tests |
+| Screen: Score | View the full report: opens `<API origin>/report/<score.scan>` in a new tab, only with a finished scan | done | tests |
 | Screen: Score | State: failed | done | tests |
 | Screen: Score | State: quota | done | tests |
 | Screen: Score | State: revoked | done | tests |
@@ -48,33 +49,33 @@ This repository's view of `docs/contract/MATRIX.md` (the copy of the web reposit
 | Screen: Score | Scan now spends a rescan and shows what is left | done | tests |
 | Screen: Score | Free account: five lifetime rescans, then Basic, never a pack | done | tests |
 | Screen: Score | Billing off shows no plan to buy | done | tests |
-| Screen: Fixes | Fixes listed in the server's order with points and who fixes them | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
-| Screen: Fixes | Fix it here: preview, apply, undo | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
-| Screen: Fixes | Fix it with an SEO tool the site already has | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
-| Screen: Fixes | Hand it on: the fix prompt with a copy button | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
-| Screen: Fixes | Points the fixers can reach, said before anything is applied | done | tests (the list needs a connected site, so it is not driven live; each preview page is) |
-| Screen: Changes | Every change listed with what, when, by whom and Undo | done | tests + e2e (wp-env) + live (Pantheon dev) |
-| Screen: Changes | Empty state | done | tests + e2e (wp-env) + live (Pantheon dev) |
-| Fixer | AIR-1.1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.4 robots.txt: state what AI may do (Content Signals) | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.5 robots.txt: the policy in plain words | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.10 `/llms.txt` generated from the site's content | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.6 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-4.8 Sitemap `lastmod` from when the content really changed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-5.4 `datePublished` and `dateModified` from when the content really changed | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.11 One linked entity graph with `@id` references | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.12 `sameAs` links to authority records | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-1.13 About, Contact and organizational detail | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-3.2 `BreadcrumbList` below the home page | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer | AIR-3.7 `SearchAction` on the WebSite node | done | tests (vector + WordPress adapter) + e2e (wp-env) |
-| Fixer conflict | robots.txt: a physical file wins, so previewed to paste and not applied | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
-| Fixer conflict | llms.txt: a physical file or another tool serves it | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
-| Fixer conflict | Stray directives: a directive an SEO tool sets is deferred to it | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
-| Fixer conflict | Dates and entity graph: through the SEO tool, never a second copy | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
-| Fixer conflict | Applying twice is the same as once; undo restores the baseline exactly | done | tests (real WordPress, real Yoast SEO and Rank Math where named) |
-| Diagnostic | AIR-2.5 images without alt text: listed, linked to the media library, never written | done | tests |
-| Diagnostic | AIR-1.2 a CDN or firewall turning AI crawlers away: detected and handed on | done | tests |
-| Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | done | tests |
+| Screen: Fixes | Fixes listed in the server's order with points and who fixes them | built, off in 0.5.0 | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Fix it here: preview, apply, undo | built, off in 0.5.0 | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Fix it with an SEO tool the site already has | built, off in 0.5.0 | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Hand it on: the fix prompt with a copy button | built, off in 0.5.0 | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Fixes | Points the fixers can reach, said before anything is applied | built, off in 0.5.0 | tests (the list needs a connected site, so it is not driven live; each preview page is) |
+| Screen: Changes | Every change listed with what, when, by whom and Undo | built, off in 0.5.0 | tests + e2e (wp-env) + live (Pantheon dev) |
+| Screen: Changes | Empty state | built, off in 0.5.0 | tests + e2e (wp-env) + live (Pantheon dev) |
+| Fixer | AIR-1.1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.4 robots.txt: state what AI may do (Content Signals) | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.5 robots.txt: the policy in plain words | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.10 `/llms.txt` generated from the site's content | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.6 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-4.8 Sitemap `lastmod` from when the content really changed | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-5.4 `datePublished` and `dateModified` from when the content really changed | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.11 One linked entity graph with `@id` references | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.12 `sameAs` links to authority records | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-1.13 About, Contact and organizational detail | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-3.2 `BreadcrumbList` below the home page | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer | AIR-3.7 `SearchAction` on the WebSite node | built, off in 0.5.0 | tests (vector + WordPress adapter) + e2e (wp-env) |
+| Fixer conflict | robots.txt: a physical file wins, so previewed to paste and not applied | built, off in 0.5.0 | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | llms.txt: a physical file or another tool serves it | built, off in 0.5.0 | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Stray directives: a directive an SEO tool sets is deferred to it | built, off in 0.5.0 | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Dates and entity graph: through the SEO tool, never a second copy | built, off in 0.5.0 | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Fixer conflict | Applying twice is the same as once; undo restores the baseline exactly | built, off in 0.5.0 | tests (real WordPress, real Yoast SEO and Rank Math where named) |
+| Diagnostic | AIR-2.5 images without alt text: listed, linked to the media library, never written | built, off in 0.5.0 | tests |
+| Diagnostic | AIR-1.2 a CDN or firewall turning AI crawlers away: detected and handed on | built, off in 0.5.0 | tests |
+| Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | built, off in 0.5.0 | tests |
 | Shared | Every sentence shown comes from `strings/en.json` | done | tests |
 | Shared | CI runs `check_vectors.py` and the module's fixers against every vector | done | tests + CI |
 

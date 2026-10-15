@@ -19,6 +19,7 @@
 /docs
 /node_modules
 /tests
+/test-results
 /vendor
 /CLAUDE.md
 /README.md

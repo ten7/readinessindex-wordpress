@@ -19,7 +19,7 @@ require_once dirname( __DIR__ ) . '/src/Autoloader.php';
 // directly, so it defines them itself.
 // WordPress defines this constant for $wpdb's output type.
 define( 'ARRAY_A', 'ARRAY_A' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress's own constant.
-define( 'READINESS_INDEX_VERSION', '0.4.0' );
+define( 'READINESS_INDEX_VERSION', '0.5.0' );
 define( 'READINESS_INDEX_DIR', dirname( __DIR__ ) . '/' );
 define( 'READINESS_INDEX_FILE', dirname( __DIR__ ) . '/readiness-index.php' );
 

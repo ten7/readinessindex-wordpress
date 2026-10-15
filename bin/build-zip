@@ -42,7 +42,7 @@ echo "Contents:"
 echo "${listing}"
 
 # Entries that must never ship. Matched against each path inside the zip, after the slug.
-forbidden='^readiness-index/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|docs|bin|dist)(/|$)|^readiness-index/(\.|composer\.|package|phpcs|phpunit|patchwork|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
+forbidden='^readiness-index/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|test-results|docs|bin|dist)(/|$)|^readiness-index/(\.|composer\.|package|phpcs|phpunit|patchwork|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
 bad="$(echo "${listing}" | grep -E "${forbidden}" || true)"
 
 if [ -n "${bad}" ]; then

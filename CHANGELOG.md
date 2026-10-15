@@ -2,6 +2,12 @@
 
 The same entries are in `readme.txt`, which is what wordpress.org shows.
 
+## 0.5.0
+
+- The plugin now ships the Score alone: connect, scan, the score with its dimensions and change, rescans left, live progress, ownership and the service's next step.
+- New: View the full report, which opens the complete report of the scan on readinessindex.io in a new tab.
+- The Fixes and Changes screens and every fixer are switched off by one switch (`READINESS_INDEX_FIXERS`, default off). Nothing is added to robots.txt, llms.txt, pages, dates or structured data, and a change made under an earlier version is no longer served. The code stays in the repository and in the test suite.
+
 ## 0.4.0
 
 - Five fixes, each with preview, Apply and Undo: robots.txt for AI crawlers, /llms.txt, stray noarchive and nosnippet directives, honest published and modified dates, and one linked structured data graph.

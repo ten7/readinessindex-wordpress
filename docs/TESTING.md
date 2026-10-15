@@ -15,6 +15,7 @@ PHPUnit with Brain Monkey: no WordPress, no database, no network, a few seconds.
   and a GET that never applies.
 - Structure: every `Fixer` is registered, nothing outside the runner can call `apply`, `undo` or
   `cleanup`, no sentence is written in code, every key exists, no price appears.
+- The fixers-off default (`ScoreOnlyTest`): no Fixes or Changes menu or tab, no fixer hook, action or option, even with changes stored by an earlier version. The fixer tests below switch the fixers on with `WpTestCase::fixers_on()`; the integration suite defines `READINESS_INDEX_FIXERS` in its bootstrap.
 - The Fixes, Changes and Preview screens, row kinds and the points banner (with Yoast active and not).
 - The robots.txt parser against RFC 9309's own examples.
 
@@ -57,6 +58,9 @@ bin/wp-env-loopback
 source tests/e2e/lib.sh && ri_login
 ri_preview_apply llms-txt
 ```
+
+These helpers drive the fixers, so the wp-env site needs the switch on first:
+`npx wp-env run cli wp config set READINESS_INDEX_FIXERS true --raw`. Without it the screens are not there.
 
 What it cannot do is connect the site to Readiness Index: that needs a person at the staging password and
 a WorkOS sign-in, so the Fixes tab's list (fed by the API) is not driven from here. Each preview page is

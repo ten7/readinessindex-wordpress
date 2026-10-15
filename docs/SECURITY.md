@@ -1,5 +1,7 @@
 # Security and privacy review
 
+> As of 0.5.0 the fixer entries below are switched off by default (`Features::fixers()`): with the switch off the Apply, Undo, settings, diagnose and prompt actions, the Fixes, Changes and preview pages and every front-end filter are not registered, so those rows describe code that does not run in a release.
+
 Written as an attacker would read the plugin, and then as a wordpress.org reviewer would. Every entry
 point is listed with who may call it, what proves they meant to, what it reads and what it changes;
 `tests/Unit/HookAllowlistTest.php` fails when one is added, removed or renamed without this file being
