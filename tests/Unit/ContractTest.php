@@ -77,7 +77,7 @@ final class ContractTest extends TestCase {
 			$this->assertArrayHasKey( $key, $strings );
 		}
 		foreach ( $strings as $key => $text ) {
-			$this->assertDoesNotMatchRegularExpression( '/[$€£]|\d\s*\/\s*(mo|month|year)/i', $text, $key );
+			$this->assertDoesNotMatchRegularExpression( '/[$€£]|\d\s*\/\s*(mo|month|year)/iu', $text, $key );
 		}
 	}
 }

@@ -7,6 +7,7 @@
 
 namespace ReadinessIndex\Admin;
 
+use ReadinessIndex\Api\Model\Allowance;
 use ReadinessIndex\Api\Model\Score;
 use ReadinessIndex\Api\Model\SiteResponse;
 use ReadinessIndex\Connect\Connector;
@@ -89,15 +90,28 @@ final class ScoreView {
 			return;
 		}
 
-		self::scan_state( $model, $site );
 		self::quota_notice( $model, $site );
 		if ( null !== $site->score ) {
-			self::score( $site, $site->score );
+			// A score on screen: the five sections, with the state of the newest scan in the
+			// status line above the heading and the actions beside the rescan count.
+			echo '<div class="ri-sections">';
+			self::score_section( $model, $site, $site->score, true );
+			self::breakdown( $site->score );
+			self::details( $site, $site->score );
+			self::watch( $model, $site );
+			self::connection( $model, $site );
+			echo '</div>';
+			return;
 		}
-		self::rescans( $model, $site );
-		self::upgrade( $model, $site );
-		self::ownership( $site );
-		self::settings( $model );
+
+		// No score yet: the state's own panel, the scan button and what remains of the account.
+		self::scan_state( $model, $site );
+		echo '<div class="ri-sections">';
+		self::rescans_line( $site->allowance );
+		self::pack_link( $site );
+		self::watch( $model, $site );
+		self::connection( $model, $site );
+		echo '</div>';
 	}
 
 	/**
@@ -171,7 +185,13 @@ final class ScoreView {
 		self::form( Connector::ACTION_START, Strings::get( 'common.connect' ), 'button button-primary' );
 		echo '</div>';
 		if ( null !== $model->site && null !== $model->site->score ) {
-			self::score( $model->site, $model->site->score );
+			// The last answer, read only: the key is gone, so there is nothing to scan with and
+			// the sections that act on the connection are left out.
+			echo '<div class="ri-sections">';
+			self::score_section( $model, $model->site, $model->site->score, false );
+			self::breakdown( $model->site->score );
+			self::details( $model->site, $model->site->score );
+			echo '</div>';
 		}
 	}
 
@@ -207,6 +227,7 @@ final class ScoreView {
 				}
 				break;
 			case ViewModel::DONE:
+				// A finished scan with no score is a contract oddity; say so as it always was.
 				self::panel( Strings::get( 'state.done.title' ), '' );
 				if ( ! $spent ) {
 					self::scan_button( $site, false );
@@ -227,54 +248,185 @@ final class ScoreView {
 			return;
 		}
 		$message = ( $refused && '' !== $model->flash['message'] ) ? $model->flash['message'] : Strings::get( 'error.quota' );
-		self::panel( Strings::get( 'state.quota.title' ), Strings::get( 'state.quota.body', array( 'message' => $message ) ) );
+		self::notice( 'warning', Strings::get( 'state.quota.title' ), Strings::get( 'state.quota.body', array( 'message' => $message ) ) );
 	}
 
 	/**
-	 * The score, grade, verdict, dimensions table, change and the facts beneath.
+	 * Section 1, the score: the state of the newest scan as a plain status line, the heading, the
+	 * number, the grade with its sentences, the actions row and the link to the full report.
+	 *
+	 * @param ViewModel    $model   The model.
+	 * @param SiteResponse $site    The answer.
+	 * @param Score        $score   The score.
+	 * @param bool         $actions Whether the answer is live, so the scan form and the count belong here.
+	 */
+	private static function score_section( ViewModel $model, SiteResponse $site, Score $score, bool $actions ): void {
+		echo '<section class="card ri-card ri-score" aria-labelledby="ri-score-title">';
+		self::status_line( $model, $site, $score );
+		echo '<h2 id="ri-score-title">' . esc_html( Strings::get( 'score.title' ) ) . '</h2>';
+
+		$value = Strings::around( 'score.value', 'score' );
+		echo '<p class="ri-score-line">' . esc_html( $value[0] ) . '<strong class="ri-score-value">' . esc_html( (string) $score->value ) . '</strong><span class="ri-score-of">' . esc_html( $value[1] ) . '</span></p>';
+
+		echo '<p class="ri-grade-line"><strong>' . esc_html( Strings::get( 'score.grade_line', array( 'grade' => $score->grade ) ) ) . '</strong> ' . esc_html( $score->verdict ) . ' ' . esc_html( self::change_sentence( $score ) ) . '</p>';
+		if ( $score->gated ) {
+			echo '<p class="ri-gated">' . esc_html( Strings::get( 'score.gated' ) ) . '</p>';
+		}
+
+		if ( $actions ) {
+			echo '<div class="ri-actions">';
+			self::scan_button( $site, $site->scan->is_active() || $site->allowance->is_spent() );
+			self::rescans_text( $site->allowance );
+			echo '</div>';
+		}
+		self::report_link( $score );
+		if ( $actions ) {
+			self::pack_link( $site );
+		}
+		echo '</section>';
+	}
+
+	/**
+	 * The status line above the heading. It is the one place the state of the newest scan is
+	 * said once there is a score, and the polling script rewrites its two spans.
+	 *
+	 * @param ViewModel    $model The model.
+	 * @param SiteResponse $site  The answer.
+	 * @param Score        $score The score on screen.
+	 */
+	private static function status_line( ViewModel $model, SiteResponse $site, Score $score ): void {
+		$live = ' id="ri-state" aria-live="polite"';
+		switch ( $model->state ) {
+			case ViewModel::PENDING:
+				$title = Strings::get( 'state.pending.title' );
+				$body  = Strings::get( 'state.pending.body' );
+				break;
+			case ViewModel::RUNNING:
+				$title = Strings::get( 'state.running.title' );
+				$body  = Strings::get( 'state.running.body_unknown' );
+				break;
+			case ViewModel::FAILED:
+				echo '<p class="ri-status" role="status">' . esc_html( Strings::get( 'score.status.failed' ) ) . '</p>';
+				$problem = null !== $site->scan->problem ? $site->scan->problem : '';
+				if ( '' !== $problem ) {
+					echo '<p class="ri-problem">' . esc_html( Strings::get( 'state.failed.body', array( 'problem' => $problem ) ) ) . '</p>';
+				}
+				return;
+			default:
+				echo '<p class="ri-status" role="status">' . esc_html( Strings::get( 'score.status.finished', array( 'date' => self::datetime( $score->finished_at ) ) ) ) . '</p>';
+				return;
+		}
+		echo '<p class="ri-status" role="status"' . $live . '><span id="ri-state-title">' . esc_html( $title ) . '</span> <span id="ri-state-body">' . esc_html( $body ) . '</span></p>'; // phpcs:ignore WordPress.Security.EscapeOutput -- $live is fixed markup, the rest is escaped above.
+	}
+
+	/**
+	 * Section 2, the breakdown: a real table in the server's order, the weakest row or rows in
+	 * bold with the word for it, so the finding never rests on a colour or on the bar.
+	 *
+	 * @param Score $score The score.
+	 */
+	private static function breakdown( Score $score ): void {
+		$weakest = self::weakest( $score->dimensions );
+		echo '<section class="card ri-card ri-breakdown" aria-labelledby="ri-breakdown-title">';
+		echo '<h2 id="ri-breakdown-title">' . esc_html( Strings::get( 'score.dimensions' ) ) . '</h2>';
+		echo '<table class="widefat striped ri-dimensions"><thead><tr>';
+		echo '<th scope="col">' . esc_html( Strings::get( 'score.breakdown.category' ) ) . '</th>';
+		echo '<th scope="col" class="ri-num">' . esc_html( Strings::get( 'tab.score' ) ) . '</th>';
+		echo '<th scope="col" class="ri-meter"><span class="screen-reader-text">' . esc_html( Strings::get( 'score.breakdown.progress' ) ) . '</span></th>';
+		echo '</tr></thead><tbody>';
+		foreach ( $score->dimensions as $i => $dimension ) {
+			$name = self::sentence_case( $dimension->name );
+			echo '<tr><th scope="row">';
+			if ( isset( $weakest[ $i ] ) ) {
+				echo '<strong>' . esc_html( $name ) . '</strong> <span class="ri-weakest">' . esc_html( Strings::get( 'score.breakdown.weakest' ) ) . '</span>';
+			} else {
+				echo esc_html( $name );
+			}
+			echo '</th><td class="ri-num"><strong>' . esc_html( (string) $dimension->earned ) . '</strong> / ' . esc_html( (string) $dimension->possible ) . '</td>';
+			echo '<td class="ri-meter"><meter min="0" max="' . esc_attr( (string) $dimension->possible ) . '" value="' . esc_attr( (string) $dimension->earned ) . '" aria-label="' . esc_attr( $name ) . '"></meter></td></tr>';
+		}
+		echo '</tbody></table></section>';
+	}
+
+	/**
+	 * The rows with the lowest share of their points, by index. Compared by cross-multiplying, so
+	 * no fraction is ever rounded into a tie. When every row has the same share, or a row has no
+	 * points to earn, nothing is flagged: "weakest" would be noise.
+	 *
+	 * @param array<int,\ReadinessIndex\Api\Model\Dimension> $dimensions The rows, in the server's order.
+	 * @return array<int,true>
+	 */
+	public static function weakest( array $dimensions ): array {
+		$low  = null;
+		$high = null;
+		foreach ( $dimensions as $d ) {
+			if ( $d->possible <= 0 ) {
+				continue;
+			}
+			if ( null === $low || $d->earned * $low->possible < $low->earned * $d->possible ) {
+				$low = $d;
+			}
+			if ( null === $high || $d->earned * $high->possible > $high->earned * $d->possible ) {
+				$high = $d;
+			}
+		}
+		$out = array();
+		if ( null === $low || null === $high || $low->earned * $high->possible === $high->earned * $low->possible ) {
+			return $out;
+		}
+		foreach ( $dimensions as $i => $d ) {
+			if ( $d->possible > 0 && $d->earned * $low->possible === $low->earned * $d->possible ) {
+				$out[ $i ] = true;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Sentence case for a category's name: the first word as it came, every later word that is
+	 * Capitalized and nothing else made lowercase. A word with a second capital (an acronym such
+	 * as JSON-LD or AI) is left alone.
+	 *
+	 * @param string $name The name the server gave.
+	 */
+	public static function sentence_case( string $name ): string {
+		$first = true;
+		$out   = preg_replace_callback(
+			'/\p{L}[\p{L}\p{M}]*/u',
+			static function ( array $m ) use ( &$first ): string {
+				if ( $first ) {
+					$first = false;
+					return $m[0];
+				}
+				return 1 === preg_match( '/^\p{Lu}\p{Ll}*$/u', $m[0] ) ? mb_strtolower( $m[0] ) : $m[0];
+			},
+			$name
+		);
+		return null === $out ? $name : $out;
+	}
+
+	/**
+	 * Section 3, the scan details: a description list. The sampling sentence belongs to Pages
+	 * read and is said on a free plan only.
 	 *
 	 * @param SiteResponse $site  The answer.
 	 * @param Score        $score The score.
 	 */
-	private static function score( SiteResponse $site, Score $score ): void {
-		echo '<div class="card ri-card ri-score">';
-		echo '<h2>' . esc_html( Strings::get( 'score.title' ) ) . '</h2>';
-		echo '<p class="ri-score-line"><strong class="ri-score-value">' . esc_html( Strings::get( 'score.value', array( 'score' => $score->value ) ) ) . '</strong> ';
-		echo '<span class="ri-grade">' . esc_html( Strings::get( 'score.grade', array( 'grade' => $score->grade ) ) ) . '</span></p>';
-		echo '<p class="ri-verdict">' . esc_html( $score->verdict ) . '</p>';
-		if ( $score->gated ) {
-			echo '<p class="ri-gated">' . esc_html( Strings::get( 'score.gated' ) ) . '</p>';
-		}
-		echo '<p class="ri-change">' . esc_html( self::change_sentence( $score ) ) . '</p>';
-
-		echo '<table class="widefat striped ri-dimensions"><caption>' . esc_html( Strings::get( 'score.dimensions' ) ) . '</caption><tbody>';
-		foreach ( $score->dimensions as $dimension ) {
-			$row = Strings::get(
-				'score.dimension_row',
-				array(
-					'name'     => $dimension->name,
-					'earned'   => $dimension->earned,
-					'possible' => $dimension->possible,
-				)
-			);
-			echo '<tr><td>' . esc_html( $row ) . '</td><td class="ri-meter" aria-hidden="true"><meter min="0" max="' . esc_attr( (string) $dimension->possible ) . '" value="' . esc_attr( (string) $dimension->earned ) . '"></meter></td></tr>';
-		}
-		echo '</tbody></table>';
-
-		echo '<p class="ri-facts">';
-		echo esc_html( Strings::get( 'score.scanned_on', array( 'date' => self::date( $score->finished_at ) ) ) );
+	private static function details( SiteResponse $site, Score $score ): void {
+		echo '<section class="card ri-card ri-details" aria-labelledby="ri-details-title">';
+		echo '<h2 id="ri-details-title">' . esc_html( Strings::get( 'score.details.title' ) ) . '</h2><dl class="ri-dl">';
+		echo '<dt>' . esc_html( Strings::get( 'score.details.scanned' ) ) . '</dt><dd>' . esc_html( self::datetime( $score->finished_at ) ) . '</dd>';
 		if ( null !== $site->scan->pages_read ) {
-			echo ' &middot; ' . esc_html( Strings::get( 'score.pages_read', array( 'pages' => $site->scan->pages_read ) ) );
+			$pages = Strings::get( 'score.details.pages', array( 'pages' => $site->scan->pages_read ) );
+			if ( $site->allowance->lifetime ) {
+				$pages .= ' ' . Strings::get( 'score.sample_note' );
+			}
+			echo '<dt>' . esc_html( Strings::get( 'score.details.pages_read' ) ) . '</dt><dd>' . esc_html( $pages ) . '</dd>';
 		}
 		if ( null !== $site->index ) {
-			echo ' &middot; ' . esc_html( Strings::get( 'score.index', array( 'version' => $site->index->version ) ) );
+			echo '<dt>' . esc_html( Strings::get( 'score.details.index_version' ) ) . '</dt><dd>' . esc_html( $site->index->version ) . '</dd>';
 		}
-		echo '</p>';
-		if ( $site->allowance->lifetime ) {
-			echo '<p class="ri-sample">' . esc_html( Strings::get( 'score.sample_note' ) ) . '</p>';
-		}
-		self::report_link( $score );
-		echo '</div>';
+		echo '</dl></section>';
 	}
 
 	/**
@@ -320,95 +472,130 @@ final class ScoreView {
 			return Strings::get( 'score.change.not_comparable' );
 		}
 		if ( $change->score_change > 0 ) {
-			return Strings::get( 'score.change.up', array( 'delta' => $change->score_change ) );
+			return Strings::get( 'score.since.up', array( 'delta' => $change->score_change ) );
 		}
 		if ( $change->score_change < 0 ) {
-			return Strings::get( 'score.change.down', array( 'delta' => abs( $change->score_change ) ) );
+			return Strings::get( 'score.since.down', array( 'delta' => abs( $change->score_change ) ) );
 		}
-		return Strings::get( 'score.change.same' );
+		return Strings::get( 'score.since.same' );
 	}
 
 	/**
-	 * The rescans left, in the sentence that fits a free or a paid account.
+	 * The rescan count as one element for the actions row: the numbers in bold and a proper
+	 * sentence after them, which for a free account is followed by what the allowance means.
+	 * With nothing left it says so in one sentence instead. A paid plan with metering reads the
+	 * server's numbers and never the free-account sentence, which only `allowance.lifetime` earns.
 	 *
-	 * @param ViewModel    $model The model.
-	 * @param SiteResponse $site  The answer.
+	 * @param Allowance $allowance The server's allowance.
 	 */
-	private static function rescans( ViewModel $model, SiteResponse $site ): void {
-		$allowance = $site->allowance;
+	private static function rescans_text( Allowance $allowance ): void {
 		if ( null === $allowance->rescans_left || null === $allowance->rescans_total ) {
 			return;
 		}
-		$vars = array(
-			'left'  => $allowance->rescans_left,
-			'total' => $allowance->rescans_total,
-		);
-		echo '<p class="ri-rescans">';
-		if ( $allowance->lifetime ) {
-			echo esc_html( Strings::get( 'score.rescans.left', $vars ) ) . ' ' . esc_html( Strings::get( 'score.rescans.lifetime', $vars ) );
+		echo '<span class="ri-rescans">';
+		if ( $allowance->is_spent() ) {
+			echo esc_html( Strings::get( $allowance->lifetime ? 'score.rescans.none' : 'score.rescans.none_monthly' ) );
 		} else {
-			echo esc_html( Strings::get( 'score.rescans.monthly', $vars ) );
+			$count = Strings::get(
+				'score.rescans.count',
+				array(
+					'left'  => $allowance->rescans_left,
+					'total' => $allowance->rescans_total,
+				)
+			);
+			$parts = Strings::around( $allowance->lifetime ? 'score.rescans.line' : 'score.rescans.line_monthly', 'count' );
+			echo esc_html( $parts[0] ) . '<strong>' . esc_html( $count ) . '</strong>' . esc_html( $parts[1] );
+			if ( $allowance->lifetime ) {
+				echo ' ' . esc_html( Strings::get( 'score.rescans.lifetime', array( 'total' => $allowance->rescans_total ) ) );
+			}
 		}
+		echo '</span>';
+	}
+
+	/**
+	 * The rescan count on its own line, for a screen with no score and so no actions row.
+	 *
+	 * @param Allowance $allowance The server's allowance.
+	 */
+	private static function rescans_line( Allowance $allowance ): void {
+		if ( null === $allowance->rescans_left || null === $allowance->rescans_total ) {
+			return;
+		}
+		echo '<p class="ri-actions">';
+		self::rescans_text( $allowance );
 		echo '</p>';
 	}
 
 	/**
-	 * The upgrade offer and the pack link, from the allowance alone.
+	 * Section 4, the weekly watch, as an aside below the data. What it offers, and whether it
+	 * is offered at all, is the server's `next_step`: nothing when there is none or the person
+	 * is already subscribed, and nothing once this user chose Not now. The button is a link to
+	 * the server's address and secondary, because the one primary button on the screen is Scan again.
 	 *
 	 * @param ViewModel    $model The model.
 	 * @param SiteResponse $site  The answer.
 	 */
-	private static function upgrade( ViewModel $model, SiteResponse $site ): void {
+	private static function watch( ViewModel $model, SiteResponse $site ): void {
 		$origin = Settings::origin();
 		$offer  = Upgrade::offer( $site->allowance, null !== $site->score, $model->monitoring_dismissed, self::screen_url(), $origin );
-		if ( null !== $offer ) {
-			echo '<div class="card ri-card ri-upgrade ri-upgrade-' . esc_attr( $offer['key'] ) . '">';
-			echo '<h2>' . esc_html( $offer['label'] ) . '</h2>';
-			echo '<p>' . esc_html( $offer['body'] ) . '</p>';
-			echo '<p><a class="button button-primary" href="' . esc_url( $offer['url'], self::protocols( $origin ) ) . '">' . esc_html( $offer['button'] ) . '</a>';
-			if ( $offer['dismissible'] ) {
-				echo ' ';
-				self::form( 'readiness_index_dismiss', Strings::get( 'common.close' ), 'button-link', false, true );
-			}
-			echo '</p></div>';
+		if ( null === $offer ) {
+			return;
 		}
-		$pack = Upgrade::pack_url( $site->allowance, $origin );
+		echo '<aside class="card ri-card ri-watch ri-upgrade-' . esc_attr( $offer['key'] ) . '" aria-labelledby="ri-watch-title">';
+		echo '<h2 id="ri-watch-title">' . esc_html( $offer['label'] ) . '</h2>';
+		echo '<p>' . esc_html( $offer['body'] ) . '</p>';
+		echo '<div class="ri-actions"><a class="button" href="' . esc_url( $offer['url'], self::protocols( $origin ) ) . '">' . esc_html( $offer['button'] ) . '</a>';
+		if ( $offer['dismissible'] ) {
+			self::form( 'readiness_index_dismiss', Strings::get( 'watch.not_now' ), 'button-link', false, true );
+		}
+		echo '</div></aside>';
+	}
+
+	/**
+	 * The pack link, only when the server says a pack can be bought right now.
+	 *
+	 * @param SiteResponse $site The answer.
+	 */
+	private static function pack_link( SiteResponse $site ): void {
+		$origin = Settings::origin();
+		$pack   = Upgrade::pack_url( $site->allowance, $origin );
 		if ( '' !== $pack ) {
 			echo '<p class="ri-pack"><a href="' . esc_url( $pack, self::protocols( $origin ) ) . '">' . esc_html( Strings::get( 'upgrade.pack' ) ) . '</a></p>';
 		}
 	}
 
 	/**
-	 * Ownership: verified, or not yet with the button to check.
+	 * Section 5, the connection: ownership and who this is connected as, then Disconnect apart
+	 * from the data. "Connected as" is the host the key is bound to, which the site answer
+	 * carries; the plan label the Connect callback stored is a different thing and printed
+	 * "Connected as Full report" before this.
 	 *
-	 * @param SiteResponse $site The answer.
+	 * @param ViewModel    $model The model.
+	 * @param SiteResponse $site  The answer.
 	 */
-	private static function ownership( SiteResponse $site ): void {
-		echo '<div class="ri-ownership">';
+	private static function connection( ViewModel $model, SiteResponse $site ): void {
+		echo '<section class="card ri-card ri-connection" aria-labelledby="ri-connection-title">';
+		echo '<h2 id="ri-connection-title">' . esc_html( Strings::get( 'connection.title' ) ) . '</h2><dl class="ri-dl">';
+		echo '<dt>' . esc_html( Strings::get( 'connection.ownership' ) ) . '</dt><dd>';
 		if ( $site->site->verified ) {
-			echo '<p>' . esc_html( Strings::get( 'score.verified' ) ) . '</p>';
+			echo esc_html( Strings::get( 'connection.verified' ) );
 		} else {
-			echo '<p>' . esc_html( Strings::get( 'score.not_verified' ) ) . '</p>';
-			echo '<p class="description">' . esc_html( Strings::get( 'verify.serving' ) ) . '</p>';
+			echo esc_html( Strings::get( 'connection.not_verified' ) ) . ' ' . esc_html( Strings::get( 'verify.serving' ) );
 			self::form( 'readiness_index_verify', Strings::get( 'verify.check' ), 'button' );
 		}
-		echo '</div>';
-	}
-
-	/**
-	 * The small settings section: who this is connected as, and Disconnect.
-	 *
-	 * @param ViewModel $model The model.
-	 */
-	private static function settings( ViewModel $model ): void {
-		echo '<div class="ri-settings">';
-		if ( '' !== $model->account_label ) {
-			echo '<p>' . esc_html( Strings::get( 'settings.account', array( 'account' => $model->account_label ) ) ) . '</p>';
+		echo '</dd>';
+		if ( '' !== $site->site->host ) {
+			echo '<dt>' . esc_html( Strings::get( 'connection.connected_as' ) ) . '</dt><dd>' . esc_html( $site->site->host ) . '</dd>';
 		}
+		echo '</dl>';
 		if ( ! $model->key_is_constant ) {
-			echo '<p><a class="button" href="' . esc_url( self::screen_url( array( 'ri_confirm' => 'disconnect' ) ) ) . '">' . esc_html( Strings::get( 'common.disconnect' ) ) . '</a></p>';
+			// A form that only asks for the confirm screen, so it is a button without a nonce: it
+			// changes nothing, and the confirm step carries the nonce of the disconnect itself.
+			echo '<form method="get" class="ri-form" action="' . esc_url( admin_url( 'admin.php' ) ) . '">';
+			echo '<input type="hidden" name="page" value="' . esc_attr( self::SCREEN_SLUG ) . '" /><input type="hidden" name="ri_confirm" value="disconnect" />';
+			echo '<button type="submit" class="button ri-danger">' . esc_html( Strings::get( 'common.disconnect' ) ) . '</button></form>';
 		}
-		echo '</div>';
+		echo '</section>';
 	}
 
 	/**
@@ -582,6 +769,20 @@ final class ScoreView {
 			return Strings::get( 'common.never' );
 		}
 		return wp_date( (string) get_option( 'date_format', 'F j, Y' ), $time );
+	}
+
+	/**
+	 * A date and time in the site's own formats, or `common.never`. Every date on the Score
+	 * screen goes through this one function, so the status line and Scan details cannot differ.
+	 *
+	 * @param string|null $iso An ISO 8601 time.
+	 */
+	public static function datetime( ?string $iso ): string {
+		$time = null === $iso ? false : strtotime( $iso );
+		if ( false === $time ) {
+			return Strings::get( 'common.never' );
+		}
+		return wp_date( (string) get_option( 'date_format', 'F j, Y' ) . ' ' . (string) get_option( 'time_format', 'g:i a' ), $time );
 	}
 
 	/**

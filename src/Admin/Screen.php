@@ -38,7 +38,6 @@ final class Screen {
 		$model->returned              = ! empty( $flags['returned'] );
 		$model->confirming_disconnect = ! empty( $flags['confirm_disconnect'] );
 		$model->key_is_constant       = Settings::key_is_constant();
-		$model->account_label         = Settings::connection()['plan'];
 		$model->monitoring_dismissed  = '1' === (string) get_user_meta( $user_id, self::DISMISS_META, true );
 
 		// 1. No key stored: unconnected.

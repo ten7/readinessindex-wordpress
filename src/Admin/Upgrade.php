@@ -46,11 +46,15 @@ final class Upgrade {
 		}
 		$label_key = 'upgrade.' . $step->key . '.label';
 		$body_key  = 'upgrade.' . $step->key . '.body';
+		$label     = Strings::has( $label_key ) ? Strings::get( $label_key ) : $step->label;
 		return array(
 			'key'         => $step->key,
-			'label'       => Strings::has( $label_key ) ? Strings::get( $label_key ) : $step->label,
+			'label'       => $label,
 			'body'        => Strings::has( $body_key ) ? Strings::get( $body_key ) : $step->message,
-			'button'      => Strings::get( 'checkout.subscribe' ),
+			// The button says what the step is: "Watch this site every week" for monitoring, and the
+			// step's own label for any other, which the server owns. The label is never a plan name
+			// or a price written here, so a step the server adds later is named by the server.
+			'button'      => $label,
 			'url'         => $url,
 			'dismissible' => 'monitoring_basic' === $step->key,
 		);

@@ -29,7 +29,7 @@ final class StringsTest extends WpTestCase {
 
 	public function test_no_local_sentence_holds_a_price_a_placeholder_left_open_or_british_spelling(): void {
 		foreach ( Strings::local() as $key => $text ) {
-			$this->assertDoesNotMatchRegularExpression( '/[$€£]|\d\s*\/\s*(mo|month|year)|\bper (month|year)\b/i', $text, $key );
+			$this->assertDoesNotMatchRegularExpression( '/[$€£]|\d\s*\/\s*(mo|month|year)|\bper (month|year)\b/iu', $text, $key );
 			$this->assertDoesNotMatchRegularExpression( '/\b(colour|organis|behaviour|licence|favour|centre|analys(e|ing)\b|catalogue)/i', $text, $key );
 			$this->assertDoesNotMatchRegularExpression( '/(?<!\{)\{(?!\w+\})/', $text, $key . ' has an unclosed placeholder' );
 		}

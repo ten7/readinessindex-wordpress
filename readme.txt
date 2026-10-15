@@ -3,7 +3,7 @@ Tags: seo, ai, score, readiness, scan
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,13 @@ The connection key is stored in one non-autoloaded option in your database, or r
 The terms are at https://readinessindex.io/terms and the privacy policy is at https://readinessindex.io/privacy.
 
 == Changelog ==
+
+= 0.6.0 =
+* The Score screen is reorganized into five sections: your score and grade first, then where the points are, the scan details, the weekly watch and the connection.
+* The rescan count now sits beside Scan again, and the two sentences that ran together no longer do.
+* The category table names the weakest category, and each category has a labelled progress bar.
+* The weekly watch offer sits below the data and can be closed with Not now, for your user only.
+* Fixed: Connected as showed the plan label instead of the site. It now shows the site's address. Disconnect is a quiet button apart from the data.
 
 = 0.5.0 =
 * The plugin now ships the Score alone: connect, scan, the score with its dimensions and change, rescans left, live progress, ownership and the service's next step.

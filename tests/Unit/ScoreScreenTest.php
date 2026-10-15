@@ -31,7 +31,10 @@ final class ScoreScreenTest extends WpTestCase {
 
 	protected function set_up() {
 		parent::set_up();
-		$this->s                               = json_decode( (string) file_get_contents( dirname( __DIR__, 2 ) . '/strings/en.json' ), true );
+		$this->s                               = array_merge(
+			json_decode( (string) file_get_contents( dirname( __DIR__, 2 ) . '/strings/plugin.en.json' ), true ),
+			json_decode( (string) file_get_contents( dirname( __DIR__, 2 ) . '/strings/en.json' ), true )
+		);
 		$this->options[ Settings::OPTION_KEY ] = self::KEY;
 		Functions\when( 'is_user_logged_in' )->justReturn( true );
 	}
@@ -137,29 +140,19 @@ final class ScoreScreenTest extends WpTestCase {
 		$text = $this->text( $html );
 		$body = Fixtures::load( 'site/done-first-scan' )['response']['body'];
 
-		$this->assertStringContainsString( $this->fill( 'state.done.title' ), $text );
+		$this->assertStringContainsString( "Scan finished \u{00B7} October 9, 2026", $text );
 		$this->assertStringContainsString( $this->fill( 'score.value', array( 'score' => $body['score']['value'] ) ), $text );
-		$this->assertStringContainsString( $this->fill( 'score.grade', array( 'grade' => $body['score']['grade'] ) ), $text );
+		$this->assertStringContainsString( $this->fill( 'score.grade_line', array( 'grade' => $body['score']['grade'] ) ), $text );
 		$this->assertStringContainsString( $body['score']['verdict'], $text );
 		$this->assertStringContainsString( $this->fill( 'score.change.first' ), $text );
-		$this->assertStringContainsString( $this->fill( 'score.index', array( 'version' => '11.5' ) ), $text );
-		$this->assertStringContainsString( $this->fill( 'score.pages_read', array( 'pages' => $body['scan']['pages_read'] ) ), $text );
+		$this->assertStringContainsString( '11.5', $text );
+		$this->assertStringContainsString( $this->fill( 'score.details.pages', array( 'pages' => $body['scan']['pages_read'] ) ), $text );
 		$this->assertStringContainsString( $this->fill( 'score.sample_note' ), $text );
 		$this->assertStringContainsString( $this->fill( 'score.scan_again' ), $text );
 		$this->assertStringContainsString( '<table', $html );
 		$this->assertSame( 7, substr_count( $html, '<meter' ) );
 		foreach ( $body['score']['dimensions'] as $dimension ) {
-			$this->assertStringContainsString(
-				$this->fill(
-					'score.dimension_row',
-					array(
-						'name'     => $dimension['name'],
-						'earned'   => $dimension['earned'],
-						'possible' => $dimension['possible'],
-					)
-				),
-				$text
-			);
+			$this->assertStringContainsString( '<strong>' . $dimension['earned'] . '</strong> / ' . $dimension['possible'], $html );
 		}
 		$this->assertDoesNotMatchRegularExpression( '/\d+\.\d+ out of|\d\.0\b/', $text );
 	}
@@ -221,7 +214,7 @@ final class ScoreScreenTest extends WpTestCase {
 					'comparable'   => true,
 					'score_change' => 4,
 				),
-				'score.change.up',
+				'score.since.up',
 				array( 'delta' => 4 ),
 			),
 			array(
@@ -229,7 +222,7 @@ final class ScoreScreenTest extends WpTestCase {
 					'comparable'   => true,
 					'score_change' => -3,
 				),
-				'score.change.down',
+				'score.since.down',
 				array( 'delta' => 3 ),
 			),
 			array(
@@ -237,7 +230,7 @@ final class ScoreScreenTest extends WpTestCase {
 					'comparable'   => true,
 					'score_change' => 0,
 				),
-				'score.change.same',
+				'score.since.same',
 				array(),
 			),
 			array( array( 'comparable' => false ), 'score.change.not_comparable', array() ),
@@ -437,7 +430,7 @@ final class ScoreScreenTest extends WpTestCase {
 	public function test_ownership_not_verified_offers_the_check_and_verified_does_not(): void {
 		$this->respond( Fixtures::response( 'site/never-scanned' ) );
 		$html = $this->html();
-		$this->assertStringContainsString( $this->fill( 'score.not_verified' ), $this->text( $html ) );
+		$this->assertStringContainsString( $this->fill( 'connection.not_verified' ), $this->text( $html ) );
 		$this->assertStringContainsString( $this->fill( 'verify.serving' ), $this->text( $html ) );
 		$this->assertStringContainsString( 'readiness_index_verify', $html );
 
@@ -452,7 +445,7 @@ final class ScoreScreenTest extends WpTestCase {
 		);
 		SiteCache::clear();
 		$html = $this->html();
-		$this->assertStringContainsString( $this->fill( 'score.verified' ), $this->text( $html ) );
+		$this->assertStringContainsString( $this->fill( 'connection.verified' ), $this->text( $html ) );
 		$this->assertStringNotContainsString( 'readiness_index_verify', $html );
 	}
 
@@ -534,9 +527,10 @@ final class ScoreScreenTest extends WpTestCase {
 		$this->respond( Fixtures::response( 'site/done-first-scan' ) );
 		$html = $this->html();
 		$text = $this->text( $html );
-		$this->assertSame( 1, substr_count( $text, $this->fill( 'upgrade.monitoring_basic.label' ) ) );
+		$this->assertSame( 1, substr_count( $html, '<aside' ) );
+		$this->assertSame( 2, substr_count( $text, $this->fill( 'upgrade.monitoring_basic.label' ) ), 'The heading and the button.' );
 		$this->assertStringContainsString( $this->fill( 'upgrade.monitoring_basic.body' ), $text );
-		$this->assertStringContainsString( $this->fill( 'checkout.subscribe' ), $text );
+		$this->assertStringContainsString( $this->fill( 'watch.not_now' ), $text );
 		$this->assertStringContainsString( 'readiness_index_dismiss', $html );
 		$this->assertStringNotContainsString( $this->fill( 'upgrade.pack' ), $text );
 	}
@@ -555,7 +549,6 @@ final class ScoreScreenTest extends WpTestCase {
 		$text = $this->text( $html );
 		$this->assertStringNotContainsString( 'Basic', $text );
 		$this->assertStringNotContainsString( 'checkout', $html );
-		$this->assertStringNotContainsString( $this->fill( 'checkout.subscribe' ), $text );
 	}
 
 	public function test_the_upgrade_still_leaves_the_scan_button_while_rescans_remain(): void {

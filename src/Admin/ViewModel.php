@@ -99,13 +99,6 @@ final class ViewModel {
 	public $key_is_constant = false;
 
 	/**
-	 * The plan label the Connect callback reported.
-	 *
-	 * @var string
-	 */
-	public $account_label = '';
-
-	/**
 	 * Whether a scan is being watched, so the page polls.
 	 *
 	 * @var bool

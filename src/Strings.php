@@ -79,6 +79,23 @@ final class Strings {
 	}
 
 	/**
+	 * A sentence cut in two at one placeholder, so a screen can wrap that one value in its own
+	 * element (the score's number is bold, a count is bold) without the sentence being written
+	 * in pieces. Translators keep one sentence; the caller keeps the markup. The text before and
+	 * after the value come back as plain text, and the value itself is the caller's to print.
+	 *
+	 * @param string                   $key         Dotted key.
+	 * @param string                   $placeholder The placeholder to cut at, without braces.
+	 * @param array<string,string|int> $vars        The other placeholders' values.
+	 * @return array{0:string,1:string} The text before and after the placeholder.
+	 */
+	public static function around( string $key, string $placeholder, array $vars = array() ): array {
+		$mark  = "\x1f";
+		$parts = explode( $mark, self::get( $key, array_merge( $vars, array( $placeholder => $mark ) ) ), 2 );
+		return array( $parts[0], $parts[1] ?? '' );
+	}
+
+	/**
 	 * Every string, for a test that walks them: the shared contract's, then the plugin's own
 	 * for the situations the contract has no sentence for yet.
 	 *
