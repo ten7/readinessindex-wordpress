@@ -36,6 +36,7 @@ final class FixesScreenTest extends WpTestCase {
 
 	protected function set_up() {
 		parent::set_up();
+		$this->fixers_on();
 		$this->s                               = json_decode( (string) file_get_contents( dirname( __DIR__, 2 ) . '/strings/en.json' ), true );
 		$this->options[ Settings::OPTION_KEY ] = self::KEY;
 		$GLOBALS['wpdb']                       = new FakeWpdb(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The fake table.

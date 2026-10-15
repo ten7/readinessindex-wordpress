@@ -11,8 +11,8 @@ use ReadinessIndex\Changes\Log;
 use ReadinessIndex\Strings;
 
 /**
- * Two small ones: on the Plugins screen, what deactivating does to the changes, said before it
- * is clicked; and on a network-activated install, that per-site activation is supported.
+ * Two small ones: on a network-activated install, that per-site activation is supported; and,
+ * with the fixers on, on the Plugins screen, what deactivating does to the changes.
  */
 final class Notices {
 
@@ -20,9 +20,15 @@ final class Notices {
 	 * Hooks both.
 	 */
 	public static function register(): void {
-		add_action( 'after_plugin_row_' . plugin_basename( READINESS_INDEX_FILE ), array( self::class, 'plugin_row' ), 10, 0 );
 		add_action( 'admin_notices', array( self::class, 'network' ) );
 		add_action( 'network_admin_notices', array( self::class, 'network' ) );
+	}
+
+	/**
+	 * The Plugins screen line about recorded changes, only when the fixers are switched on.
+	 */
+	public static function register_fixers(): void {
+		add_action( 'after_plugin_row_' . plugin_basename( READINESS_INDEX_FILE ), array( self::class, 'plugin_row' ), 10, 0 );
 	}
 
 	/**

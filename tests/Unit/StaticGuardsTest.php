@@ -136,6 +136,7 @@ final class StaticGuardsTest extends WpTestCase {
 		Functions\when( 'register_deactivation_hook' )->justReturn( null );
 		Functions\when( 'register_activation_hook' )->justReturn( null );
 		Functions\when( 'plugin_basename' )->justReturn( 'readiness-index/readiness-index.php' );
+		$this->fixers_on();
 		Actions\expectAdded( 'admin_menu' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_apply' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_undo' )->once();
@@ -148,6 +149,7 @@ final class StaticGuardsTest extends WpTestCase {
 		Actions\expectAdded( 'wp_ajax_readiness_index_progress' )->once();
 		Actions\expectAdded( 'wp_ajax_nopriv_readiness_index_progress' )->never();
 		Plugin::boot();
+		Plugin::wire_fixers();
 		$this->addToAssertionCount( 1 );
 	}
 

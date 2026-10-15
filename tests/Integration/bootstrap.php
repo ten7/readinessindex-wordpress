@@ -29,6 +29,8 @@ require_once $readiness_index_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function () {
+		// These suites test the fixers, which the shipped default switches off.
+		define( 'READINESS_INDEX_FIXERS', true );
 		require dirname( __DIR__, 2 ) . '/readiness-index.php';
 		// The plugin's own autoloader loads the tests' support classes too, as it does in the unit suite.
 		\ReadinessIndex\Autoloader::register( 'ReadinessIndex\\Tests\\Integration\\', __DIR__ . '/' );

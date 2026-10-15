@@ -26,6 +26,12 @@ final class Ajax {
 	 */
 	public static function register(): void {
 		add_action( 'wp_ajax_' . self::ACTION, array( self::class, 'handle' ) );
+	}
+
+	/**
+	 * The fix prompt action, registered only when the fixers are switched on.
+	 */
+	public static function register_fixers(): void {
 		add_action( 'wp_ajax_' . self::PROMPT_ACTION, array( self::class, 'handle_prompt' ) );
 	}
 

@@ -7,8 +7,8 @@
 
 namespace ReadinessIndex\Admin;
 
+use ReadinessIndex\Features;
 use ReadinessIndex\Fixers\Registry;
-use ReadinessIndex\Fixers\Runner;
 use ReadinessIndex\Strings;
 
 /**
@@ -22,15 +22,21 @@ final class Menu {
 	 */
 	public static function register(): void {
 		add_action( 'admin_menu', array( self::class, 'add_menu' ) );
-		add_filter( 'admin_title', array( self::class, 'admin_title' ), 10, 2 );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue' ) );
 		Actions::register();
 		Ajax::register();
-		Runner::register();
 	}
 
 	/**
-	 * Adds the menu entry, its three tabs as submenu pages, and the hidden preview page.
+	 * The fixer side's one admin hook, called only when the fixers are switched on.
+	 */
+	public static function register_fixers(): void {
+		add_filter( 'admin_title', array( self::class, 'admin_title' ), 10, 2 );
+	}
+
+	/**
+	 * Adds the menu entry and its Score page, and with the fixers on, the Fixes and Changes
+	 * pages and the hidden preview page.
 	 */
 	public static function add_menu(): void {
 		add_menu_page(
@@ -43,6 +49,9 @@ final class Menu {
 			80
 		);
 		add_submenu_page( Urls::SCORE, Strings::get( 'tab.score' ), Strings::get( 'tab.score' ), Actions::CAPABILITY, Urls::SCORE, array( self::class, 'render' ) );
+		if ( ! Features::fixers() ) {
+			return;
+		}
 		add_submenu_page( Urls::SCORE, Strings::get( 'tab.fixes' ), Strings::get( 'tab.fixes' ), Actions::CAPABILITY, Urls::FIXES, array( self::class, 'render_fixes' ) );
 		add_submenu_page( Urls::SCORE, Strings::get( 'tab.changes' ), Strings::get( 'tab.changes' ), Actions::CAPABILITY, Urls::CHANGES, array( self::class, 'render_changes' ) );
 		// An empty parent registers a page that has no menu entry and is still reachable by its
@@ -154,18 +163,17 @@ final class Menu {
 		}
 		wp_enqueue_style( 'readiness-index-admin', plugins_url( 'assets/admin.css', READINESS_INDEX_FILE ), array(), READINESS_INDEX_VERSION );
 		wp_enqueue_script( 'readiness-index-admin', plugins_url( 'assets/admin.js', READINESS_INDEX_FILE ), array(), READINESS_INDEX_VERSION, true );
-		wp_localize_script(
-			'readiness-index-admin',
-			'readinessIndex',
-			array(
-				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
-				'action'       => Ajax::ACTION,
-				'nonce'        => wp_create_nonce( Ajax::ACTION ),
-				'promptAction' => Ajax::PROMPT_ACTION,
-				'promptNonce'  => wp_create_nonce( Ajax::PROMPT_ACTION ),
-				'minMs'        => 5000,
-				'maxMs'        => 15000,
-			)
+		$config = array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'action'  => Ajax::ACTION,
+			'nonce'   => wp_create_nonce( Ajax::ACTION ),
+			'minMs'   => 5000,
+			'maxMs'   => 15000,
 		);
+		if ( Features::fixers() ) {
+			$config['promptAction'] = Ajax::PROMPT_ACTION;
+			$config['promptNonce']  = wp_create_nonce( Ajax::PROMPT_ACTION );
+		}
+		wp_localize_script( 'readiness-index-admin', 'readinessIndex', $config );
 	}
 }

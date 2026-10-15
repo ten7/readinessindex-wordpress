@@ -74,6 +74,7 @@ final class DiagnosticPartsTest extends WpTestCase {
 	public function test_nothing_is_hooked_with_nothing_applied(): void {
 		\Brain\Monkey\Actions\expectAdded( 'init' )->never();
 		\Brain\Monkey\Filters\expectAdded( 'robots_txt' )->never();
+		$this->fixers_on();
 		Hooks::register();
 		$this->addToAssertionCount( 1 );
 	}

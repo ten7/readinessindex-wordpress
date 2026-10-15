@@ -94,6 +94,19 @@ final class UninstallTest extends WpTestCase {
 		$this->assertArrayNotHasKey( Settings::OPTION_REMOVE, $this->options );
 	}
 
+	public function test_uninstall_still_cleans_every_fixer_up_while_the_fixers_are_switched_off(): void {
+		$this->assertFalse( \ReadinessIndex\Features::fixers(), 'the shipped default' );
+		$fixer = $this->applied_fixer();
+		Settings::set_remove_on_uninstall( true );
+		$fixer->calls = array();
+
+		Uninstall::run();
+
+		$this->assertSame( array( 'cleanup' ), $fixer->calls );
+		$this->assertSame( 0, Log::count() );
+		$this->assertArrayNotHasKey( State::OPTION, $this->options );
+	}
+
 	public function test_a_fixer_whose_cleanup_throws_does_not_stop_the_uninstall(): void {
 		$fixer                   = $this->applied_fixer();
 		$fixer->throw_on_cleanup = true;

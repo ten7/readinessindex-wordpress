@@ -7,6 +7,7 @@
 
 namespace ReadinessIndex\Admin;
 
+use ReadinessIndex\Features;
 use ReadinessIndex\Strings;
 
 /**
@@ -22,6 +23,10 @@ final class Tabs {
 	 * @param string $current The slug of the tab being drawn.
 	 */
 	public static function render( string $current ): void {
+		// One screen is not a set of tabs.
+		if ( ! Features::fixers() ) {
+			return;
+		}
 		if ( Urls::PREVIEW === $current ) {
 			$current = Urls::FIXES;
 		}

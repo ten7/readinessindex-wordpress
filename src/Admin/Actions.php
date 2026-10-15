@@ -44,6 +44,12 @@ final class Actions {
 		add_action( 'admin_post_readiness_index_verify', array( self::class, 'handle_verify' ) );
 		add_action( 'admin_post_readiness_index_refresh', array( self::class, 'handle_refresh' ) );
 		add_action( 'admin_post_readiness_index_dismiss', array( self::class, 'handle_dismiss' ) );
+	}
+
+	/**
+	 * The actions of the Changes and Fixes screens, registered only when the fixers are on.
+	 */
+	public static function register_fixers(): void {
 		add_action( 'admin_post_' . self::SAVE_SETTINGS, array( self::class, 'handle_save_settings' ) );
 		add_action( 'admin_post_' . self::DIAGNOSE, array( self::class, 'handle_diagnose' ) );
 	}

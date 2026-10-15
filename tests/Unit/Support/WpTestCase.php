@@ -236,6 +236,15 @@ abstract class WpTestCase extends TestCase {
 	}
 
 	/**
+	 * Switches the fixer side on for this test, the way a site would with the filter. The
+	 * shipped default is off, so a test of a fixer, its screens or its hooks says so here and
+	 * keeps that code verified while it is switched off in releases.
+	 */
+	protected function fixers_on(): void {
+		Monkey\Filters\expectApplied( 'readiness_index_fixers' )->andReturn( true );
+	}
+
+	/**
 	 * Tear Brain Monkey down.
 	 */
 	protected function tear_down() {

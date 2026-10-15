@@ -29,10 +29,11 @@ final class Plugin {
 		add_action( Scan\Poller::HOOK, array( Scan\Poller::class, 'run' ) );
 		add_action( Connect\Connector::VERIFY_HOOK, array( Connect\Verifier::class, 'run' ) );
 
-		// Only fixers the owner applied add anything, and with none applied this adds no hook. Late,
-		// because a plugin that loads after this one (Yoast SEO, Rank Math) defines the constants
-		// that feature detection reads only once its own file has loaded.
-		add_action( 'plugins_loaded', array( Fixers\Hooks::class, 'register' ), 20 );
+		// Everything on the fixer side is wired from here and from nowhere else. Late, because a
+		// plugin that loads after this one (Yoast SEO, Rank Math) defines the constants that
+		// feature detection reads only once its own file has loaded, and because the switch's
+		// filter can come from a plugin that loads after this one.
+		add_action( 'plugins_loaded', array( self::class, 'wire_fixers' ), 20 );
 
 		if ( is_admin() ) {
 			Admin\Menu::register();
@@ -44,11 +45,33 @@ final class Plugin {
 	}
 
 	/**
+	 * Registers the fixer side, only when `Features::fixers()` says it is on. Off, it adds no
+	 * hook, no screen, no action and no front-end filter, and a change a site applied under an
+	 * earlier version is therefore not served.
+	 */
+	public static function wire_fixers(): void {
+		if ( ! Features::fixers() ) {
+			return;
+		}
+		// Only fixers the owner applied add anything, and with none applied this adds no hook.
+		Fixers\Hooks::register();
+		if ( is_admin() ) {
+			Admin\Menu::register_fixers();
+			Admin\Actions::register_fixers();
+			Admin\Ajax::register_fixers();
+			Admin\Notices::register_fixers();
+			Fixers\Runner::register();
+		}
+	}
+
+	/**
 	 * Brings a site that got new files without being reactivated (an update, a deploy) to what
 	 * activation would have made: the table, and the option the front end reads for free.
 	 */
 	public static function upgrade(): void {
-		if ( (int) get_option( Changes\Schema::VERSION_OPTION, 0 ) >= Changes\Schema::VERSION ) {
+		// Nothing to create while the fixers are off: no table, no autoloaded option. Turning the
+		// switch on later finds the version behind and does this then.
+		if ( ! Features::fixers() || (int) get_option( Changes\Schema::VERSION_OPTION, 0 ) >= Changes\Schema::VERSION ) {
 			return;
 		}
 		Fixers\State::seed();
@@ -61,6 +84,9 @@ final class Plugin {
 	 * the first time its admin loads, which `maybe_upgrade` does.
 	 */
 	public static function activate(): void {
+		if ( ! Features::fixers() ) {
+			return;
+		}
 		Fixers\State::seed();
 		Changes\Schema::install();
 	}

@@ -24,6 +24,7 @@ final class ChangesAndPreviewTest extends WpTestCase {
 
 	protected function set_up() {
 		parent::set_up();
+		$this->fixers_on();
 		$GLOBALS['wpdb'] = new FakeWpdb(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The fake table.
 		Functions\when( 'has_action' )->justReturn( false );
 		Functions\when( 'get_userdata' )->alias(
