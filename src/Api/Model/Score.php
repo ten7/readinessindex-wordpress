@@ -58,11 +58,11 @@ final class Score {
 	public $gated;
 
 	/**
-	 * The dimensions, in the API's order.
+	 * The categories, in the API's order (the field is `dimensions` on the wire).
 	 *
-	 * @var Dimension[]
+	 * @var Category[]
 	 */
-	public $dimensions = array();
+	public $categories = array();
 
 	/**
 	 * The change since the scan before, or null for a first scan.
@@ -87,7 +87,7 @@ final class Score {
 		$out->gated       = Shape::bool( $data, 'gated', $at );
 		foreach ( Shape::items( Shape::need( $data, 'dimensions', $at ), $at . '.dimensions' ) as $i => $row ) {
 			$where             = $at . '.dimensions.' . $i;
-			$out->dimensions[] = Dimension::from_array( Shape::object( $row, $where ), $where );
+			$out->categories[] = Category::from_array( Shape::object( $row, $where ), $where );
 		}
 		$change      = Shape::need( $data, 'change', $at );
 		$out->change = null === $change ? null : Change::from_array( Shape::object( $change, $at . '.change' ), $at . '.change' );

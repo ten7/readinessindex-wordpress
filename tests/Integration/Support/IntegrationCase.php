@@ -7,39 +7,30 @@
 
 namespace ReadinessIndex\Tests\Integration\Support;
 
-use ReadinessIndex\Fixers\Registry;
-use ReadinessIndex\Fixers\SeoTools;
-use ReadinessIndex\Fixers\State;
-use ReadinessIndex\Plugin;
+use ReadinessIndex\Admin\Screen;
+use ReadinessIndex\Settings;
 use WP_UnitTestCase;
 
 /**
- * Gives every test the plugin's own table and an empty fixer state, no SEO plugin unless the
- * test names one, and no real HTTP: a request the plugin makes to its own site (the verify
- * step) is answered by a test double or, by default, fails, which the plugin reports as "could
- * not look" and never as a pass.
+ * Gives every test a clean set of the plugin's own options and no real HTTP: every request
+ * the plugin tries to make is recorded, and answered from a fixture of the golden API
+ * contract, or refused. A test that expects no request asserts that the record is empty.
  */
 abstract class IntegrationCase extends WP_UnitTestCase {
 
+	const KEY = 'air_0a1b2c3d_abcdefghijklmnopqrstuvwxyz012345';
+
 	/**
-	 * Requests the plugin tried to make, as URLs.
+	 * Requests the plugin tried to make: method and URL.
 	 *
-	 * @var string[]
+	 * @var array<int,array{method:string,url:string,headers:array<string,string>}>
 	 */
 	protected $requests = array();
 
 	/**
-	 * The User-Agent of each request, in order.
+	 * The golden fixtures to answer with, by URL path suffix: `/cms/v1/site` => `site/done-first-scan`.
 	 *
-	 * @var string[]
-	 */
-	protected $user_agents = array();
-
-	/**
-	 * Answers to give for requests, by URL substring: an array of status, headers and body, or a
-	 * callable that is given the URL and the request arguments and returns one.
-	 *
-	 * @var array<string,array<string,mixed>|callable>
+	 * @var array<string,string>
 	 */
 	protected $answers = array();
 
@@ -48,14 +39,9 @@ abstract class IntegrationCase extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		Plugin::upgrade();
-		delete_option( State::OPTION );
-		add_option( State::OPTION, array(), '', 'yes' );
-		Registry::use_fixers( null );
-		SeoTools::use_active( array() );
-		$this->requests    = array();
-		$this->answers     = array();
-		$this->user_agents = array();
+		$this->clean();
+		$this->requests = array();
+		$this->answers  = array();
 		add_filter( 'pre_http_request', array( $this, 'intercept' ), 10, 3 );
 	}
 
@@ -64,29 +50,30 @@ abstract class IntegrationCase extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		remove_filter( 'pre_http_request', array( $this, 'intercept' ), 10 );
-		SeoTools::use_active( null );
-		Registry::use_fixers( null );
+		$this->clean();
 		parent::tear_down();
 	}
 
 	/**
-	 * Behaves as the next request would: every runtime hook of the plugin is removed and the
-	 * ones the stored state calls for are added again. A fixer's hooks are registered when a
-	 * request starts, so a test that applies and then looks at what is served needs this.
+	 * Forgets everything the plugin stores, so one test cannot leak into the next.
 	 */
-	protected function next_request(): void {
-		remove_filter( 'robots_txt', array( \ReadinessIndex\Fixers\Runtime\RobotsTxt::class, 'filter' ), \ReadinessIndex\Fixers\Runtime\RobotsTxt::PRIORITY );
-		remove_filter( 'wp_robots', array( \ReadinessIndex\Fixers\Runtime\Directives::class, 'filter' ), \ReadinessIndex\Fixers\Runtime\Directives::PRIORITY );
-		remove_action( 'wp_head', array( \ReadinessIndex\Fixers\Runtime\EntityGraph::class, 'print_graph' ), 1 );
-		remove_action( 'template_redirect', array( \ReadinessIndex\Fixers\Runtime\LlmsTxt::class, 'serve' ), 0 );
-		remove_action( 'init', array( \ReadinessIndex\Fixers\Runtime\LlmsTxt::class, 'add_rule' ) );
-		remove_filter( 'wp_sitemaps_posts_entry', array( \ReadinessIndex\Fixers\Runtime\Dates::class, 'core_sitemap_entry' ), 10 );
-		remove_action( 'post_updated', array( \ReadinessIndex\Fixers\Runtime\Dates::class, 'record_change' ), 10 );
-		\ReadinessIndex\Fixers\Hooks::register();
+	private function clean(): void {
+		foreach ( \ReadinessIndex\Uninstall::OPTIONS as $option ) {
+			delete_option( $option );
+		}
+		delete_transient( Screen::BACKOFF_TRANSIENT );
 	}
 
 	/**
-	 * Answers a request from the table, or fails it.
+	 * Stores a connection key the way the Connect return does.
+	 */
+	protected function connect(): void {
+		Settings::store_key( self::KEY );
+		Settings::store_connection( 'Free', str_repeat( 'a', 32 ) );
+	}
+
+	/**
+	 * Answers a request from a golden fixture, or fails it.
 	 *
 	 * @param mixed  $pre  Short-circuit value.
 	 * @param array  $args Request arguments.
@@ -94,18 +81,20 @@ abstract class IntegrationCase extends WP_UnitTestCase {
 	 * @return mixed
 	 */
 	public function intercept( $pre, $args, $url ) {
-		$this->requests[]    = $url;
-		$this->user_agents[] = $args['user-agent'] ?? '';
-		foreach ( $this->answers as $needle => $answer ) {
-			if ( false !== strpos( $url, $needle ) ) {
-				if ( is_callable( $answer ) ) {
-					$answer = $answer( $url, $args );
-				}
+		$this->requests[] = array(
+			'method'  => (string) ( $args['method'] ?? 'GET' ),
+			'url'     => $url,
+			'headers' => (array) ( $args['headers'] ?? array() ),
+		);
+		$path             = (string) wp_parse_url( $url, PHP_URL_PATH );
+		foreach ( $this->answers as $suffix => $fixture ) {
+			if ( substr( $path, -strlen( $suffix ) ) === $suffix ) {
+				$data = json_decode( (string) file_get_contents( dirname( __DIR__, 2 ) . '/fixtures/cms/' . $fixture . '.json' ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A local test fixture.
 				return array(
-					'headers'  => $answer['headers'] ?? array(),
-					'body'     => $answer['body'] ?? '',
+					'headers'  => array_change_key_case( (array) $data['response']['headers'], CASE_LOWER ),
+					'body'     => wp_json_encode( $data['response']['body'] ),
 					'response' => array(
-						'code'    => $answer['status'] ?? 200,
+						'code'    => (int) $data['response']['status'],
 						'message' => '',
 					),
 					'cookies'  => array(),

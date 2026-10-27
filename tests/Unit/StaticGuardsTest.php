@@ -41,13 +41,6 @@ final class StaticGuardsTest extends WpTestCase {
 				$this->assertStringContainsString( 'wp_remote_request', $code );
 				continue;
 			}
-			if ( 'src/Http/SiteFetcher.php' === $path ) {
-				// The one other place that makes a request: to this site's own host, and nowhere else.
-				$this->assertStringContainsString( 'wp_safe_remote_get', $code );
-				$this->assertStringContainsString( 'is_own( $url )', $code );
-				$this->assertDoesNotMatchRegularExpression( '/\b(wp_remote_(?!retrieve_)|curl_|fsockopen|stream_socket_client)/', $code, $path );
-				continue;
-			}
 			$this->assertDoesNotMatchRegularExpression( '/\b(wp_remote_|curl_|wp_safe_remote_|fsockopen|stream_socket_client|file_get_contents\(\s*[\'"]https?)/', $code, $path );
 			$this->assertDoesNotMatchRegularExpression( '/\bfetch\(/', str_replace( 'window.fetch( config.ajaxUrl', '', $code ), $path . ' (the only fetch is the same-origin admin-ajax poll)' );
 		}
@@ -94,11 +87,29 @@ final class StaticGuardsTest extends WpTestCase {
 		$this->assertGreaterThan( 60, $found );
 	}
 
+	public function test_every_sentence_that_ships_is_one_the_code_asks_for(): void {
+		// Keys the code builds from a server value: an error's key, a next step's key, an
+		// unreachable reason, a verify result. A key outside these must appear as a literal.
+		$dynamic = array( 'error.', 'upgrade.', 'unreachable.', 'verify.' );
+		$code    = implode( "\n", $this->shipped() );
+		$unused  = array();
+		foreach ( array_keys( Strings::all() ) as $key ) {
+			$built = false;
+			foreach ( $dynamic as $prefix ) {
+				$built = $built || 0 === strpos( $key, $prefix );
+			}
+			if ( ! $built && false === strpos( $code, "'" . $key . "'" ) ) {
+				$unused[] = $key;
+			}
+		}
+		$this->assertSame( array(), $unused, 'These sentences ship and nothing prints them. Add them to bin/filter-strings, or delete them from strings/plugin.en.json.' );
+	}
+
 	public function test_the_code_writes_no_english_sentence_of_its_own(): void {
 		foreach ( $this->shipped() as $path => $code ) {
 			// A literal handed to an escaping or output function that reads like a sentence.
 			$this->assertDoesNotMatchRegularExpression( "/(esc_html|esc_attr|echo)\(?\s*'[A-Z][a-z]+ [a-z]+ [a-z]+/", $code, $path );
-			$this->assertDoesNotMatchRegularExpression( '/\b(esc_html_e|esc_html__|esc_attr__|__|_e|_x|_n)\s*\(\s*\'(?!Sorry, you are not allowed)/', $code, $path );
+			$this->assertDoesNotMatchRegularExpression( '/\b(esc_html_e|esc_html__|esc_attr__|__|_e|_x|_n)\s*\(\s*\'/', $code, $path );
 		}
 	}
 
@@ -121,7 +132,6 @@ final class StaticGuardsTest extends WpTestCase {
 	public function test_a_front_end_request_registers_no_admin_code(): void {
 		Functions\when( 'is_admin' )->justReturn( false );
 		Functions\when( 'register_deactivation_hook' )->justReturn( null );
-		Functions\when( 'register_activation_hook' )->justReturn( null );
 		Actions\expectAdded( 'admin_menu' )->never();
 		Actions\expectAdded( 'admin_init' )->never();
 		Actions\expectAdded( 'admin_enqueue_scripts' )->never();
@@ -134,14 +144,7 @@ final class StaticGuardsTest extends WpTestCase {
 	public function test_the_admin_registers_its_menu_and_actions(): void {
 		Functions\when( 'is_admin' )->justReturn( true );
 		Functions\when( 'register_deactivation_hook' )->justReturn( null );
-		Functions\when( 'register_activation_hook' )->justReturn( null );
-		Functions\when( 'plugin_basename' )->justReturn( 'readiness-index/readiness-index.php' );
-		$this->fixers_on();
 		Actions\expectAdded( 'admin_menu' )->once();
-		Actions\expectAdded( 'admin_post_readiness_index_apply' )->once();
-		Actions\expectAdded( 'admin_post_readiness_index_undo' )->once();
-		Actions\expectAdded( 'admin_post_nopriv_readiness_index_apply' )->never();
-		Actions\expectAdded( 'admin_post_nopriv_readiness_index_undo' )->never();
 		Actions\expectAdded( 'admin_post_readiness_index_scan' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_connect' )->once();
 		Actions\expectAdded( 'admin_post_readiness_index_callback' )->once();
@@ -149,26 +152,38 @@ final class StaticGuardsTest extends WpTestCase {
 		Actions\expectAdded( 'wp_ajax_readiness_index_progress' )->once();
 		Actions\expectAdded( 'wp_ajax_nopriv_readiness_index_progress' )->never();
 		Plugin::boot();
-		Plugin::wire_fixers();
 		$this->addToAssertionCount( 1 );
 	}
 
 	public function test_every_option_the_plugin_writes_is_not_autoloaded(): void {
+		$writes = 0;
 		foreach ( $this->shipped() as $path => $code ) {
-			if ( 'src/Fixers/State.php' === $path ) {
-				// The one option the front end needs on every request: it says which filters to add.
-				// Autoloaded, an empty map costs no query; otherwise it would cost one on every page.
-				$this->assertSame( 2, preg_match_all( '/(update_option|add_option)\(/', $code ) );
-				continue;
-			}
-			if ( in_array( $path, array( 'src/Fixers/Integration/RankMath.php', 'src/Fixers/Integration/Yoast.php' ), true ) ) {
-				// Writes the SEO plugin's own option, whose autoload setting is the plugin's and is left as it is.
-				$this->assertGreaterThan( 0, preg_match_all( '/update_option\(\s*(self::TITLES|\(string\) \$option)/', $code ) );
-				continue;
-			}
 			if ( preg_match_all( '/\b(update_option|add_option)\(([^;]*?)\);/s', $code, $m ) ) {
 				foreach ( $m[2] as $arguments ) {
 					$this->assertMatchesRegularExpression( '/false\s*(,\s*)?\)?\s*$/', trim( $arguments ) . ')', $path . ': ' . $arguments );
+					++$writes;
+				}
+			}
+		}
+		$this->assertGreaterThan( 3, $writes );
+	}
+
+	public function test_nothing_of_the_fixer_side_ships(): void {
+		// The fixers live on their own branch. A hook that rewrites what a site serves, a switch
+		// for one, or a table of changes coming back into this tree is a different plugin, and
+		// the one submitted to wordpress.org reads and reports only.
+		foreach ( $this->shipped() as $path => $code ) {
+			$this->assertDoesNotMatchRegularExpression( '/Fixers|READINESS_INDEX_FIXERS|readiness_index_fixers/', $code, $path );
+			$this->assertDoesNotMatchRegularExpression( "/add_(filter|action)\(\s*'(robots_txt|wp_robots|wp_head|wp_sitemaps_[a-z_]+|the_content|template_redirect)'/", $code, $path );
+			$this->assertDoesNotMatchRegularExpression( '/\bdbDelta\b|\\$wpdb->(insert|update|replace)\(|add_rewrite_rule|flush_rewrite_rules/', $code, $path );
+		}
+	}
+
+	public function test_every_phpcs_ignore_in_the_code_says_why(): void {
+		foreach ( $this->shipped() as $path => $code ) {
+			if ( preg_match_all( '/phpcs:ignore[^\n]*/', $code, $m ) ) {
+				foreach ( $m[0] as $line ) {
+					$this->assertStringContainsString( ' -- ', $line, $path . ': an ignore without a reason is a silenced warning nobody can judge' );
 				}
 			}
 		}

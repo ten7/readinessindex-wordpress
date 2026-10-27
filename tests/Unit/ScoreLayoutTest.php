@@ -6,7 +6,7 @@ use ReadinessIndex\Admin\Actions;
 use ReadinessIndex\Admin\Screen;
 use ReadinessIndex\Admin\ScoreView;
 use ReadinessIndex\Api\Client;
-use ReadinessIndex\Api\Model\Dimension;
+use ReadinessIndex\Api\Model\Category;
 use ReadinessIndex\Api\SiteCache;
 use ReadinessIndex\Settings;
 use ReadinessIndex\Tests\Support\Fixtures;
@@ -126,7 +126,7 @@ final class ScoreLayoutTest extends WpTestCase {
 		$html = $this->html();
 		$body = Fixtures::load( 'site/done-with-change' )['response']['body']['score'];
 		$this->assertStringContainsString( '<strong class="ri-score-value">' . $body['value'] . '</strong><span class="ri-score-of"> out of 100</span>', $html );
-		$this->assertStringContainsString( '<strong>Grade: ' . $body['grade'] . '.</strong> ' . $body['verdict'] . ' Up 4 since the last scan.</p>', $html );
+		$this->assertStringContainsString( '<strong>Grade: ' . $body['grade'] . '.</strong> ' . $body['verdict'] . ' Up 6 since the last scan.</p>', $html );
 	}
 
 	public function test_exactly_one_primary_button_and_it_is_scan_again_beside_the_count(): void {
@@ -191,38 +191,39 @@ final class ScoreLayoutTest extends WpTestCase {
 		$this->assertSame( 1, preg_match( '#<thead><tr><th scope="col">Category</th><th scope="col" class="ri-num">Score</th><th scope="col" class="ri-meter"><span class="screen-reader-text">Progress</span></th></tr></thead>#', $html ), $html );
 		preg_match_all( '#<tr><th scope="row">(.*?)</th>#', $html, $rows );
 		$this->assertSame(
-			array( 'Primary indicators', 'Rendering and extraction (weakest)', 'Structured data and the entity graph', 'Crawl, index and licensing hygiene', 'Authorship, provenance, freshness', 'Agent interfaces', 'Alternate representations' ),
-			array_map( 'strip_tags', $rows[1] ),
-			'The server order is kept and "Primary Indicators" is not title case.'
+			array( '<strong>Reach</strong> <span class="ri-weakest">(weakest)</span>', 'Read', 'Understand', 'Act' ),
+			$rows[1],
+			'The server order is kept.'
 		);
-		$this->assertStringContainsString( '<td class="ri-num"><strong>26</strong> / 30</td>', $html );
-		$this->assertStringContainsString( '<meter min="0" max="30" value="26" aria-label="Primary indicators"></meter>', $html );
-		$this->assertSame( 7, substr_count( $html, '<meter ' ) );
-		$this->assertSame( 7, substr_count( $html, '></meter>' ) );
-		$this->assertSame( 7, preg_match_all( '#<meter [^>]*aria-label="[^"]+"#', $html ), 'Every meter is named.' );
-		$this->assertStringContainsString( 'class="widefat striped ri-dimensions"', $html );
+		$this->assertStringContainsString( '<td class="ri-num"><strong>19</strong> / 25</td>', $html );
+		$this->assertStringContainsString( '<meter min="0" max="25" value="19" aria-label="Reach"></meter>', $html );
+		$this->assertSame( 4, substr_count( $html, '<meter ' ) );
+		$this->assertSame( 4, substr_count( $html, '></meter>' ) );
+		$this->assertSame( 4, preg_match_all( '#<meter [^>]*aria-label="[^"]+"#', $html ), 'Every meter is named.' );
+		$this->assertStringContainsString( 'class="widefat striped ri-categories"', $html );
 	}
 
 	public function test_the_weakest_row_is_bold_with_the_word_for_it_and_ties_are_all_flagged(): void {
 		$this->respond( Fixtures::response( 'site/done-first-scan' ) );
 		$html = $this->html();
 		$this->assertSame( 1, substr_count( $html, '(weakest)' ) );
-		$this->assertStringContainsString( '<strong>Rendering and extraction</strong> <span class="ri-weakest">(weakest)</span>', $html );
+		$this->assertStringContainsString( '<strong>Reach</strong> <span class="ri-weakest">(weakest)</span>', $html );
 
 		$this->with(
 			'site/done-first-scan',
 			function ( array &$body ): void {
-				$body['score']['dimensions'][0]['earned'] = 24; // 24/30 equals 12/15.
+				$body['score']['dimensions'][2]['earned'] = 19; // Understand, 19/25, ties Reach's 19/25 as the lowest share.
 			}
 		);
 		$html = $this->html();
 		$this->assertSame( 2, substr_count( $html, '(weakest)' ) );
-		$this->assertStringContainsString( '<strong>Primary indicators</strong> <span class="ri-weakest">(weakest)</span>', $html );
+		$this->assertStringContainsString( '<strong>Reach</strong> <span class="ri-weakest">(weakest)</span>', $html );
+		$this->assertStringContainsString( '<strong>Understand</strong> <span class="ri-weakest">(weakest)</span>', $html );
 	}
 
 	public function test_nothing_is_weakest_when_every_row_has_the_same_share(): void {
 		$rows = array(
-			Dimension::from_array(
+			Category::from_array(
 				array(
 					'id'       => 1,
 					'name'     => 'A',
@@ -231,7 +232,7 @@ final class ScoreLayoutTest extends WpTestCase {
 				),
 				'd'
 			),
-			Dimension::from_array(
+			Category::from_array(
 				array(
 					'id'       => 2,
 					'name'     => 'B',
@@ -255,7 +256,7 @@ final class ScoreLayoutTest extends WpTestCase {
 	public function test_scan_details_is_a_description_list_and_the_sampling_sentence_sits_with_pages_read(): void {
 		$this->respond( Fixtures::response( 'site/done-first-scan' ) );
 		$html = $this->html();
-		$this->assertSame( 1, preg_match( '#<h2 id="ri-details-title">Scan details</h2><dl class="ri-dl"><dt>Scanned</dt><dd>October 9, 2026 12:00 pm</dd><dt>Pages read</dt><dd>187 pages\. A free scan reads a sample of your pages, not all of them\. A paid plan reads more\.</dd><dt>Index version</dt><dd>11\.5</dd></dl>#', $html ), $html );
+		$this->assertSame( 1, preg_match( '#<h2 id="ri-details-title">Scan details</h2><dl class="ri-dl"><dt>Scanned</dt><dd>October 9, 2026 12:00 pm</dd><dt>Pages read</dt><dd>187 pages\. A free scan reads a sample of your pages, not all of them\. A paid plan reads more\.</dd><dt>Index version</dt><dd>12\.1</dd></dl>#', $html ), $html );
 	}
 
 	public function test_the_watch_aside_offers_the_server_step_as_a_secondary_button_with_return_and_not_now(): void {
@@ -334,6 +335,8 @@ final class ScoreLayoutTest extends WpTestCase {
 		$this->assertSame( 1, substr_count( $html, 'button-primary' ) );
 		$this->assertStringNotContainsString( 'button-primary">Disconnect', $html );
 		$this->assertStringContainsString( 'name="ri_confirm" value="disconnect"', $html );
+		$this->assertStringContainsString( 'name="_wpnonce" value="nonce-readiness_index_confirm_disconnect"', $html );
+		$this->assertStringNotContainsString( '_wp_http_referer', $html );
 		// Disconnect comes after the data, last in the last section.
 		$this->assertGreaterThan( strpos( $html, 'Connected as' ), strpos( $html, '>Disconnect<' ) );
 	}
@@ -411,7 +414,7 @@ final class ScoreLayoutTest extends WpTestCase {
 	public function test_the_stylesheet_carries_only_layout_and_the_one_danger_color(): void {
 		$css = (string) file_get_contents( dirname( __DIR__, 2 ) . '/assets/admin.css' );
 		$this->assertStringNotContainsString( 'font-family: system', $css );
-		preg_match_all( '/(?<![\w-])#[0-9a-f]{3,6}\b/i', substr( $css, 0, (int) strpos( $css, '/* Fixes, preview and changes. */' ) ), $m );
+		preg_match_all( '/(?<![\w-])#[0-9a-f]{3,6}\b/i', $css, $m );
 		$this->assertSame( array( '#b32d2e', '#b32d2e' ), $m[0], 'The Score screen sets no color but the danger text.' );
 	}
 }

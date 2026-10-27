@@ -25,10 +25,7 @@ final class HookAllowlistTest extends TestCase {
 			'Admin/Actions.php:readiness_index_verify',
 			'Admin/Actions.php:readiness_index_refresh',
 			'Admin/Actions.php:readiness_index_dismiss',
-			'Admin/Actions.php:self::SAVE_SETTINGS',
-			'Admin/Actions.php:self::DIAGNOSE',
-			'Fixers/Runner.php:self::APPLY_ACTION',
-			'Fixers/Runner.php:self::UNDO_ACTION',
+			'Admin/Actions.php:Notices::DISMISS_ACTION',
 		),
 		'admin_post_nopriv' => array(
 			// The return from readinessindex.io is a cross-site POST that carries no cookie; see SECURITY.md.
@@ -36,12 +33,11 @@ final class HookAllowlistTest extends TestCase {
 		),
 		'wp_ajax'           => array(
 			'Admin/Ajax.php:self::ACTION',
-			'Admin/Ajax.php:self::PROMPT_ACTION',
 		),
 		'wp_ajax_nopriv'    => array(),
 		'rest'              => array(),
-		'rewrite'           => array( 'Fixers/Runtime/LlmsTxt.php:self::RULE' ),
-		'template_redirect' => array( 'Fixers/Runtime/LlmsTxt.php:serve' ),
+		'rewrite'           => array(),
+		'template_redirect' => array(),
 		'init_responder'    => array( 'Connect/OwnershipFile.php:maybe_serve' ),
 	);
 
@@ -121,7 +117,7 @@ final class HookAllowlistTest extends TestCase {
 		foreach ( self::ALLOWED as $kind => $allowed ) {
 			foreach ( $allowed as $point ) {
 				$name = substr( $point, strpos( $point, ':' ) + 1 );
-				$name = preg_replace( '/^(self|Connector)::/', '', $name );
+				$name = preg_replace( '/^(self|Connector|Notices)::/', '', $name );
 				$this->assertStringContainsString( $name, $doc, $kind . ' ' . $point . ' is not described in docs/SECURITY.md' );
 			}
 		}

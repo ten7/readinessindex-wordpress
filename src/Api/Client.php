@@ -103,17 +103,6 @@ final class Client {
 	}
 
 	/**
-	 * `GET /cms/v1/fixes/{check}`.
-	 *
-	 * @param string $check Test id, such as AIR-1.1.
-	 * @throws ApiError On any failure.
-	 */
-	public function fix_prompt( string $check ): Model\FixPrompt {
-		$answer = $this->send( 'GET', '/cms/v1/fixes/' . $this->segment( $check ), array(), true );
-		return Model\FixPrompt::from_array( $answer['body'] );
-	}
-
-	/**
 	 * `POST /cms/v1/verify`. Never retried.
 	 *
 	 * @throws ApiError On any failure, including `not_verified`.
@@ -124,7 +113,7 @@ final class Client {
 	}
 
 	/**
-	 * One path segment, refused when it is not made of the characters a token or a test id has.
+	 * One path segment, refused when it is not made of the characters a scan token has.
 	 *
 	 * A token that came from a response, or from an option, is still put through this: the
 	 * segment is part of a URL that carries the Bearer key.

@@ -26,25 +26,20 @@ if [ -n "$(git -C "${web}" status --porcelain -- docs/cms-fixtures docs/cms-pari
 fi
 commit="$(git -C "${web}" rev-parse HEAD)"
 
-rm -rf tests/fixtures/cms
+rm -rf tests/fixtures/cms tests/fixtures/parity
 mkdir -p tests/fixtures/cms strings
 rsync -a "${web}/docs/cms-fixtures/" tests/fixtures/cms/
-cp "${web}/docs/cms-parity/strings/en.json" strings/en.json
+# Only the sentences a Score screen can show are kept: the fixers live on their own branch,
+# and a sentence nothing prints is a sentence a reviewer reads for nothing.
+php bin/filter-strings "${web}/docs/cms-parity/strings/en.json" > strings/en.json
 cp "${web}/docs/cms-parity/screens.md" docs/contract/screens.md
 cp "${web}/docs/cms-parity/MATRIX.md" docs/contract/MATRIX.md
-
-# The golden vectors the fixers are tested against, with the schema and the checker that
-# CI runs over them. They live under tests/ because they never ship.
-rm -rf tests/fixtures/parity
-mkdir -p tests/fixtures/parity
-rsync -a --include='*.json' --include='*/' --exclude='*' "${web}/docs/cms-parity/fixers/" tests/fixtures/parity/fixers/
-cp "${web}/docs/cms-parity/vector-schema.md" tests/fixtures/parity/vector-schema.md
-cp "${web}/docs/cms-parity/check_vectors.py" tests/fixtures/parity/check_vectors.py
 
 {
 	echo "# Written by bin/sync-contract. Do not edit."
 	echo "web_commit ${commit}"
-	( find tests/fixtures/cms tests/fixtures/parity -type f | sort; echo strings/en.json; echo docs/contract/screens.md; echo docs/contract/MATRIX.md ) |
+	echo "strings_source_sha256 $(shasum -a 256 "${web}/docs/cms-parity/strings/en.json" | cut -d' ' -f1)"
+	( find tests/fixtures/cms -type f | sort; echo strings/en.json; echo docs/contract/screens.md; echo docs/contract/MATRIX.md ) |
 		while read -r f; do
 			printf 'sha256 %s  %s\n' "$(shasum -a 256 "${f}" | cut -d' ' -f1)" "${f}"
 		done

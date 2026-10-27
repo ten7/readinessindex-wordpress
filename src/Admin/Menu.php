@@ -7,8 +7,6 @@
 
 namespace ReadinessIndex\Admin;
 
-use ReadinessIndex\Features;
-use ReadinessIndex\Fixers\Registry;
 use ReadinessIndex\Strings;
 
 /**
@@ -16,6 +14,8 @@ use ReadinessIndex\Strings;
  * admin: nothing here exists on a front-end request.
  */
 final class Menu {
+
+	const CONFIRM_ACTION = 'readiness_index_confirm_disconnect';
 
 	/**
 	 * Hooks the menu and the assets.
@@ -28,126 +28,40 @@ final class Menu {
 	}
 
 	/**
-	 * The fixer side's one admin hook, called only when the fixers are switched on.
-	 */
-	public static function register_fixers(): void {
-		add_filter( 'admin_title', array( self::class, 'admin_title' ), 10, 2 );
-	}
-
-	/**
-	 * Adds the menu entry and its Score page, and with the fixers on, the Fixes and Changes
-	 * pages and the hidden preview page.
+	 * Adds the menu entry and its one page, Score.
 	 */
 	public static function add_menu(): void {
 		add_menu_page(
 			Strings::get( 'app.name' ),
 			Strings::get( 'menu.title' ),
 			Actions::CAPABILITY,
-			Urls::SCORE,
+			ScoreView::SCREEN_SLUG,
 			array( self::class, 'render' ),
 			'dashicons-chart-bar',
 			80
 		);
-		add_submenu_page( Urls::SCORE, Strings::get( 'tab.score' ), Strings::get( 'tab.score' ), Actions::CAPABILITY, Urls::SCORE, array( self::class, 'render' ) );
-		if ( ! Features::fixers() ) {
-			return;
-		}
-		add_submenu_page( Urls::SCORE, Strings::get( 'tab.fixes' ), Strings::get( 'tab.fixes' ), Actions::CAPABILITY, Urls::FIXES, array( self::class, 'render_fixes' ) );
-		add_submenu_page( Urls::SCORE, Strings::get( 'tab.changes' ), Strings::get( 'tab.changes' ), Actions::CAPABILITY, Urls::CHANGES, array( self::class, 'render_changes' ) );
-		// An empty parent registers a page that has no menu entry and is still reachable by its
-		// address, under the same capability. A null parent is deprecated.
-		add_submenu_page( '', Strings::get( 'fixes.preview' ), '', Actions::CAPABILITY, Urls::PREVIEW, array( self::class, 'render_preview' ) );
+		add_submenu_page( ScoreView::SCREEN_SLUG, Strings::get( 'tab.score' ), Strings::get( 'tab.score' ), Actions::CAPABILITY, ScoreView::SCREEN_SLUG, array( self::class, 'render' ) );
 	}
 
 	/**
-	 * Gives the hidden preview page a title in the browser tab. WordPress takes it from the menu
-	 * entry, and this page has none.
-	 *
-	 * @param string $admin_title The title WordPress built.
-	 * @param string $title       The page's own title, empty for this page.
-	 * @return string
-	 */
-	public static function admin_title( $admin_title, $title ) {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: a tab title.
-		if ( Urls::PREVIEW === $page && '' === (string) $title ) {
-			return Strings::get( 'fixes.preview' ) . ' ' . $admin_title;
-		}
-		return $admin_title;
-	}
-
-	/**
-	 * Prints the Score tab.
+	 * Prints the Score screen.
 	 */
 	public static function render(): void {
 		if ( ! current_user_can( Actions::CAPABILITY ) ) {
 			return;
 		}
-		// These flags only choose what to display and change nothing, so they carry no nonce.
-		$flags = array(
-			'returned'           => isset( $_GET['readiness'] ) && 'subscribed' === sanitize_key( wp_unslash( $_GET['readiness'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only.
-			'confirm_disconnect' => isset( $_GET['ri_confirm'] ) && 'disconnect' === sanitize_key( wp_unslash( $_GET['ri_confirm'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only.
+		// The confirm step is reached by a form that carries a nonce, so a link somebody else wrote
+		// cannot put an administrator on it. `readiness=subscribed` is the other flag: the address
+		// the service returns to after Checkout, which cannot carry a nonce, and it only chooses
+		// whether to say welcome back and to ask the service afresh, so a forged one does no more
+		// than pressing Try again.
+		$confirmed = isset( $_GET['_wpnonce'] ) && false !== wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), self::CONFIRM_ACTION );
+		$flags     = array(
+			'returned'           => isset( $_GET['readiness'] ) && 'subscribed' === sanitize_key( wp_unslash( $_GET['readiness'] ) ),
+			'confirm_disconnect' => $confirmed && isset( $_GET['ri_confirm'] ) && 'disconnect' === sanitize_key( wp_unslash( $_GET['ri_confirm'] ) ),
 		);
-		$model = Screen::build( get_current_user_id(), $flags );
+		$model     = Screen::build( get_current_user_id(), $flags );
 		ScoreView::render( $model );
-	}
-
-	/**
-	 * Prints the Fixes tab. The same single call to `GET /site` as the Score tab.
-	 */
-	public static function render_fixes(): void {
-		if ( ! current_user_can( Actions::CAPABILITY ) ) {
-			return;
-		}
-		$user  = get_current_user_id();
-		$query = array(
-			'ri_kind' => isset( $_GET['ri_kind'] ) ? sanitize_key( wp_unslash( $_GET['ri_kind'] ) ) : 'all', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: a filter.
-			'ri_open' => isset( $_GET['ri_open'] ) ? self::check_id( sanitize_text_field( wp_unslash( $_GET['ri_open'] ) ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: which row to show open.
-		);
-		$model = Screen::build( $user );
-		FixesView::render( $model, $query, FixFlash::take( $user ) );
-	}
-
-	/**
-	 * Prints the Changes tab. It reads only the plugin's own table, so it needs no API call.
-	 */
-	public static function render_changes(): void {
-		if ( ! current_user_can( Actions::CAPABILITY ) ) {
-			return;
-		}
-		$user  = get_current_user_id();
-		$paged = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: a page number.
-		ChangesView::render( Screen::light( $user ), FixFlash::take( $user ), $paged );
-	}
-
-	/**
-	 * Prints a fixer's preview. A GET: it shows and never changes.
-	 */
-	public static function render_preview(): void {
-		if ( ! current_user_can( Actions::CAPABILITY ) ) {
-			return;
-		}
-		$user  = get_current_user_id();
-		$id    = isset( $_GET['fixer'] ) ? sanitize_key( wp_unslash( $_GET['fixer'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: which preview.
-		$fixer = Registry::get( $id );
-		if ( null === $fixer ) {
-			wp_safe_redirect( Urls::fixes() );
-			exit;
-		}
-		if ( isset( $_GET['choices'] ) && is_array( $_GET['choices'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only: the choices to preview.
-			$choices = $fixer->sanitize_choices( wp_unslash( $_GET['choices'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by the fixer.
-		} else {
-			$choices = $fixer->state() ?? $fixer->sanitize_choices( array() );
-		}
-		PreviewView::render( Screen::light( $user ), $fixer, $choices, FixFlash::take( $user ) );
-	}
-
-	/**
-	 * A test id such as `AIR-1.2`, or an empty string for anything else.
-	 *
-	 * @param string $value Candidate.
-	 */
-	public static function check_id( string $value ): string {
-		return 1 === preg_match( '/^AIR-\d{1,2}\.\d{1,2}$/D', $value ) ? $value : '';
 	}
 
 	/**
@@ -156,24 +70,22 @@ final class Menu {
 	 * @param string $hook The admin page hook.
 	 */
 	public static function enqueue( string $hook ): void {
-		// Every screen of the plugin: the top-level page, its submenu pages and the hidden
-		// preview. Their hook names all end in the page slug.
+		// The plugin's one screen: its hook name ends in the page slug.
 		if ( false === strpos( $hook, 'readiness-index' ) ) {
 			return;
 		}
 		wp_enqueue_style( 'readiness-index-admin', plugins_url( 'assets/admin.css', READINESS_INDEX_FILE ), array(), READINESS_INDEX_VERSION );
 		wp_enqueue_script( 'readiness-index-admin', plugins_url( 'assets/admin.js', READINESS_INDEX_FILE ), array(), READINESS_INDEX_VERSION, true );
-		$config = array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-			'action'  => Ajax::ACTION,
-			'nonce'   => wp_create_nonce( Ajax::ACTION ),
-			'minMs'   => 5000,
-			'maxMs'   => 15000,
+		wp_localize_script(
+			'readiness-index-admin',
+			'readinessIndex',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'action'  => Ajax::ACTION,
+				'nonce'   => wp_create_nonce( Ajax::ACTION ),
+				'minMs'   => 5000,
+				'maxMs'   => 15000,
+			)
 		);
-		if ( Features::fixers() ) {
-			$config['promptAction'] = Ajax::PROMPT_ACTION;
-			$config['promptNonce']  = wp_create_nonce( Ajax::PROMPT_ACTION );
-		}
-		wp_localize_script( 'readiness-index-admin', 'readinessIndex', $config );
 	}
 }

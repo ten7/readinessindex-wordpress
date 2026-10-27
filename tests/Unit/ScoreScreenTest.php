@@ -102,16 +102,7 @@ final class ScoreScreenTest extends WpTestCase {
 		$this->assertStringContainsString( $this->fill( 'state.never_scanned.title' ), $text );
 		$this->assertStringContainsString( $this->fill( 'state.never_scanned.body' ), $text );
 		$this->assertStringContainsString( $this->fill( 'score.scan_now' ), $text );
-		$this->assertStringContainsString(
-			$this->fill(
-				'score.rescans.left',
-				array(
-					'left'  => 5,
-					'total' => 5,
-				)
-			),
-			$text
-		);
+		$this->assertStringContainsString( '5 of 5 rescans left.', $text );
 		$this->assertStringContainsString( $this->fill( 'score.rescans.lifetime', array( 'total' => 5 ) ), $text );
 		$this->assertStringNotContainsString( 'disabled', $html );
 		$this->assertStringNotContainsString( $this->s['upgrade.monitoring_basic.label'], $text, 'The monitoring line waits for a score.' );
@@ -134,7 +125,7 @@ final class ScoreScreenTest extends WpTestCase {
 		}
 	}
 
-	public function test_done_shows_whole_integers_grade_verdict_dimensions_and_facts(): void {
+	public function test_done_shows_whole_integers_grade_verdict_categories_and_facts(): void {
 		$this->respond( Fixtures::response( 'site/done-first-scan' ) );
 		$html = $this->html();
 		$text = $this->text( $html );
@@ -145,12 +136,12 @@ final class ScoreScreenTest extends WpTestCase {
 		$this->assertStringContainsString( $this->fill( 'score.grade_line', array( 'grade' => $body['score']['grade'] ) ), $text );
 		$this->assertStringContainsString( $body['score']['verdict'], $text );
 		$this->assertStringContainsString( $this->fill( 'score.change.first' ), $text );
-		$this->assertStringContainsString( '11.5', $text );
+		$this->assertStringContainsString( '12.1', $text );
 		$this->assertStringContainsString( $this->fill( 'score.details.pages', array( 'pages' => $body['scan']['pages_read'] ) ), $text );
 		$this->assertStringContainsString( $this->fill( 'score.sample_note' ), $text );
 		$this->assertStringContainsString( $this->fill( 'score.scan_again' ), $text );
 		$this->assertStringContainsString( '<table', $html );
-		$this->assertSame( 7, substr_count( $html, '<meter' ) );
+		$this->assertSame( 4, substr_count( $html, '<meter' ) );
 		foreach ( $body['score']['dimensions'] as $dimension ) {
 			$this->assertStringContainsString( '<strong>' . $dimension['earned'] . '</strong> / ' . $dimension['possible'], $html );
 		}
@@ -487,16 +478,7 @@ final class ScoreScreenTest extends WpTestCase {
 		$this->respond( Fixtures::response( 'site/basic-plan' ) );
 		$text = $this->text( $this->html( array( 'returned' => true ) ) );
 		$this->assertStringContainsString( $this->fill( 'upgrade.returned' ), $text );
-		$this->assertStringContainsString(
-			$this->fill(
-				'score.rescans.monthly',
-				array(
-					'left'  => 10,
-					'total' => 10,
-				)
-			),
-			$text
-		);
+		$this->assertStringContainsString( '10 of 10 rescans left this month.', $text );
 		$this->assertStringNotContainsString( $this->fill( 'state.quota.title' ), $text );
 		$this->assertCount( 1, $this->requests );
 		$this->assertArrayNotHasKey( 'If-None-Match', $this->requests[0]['args']['headers'] );

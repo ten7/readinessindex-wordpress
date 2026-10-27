@@ -8,8 +8,6 @@
  *     vendor/bin/phpunit -c phpunit-integration.xml.dist
  *
  * The plugin is loaded as a must-use plugin so it is there before WordPress's own tests set up.
- * Yoast SEO and Rank Math are loaded the same way when they are installed in the test site
- * (`bin/wp-env-variant yoast`, `rankmath`), and the tests that need them skip when they are not.
  *
  * @package ReadinessIndex
  */
@@ -29,34 +27,11 @@ require_once $readiness_index_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function () {
-		// These suites test the fixers, which the shipped default switches off.
-		define( 'READINESS_INDEX_FIXERS', true );
 		require dirname( __DIR__, 2 ) . '/readiness-index.php';
 		// The plugin's own autoloader loads the tests' support classes too, as it does in the unit suite.
 		\ReadinessIndex\Autoloader::register( 'ReadinessIndex\\Tests\\Integration\\', __DIR__ . '/' );
-		// An SEO plugin is loaded only when the test is asked to: a file is chosen by the
-		// environment variable, never discovered, so a plain run has none.
-		$seo = getenv( 'READINESS_INDEX_TEST_SEO' );
-		$map = array(
-			'yoast'     => WP_PLUGIN_DIR . '/wordpress-seo/wp-seo.php',
-			'rank_math' => WP_PLUGIN_DIR . '/seo-by-rank-math/rank-math.php',
-		);
-		if ( $seo && isset( $map[ $seo ] ) && is_readable( $map[ $seo ] ) ) {
-			if ( 'rank_math' === $seo ) {
-				// Rank Math serves no front end until its connection step is done or skipped, and
-				// decides that while it loads, so the answer has to be there before it does.
-				add_filter( 'pre_option_rank_math_registration_skip', '__return_true' );
-				// Its schema and sitemap modules are switched on by its installer, which a test
-				// site that never activated it has not run.
-				add_filter(
-					'pre_option_rank_math_modules',
-					static function () {
-						return array( 'rich-snippet', 'sitemap' );
-					}
-				);
-			}
-			require $map[ $seo ];
-		}
+		// The golden fixtures' reader is shared with the unit suite.
+		\ReadinessIndex\Autoloader::register( 'ReadinessIndex\\Tests\\Support\\', dirname( __DIR__ ) . '/Unit/Support/' );
 	}
 );
 

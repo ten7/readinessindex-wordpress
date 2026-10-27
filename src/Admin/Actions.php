@@ -1,6 +1,6 @@
 <?php
 /**
- * The admin-post actions: Connect, its return, Disconnect, Scan now, Check ownership.
+ * The admin-post actions: Connect, its return, Disconnect, Scan now, Check ownership, Try again, Not now.
  *
  * @package ReadinessIndex
  */
@@ -15,6 +15,7 @@ use ReadinessIndex\Connect\Verifier;
 use ReadinessIndex\Scan\Poller;
 use ReadinessIndex\Scan\Starter;
 use ReadinessIndex\Settings;
+use ReadinessIndex\Strings;
 
 /**
  * Each public `handle_*` method is a hook callback: it checks the capability first, then the
@@ -27,9 +28,6 @@ use ReadinessIndex\Settings;
 final class Actions {
 
 	const CAPABILITY = 'manage_options';
-
-	const SAVE_SETTINGS = 'readiness_index_save_settings';
-	const DIAGNOSE      = 'readiness_index_diagnose';
 
 	/**
 	 * Registers every action. The return from readinessindex.io is also registered for
@@ -44,14 +42,7 @@ final class Actions {
 		add_action( 'admin_post_readiness_index_verify', array( self::class, 'handle_verify' ) );
 		add_action( 'admin_post_readiness_index_refresh', array( self::class, 'handle_refresh' ) );
 		add_action( 'admin_post_readiness_index_dismiss', array( self::class, 'handle_dismiss' ) );
-	}
-
-	/**
-	 * The actions of the Changes and Fixes screens, registered only when the fixers are on.
-	 */
-	public static function register_fixers(): void {
-		add_action( 'admin_post_' . self::SAVE_SETTINGS, array( self::class, 'handle_save_settings' ) );
-		add_action( 'admin_post_' . self::DIAGNOSE, array( self::class, 'handle_diagnose' ) );
+		add_action( 'admin_post_' . Notices::DISMISS_ACTION, array( Notices::class, 'handle_dismiss' ) );
 	}
 
 	/**
@@ -61,7 +52,7 @@ final class Actions {
 	 */
 	public static function guard( string $nonce_action ): void {
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'default' ), '', array( 'response' => 403 ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- A WordPress core sentence, in the visitor's language.
+			wp_die( esc_html( Strings::get( 'error.forbidden' ) ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( $nonce_action );
 	}
@@ -79,8 +70,18 @@ final class Actions {
 	 */
 	public static function handle_connect(): void {
 		self::guard( Connector::ACTION_START );
-		// The origin is a constant, not user input, and is not on WordPress's own-host list.
-		wp_redirect( Connector::start_url( get_current_user_id() ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		$url  = Connector::start_url( get_current_user_id() );
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+		// The origin is a constant, never user input, and is not one of this site's own hosts, so
+		// it is allowed for this one redirect and no other.
+		add_filter(
+			'allowed_redirect_hosts',
+			static function ( $hosts ) use ( $host ) {
+				$hosts[] = $host;
+				return $hosts;
+			}
+		);
+		wp_safe_redirect( $url );
 		exit;
 	}
 
@@ -96,10 +97,10 @@ final class Actions {
 	 * before anything is echoed.
 	 */
 	public static function handle_callback(): void {
-		$fields = self::callback_fields();
+		$posted = self::incoming();
+		$fields = self::callback_fields( $posted );
 		// Posted once already and still not signed in means the person really is signed out.
-		$relayed = isset( $_POST['ri_relayed'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- The state is the CSRF defense of a cross-site return, as documented above.
-		$plan    = self::callback_plan( $fields, is_user_logged_in(), $relayed );
+		$plan = self::callback_plan( $fields, is_user_logged_in(), isset( $posted['ri_relayed'] ) );
 
 		if ( 'login' === $plan ) {
 			wp_safe_redirect( wp_login_url( ScoreView::screen_url() ) );
@@ -111,7 +112,7 @@ final class Actions {
 		}
 
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'default' ), '', array( 'response' => 403 ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- A WordPress core sentence.
+			wp_die( esc_html( Strings::get( 'error.forbidden' ) ), '', array( 'response' => 403 ) );
 		}
 
 		Flash::put( get_current_user_id(), 'connect', self::do_callback( $fields, get_current_user_id() ) );
@@ -147,15 +148,31 @@ final class Actions {
 	}
 
 	/**
-	 * The callback's fields, each sanitized the moment it is read and length-capped.
+	 * What the browser posted to the callback, read once and nowhere else.
 	 *
+	 * This is the only place `$_POST` is touched without a nonce, because a return from another
+	 * site cannot carry one: the single-use `state` that `Connector::receive` checks and spends is
+	 * the defense, as `handle_callback` explains. Nothing read here is stored or printed until
+	 * `callback_fields` has sanitized it and the state has matched.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function incoming(): array {
+		$posted = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- A cross-site return has no nonce; the state is its defense. Sanitized field by field in callback_fields.
+		return is_array( $posted ) ? $posted : array();
+	}
+
+	/**
+	 * The callback's fields, each sanitized the moment it is used and length-capped.
+	 *
+	 * @param array<string,mixed> $posted What `incoming` returned.
 	 * @return array<string,string>
 	 */
-	private static function callback_fields(): array {
+	private static function callback_fields( array $posted ): array {
 		$out = array();
 		foreach ( array( 'key', 'state', 'plan', 'verify_token', 'error' ) as $name ) {
-			if ( isset( $_POST[ $name ] ) && is_string( $_POST[ $name ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- See handle_callback.
-				$out[ $name ] = substr( sanitize_text_field( wp_unslash( $_POST[ $name ] ) ), 0, Connector::MAX_FIELD ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized here.
+			if ( isset( $posted[ $name ] ) && is_string( $posted[ $name ] ) ) {
+				$out[ $name ] = substr( sanitize_text_field( $posted[ $name ] ), 0, Connector::MAX_FIELD );
 			}
 		}
 		return $out;
@@ -175,7 +192,7 @@ final class Actions {
 			echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '" />';
 		}
 		echo '<input type="hidden" name="ri_relayed" value="1" />';
-		echo '<noscript><button type="submit">' . esc_html( \ReadinessIndex\Strings::get( 'common.connect' ) ) . '</button></noscript>';
+		echo '<noscript><button type="submit">' . esc_html( Strings::get( 'common.connect' ) ) . '</button></noscript>';
 		echo '</form>';
 		wp_print_inline_script_tag( 'document.getElementById("ri-relay").submit();' );
 		echo '</body></html>';
@@ -263,27 +280,5 @@ final class Actions {
 		self::guard( 'readiness_index_dismiss' );
 		update_user_meta( get_current_user_id(), Screen::DISMISS_META, '1' );
 		self::back();
-	}
-
-	/**
-	 * Saves the one setting on the Changes tab.
-	 */
-	public static function handle_save_settings(): void {
-		self::guard( self::SAVE_SETTINGS );
-		Settings::set_remove_on_uninstall( isset( $_POST['remove_on_uninstall'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['remove_on_uninstall'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by guard above.
-		wp_safe_redirect( Urls::changes() );
-		exit;
-	}
-
-	/**
-	 * Runs a diagnostic that makes requests to this site, and returns to the Fixes tab.
-	 */
-	public static function handle_diagnose(): void {
-		self::guard( self::DIAGNOSE );
-		$key = isset( $_POST['diagnostic'] ) && is_string( $_POST['diagnostic'] ) ? sanitize_key( wp_unslash( $_POST['diagnostic'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by guard above.
-		// Only the two runnable keys; Runner::run refuses anything else.
-		\ReadinessIndex\Diagnostics\Runner::run( $key );
-		wp_safe_redirect( Urls::fixes() );
-		exit;
 	}
 }

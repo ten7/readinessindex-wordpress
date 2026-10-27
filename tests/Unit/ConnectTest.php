@@ -190,11 +190,6 @@ final class ConnectTest extends WpTestCase {
 		$this->assertFalse( Settings::key_is_constant() );
 	}
 
-	public function test_the_hint_is_the_last_four_characters_and_no_more(): void {
-		$this->options[ Settings::OPTION_KEY ] = self::KEY;
-		$this->assertSame( '2345', Settings::key_hint() );
-	}
-
 	public function test_the_origin_defaults_to_readinessindex_and_has_no_trailing_slash(): void {
 		$this->assertSame( 'https://readinessindex.io', Settings::origin() );
 	}

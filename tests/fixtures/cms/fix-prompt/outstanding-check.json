@@ -3,7 +3,7 @@
   "description": "The fix prompt for one outstanding check. Everything the scanned site wrote is under `untrusted_site_text`.",
   "request": {
     "method": "GET",
-    "path": "/cms/v1/fixes/AIR-1.1",
+    "path": "/cms/v1/fixes/RCH-1",
     "headers": {
       "Authorization": "Bearer <cms key>",
       "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"
@@ -14,8 +14,8 @@
     "headers": {},
     "shape": "FixPrompt",
     "body": {
-      "check": "AIR-1.1",
-      "title": "No blanket robots.txt blocks on AI crawler user-agents",
+      "check": "RCH-1",
+      "title": "Can the AI tools that search the web read your site?",
       "scan": "scan-token-5",
       "fixed_by": [
         {
@@ -28,7 +28,7 @@
         }
       ],
       "untrusted_site_text": {
-        "prompt": "### No blanket robots.txt blocks on AI crawler user-agents\n\n- **Check:** [AIR-1.1](https://readinessindex.io/open-standard#air-1.1) (failed gate)\n- **Worth:** 4 points\n- **Effort:** small\n\n**What the scan found.** An example finding.\n\n**What the scan recorded.** Nothing the scan could point at — this check is about something it could not see on the pages it read.\n\n**How it is measured.**\n\n> Parse `robots.txt`. Evaluate each of `GPTBot`, `OAI-SearchBot`, `ChatGPT-User`, `ClaudeBot`, `Claude-User`, `PerplexityBot`, `Google-Extended`, `Applebot-Extended`, `CCBot`, `Bytespider` against the rule set. Resolve `User-agent: *` fallbacks correctly, including the longest-match group rule.\n\n**What to change.** An example finding.\n\n**What full marks look like.**\n\n> Every listed agent may fetch content paths.\n"
+        "prompt": "### Can the AI tools that search the web read your site?\n\n- **Check:** [RCH-1](https://openstandard.readinessindex.io/standard/#rch-1) (failed gate)\n- **Worth:** 6 points\n- **Effort:** small\n\n**What the scan found.** An example finding.\n\n**What the scan recorded.** Nothing the scan could point at — this check is about something it could not see on the pages it read.\n\n**How it is measured.**\n\n> Parse `robots.txt`. Evaluate each of the nine search crawlers (`OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`, `Googlebot`, `bingbot`, `Applebot`, `MistralAI-Index`, `meta-webindexer`, `Amzn-SearchBot`) against the rule set, for `/` and for three sampled content URLs. Resolve `User-agent: *` fallbacks and the longest-match group rule, and let a crawler inherit the group it falls back to: Applebot follows the `Googlebot` group when `robots.txt` does not name it. Training crawlers and the fetchers that act on a person's request are evaluated as well and shown in PST-1; they never change this band.\n\n**What to change.** An example finding.\n\n**What full marks look like.**\n\n> Every one of the nine may fetch content paths.\n"
       }
     }
   }

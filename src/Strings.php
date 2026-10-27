@@ -139,8 +139,8 @@ final class Strings {
 	 * @return array<string,string>
 	 */
 	private static function read( string $path ): array {
-		$raw  = is_readable( $path ) ? file_get_contents( $path ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A local file inside the plugin, not a URL.
-		$data = false === $raw ? null : json_decode( $raw, true );
+		// Core's own reader for a JSON file on disk, so no file function is called here.
+		$data = is_readable( $path ) ? wp_json_file_decode( $path, array( 'associative' => true ) ) : null;
 		$out  = array();
 		if ( is_array( $data ) ) {
 			foreach ( $data as $key => $value ) {

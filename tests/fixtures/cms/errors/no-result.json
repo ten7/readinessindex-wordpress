@@ -3,7 +3,7 @@
   "description": "A fix prompt before any scan has finished.",
   "request": {
     "method": "GET",
-    "path": "/cms/v1/fixes/AIR-1.1",
+    "path": "/cms/v1/fixes/RCH-1",
     "headers": {
       "Authorization": "Bearer <cms key>",
       "User-Agent": "ReadinessIndex-WordPress/1.2.0 WordPress/6.6; https://example.com"

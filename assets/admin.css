@@ -48,20 +48,20 @@
 	margin: 0;
 }
 
-.readiness-index .ri-dimensions {
+.readiness-index .ri-categories {
 	margin-block: 0.75rem;
 }
 
-.readiness-index .ri-dimensions .ri-num {
+.readiness-index .ri-categories .ri-num {
 	text-align: end;
 	white-space: nowrap;
 }
 
-.readiness-index .ri-dimensions .ri-meter {
+.readiness-index .ri-categories .ri-meter {
 	inline-size: 34%;
 }
 
-.readiness-index .ri-dimensions meter {
+.readiness-index .ri-categories meter {
 	inline-size: 100%;
 	block-size: 10px;
 }
@@ -119,108 +119,5 @@
 
 	.readiness-index .ri-dl dd {
 		margin-block-end: 0.75rem;
-	}
-}
-
-/* Fixes, preview and changes. */
-.readiness-index .ri-tabs {
-	margin-block-end: 1rem;
-}
-
-.readiness-index .ri-fixes {
-	max-width: 60rem;
-	margin-inline: 0;
-	padding-inline-start: 0;
-	list-style: none;
-}
-
-.readiness-index .ri-fix {
-	margin-block: 0.5rem;
-	border: 1px solid #c3c4c7;
-	background: #fff;
-}
-
-.readiness-index .ri-fix summary {
-	padding: 0.75rem 1rem;
-	cursor: pointer;
-}
-
-.readiness-index .ri-fix-body {
-	padding-inline: 1rem;
-	padding-block-end: 1rem;
-}
-
-.readiness-index .ri-kind-label {
-	display: inline-block;
-	padding-inline: 0.5rem;
-	border: 1px solid currentColor;
-	border-radius: 3px;
-	font-size: 0.85em;
-}
-
-.readiness-index .ri-chips {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	padding: 0;
-	list-style: none;
-}
-
-.readiness-index .ri-chip {
-	margin: 0;
-	padding-inline: 0.5rem;
-	border: 1px solid #c3c4c7;
-	border-radius: 3px;
-}
-
-.readiness-index .ri-prompt,
-.readiness-index .ri-pre {
-	overflow: auto;
-	max-block-size: 24rem;
-	padding: 0.75rem;
-	border: 1px solid #c3c4c7;
-	background: #f6f7f7;
-	font-family: Consolas, Monaco, monospace;
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-}
-
-.readiness-index .ri-diff {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 1rem;
-	max-width: 70rem;
-}
-
-.readiness-index .ri-pre .ri-del,
-.readiness-index .ri-pre .ri-add {
-	display: block;
-	font-weight: 600;
-}
-
-.readiness-index .ri-pre .ri-del {
-	background: #fcf0f1;
-}
-
-.readiness-index .ri-pre .ri-add {
-	background: #edfaef;
-}
-
-.readiness-index .ri-pre .ri-same {
-	display: block;
-}
-
-.readiness-index .ri-scope {
-	list-style: none;
-	padding: 0;
-}
-
-.readiness-index .ri-changes {
-	max-width: 70rem;
-}
-
-@media (max-width: 782px) {
-	.readiness-index .ri-diff {
-		grid-template-columns: minmax(0, 1fr);
 	}
 }

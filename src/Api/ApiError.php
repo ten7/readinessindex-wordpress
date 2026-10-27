@@ -63,13 +63,6 @@ final class ApiError extends RuntimeException {
 	}
 
 	/**
-	 * Whether the screen should offer to connect again.
-	 */
-	public function show_reconnect(): bool {
-		return 'unauthenticated' === $this->key;
-	}
-
-	/**
 	 * The `reason` of an `unreachable` answer, or an empty string.
 	 */
 	public function reason(): string {

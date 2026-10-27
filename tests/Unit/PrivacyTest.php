@@ -20,6 +20,8 @@ final class PrivacyTest extends WpTestCase {
 		$text = Strings::get( 'privacy.policy' );
 		$this->assertStringContainsString( 'no information about visitors or users', $text );
 		$this->assertStringContainsString( 'readinessindex.io', $text );
-		$this->assertStringContainsString( "this site's own pages", $text );
+		$this->assertStringContainsString( 'adds nothing to this site\'s pages', $text );
+		$this->assertStringContainsString( '/.well-known/readinessindex-verify', $text );
+		$this->assertStringNotContainsString( "this site's own pages", $text, 'The plugin makes no request to its own site any more.' );
 	}
 }

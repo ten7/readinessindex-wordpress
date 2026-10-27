@@ -30,33 +30,15 @@ final class ScoreView {
 	const SCREEN_SLUG = 'readiness-index';
 
 	/**
-	 * Prints the whole screen.
+	 * Prints the whole screen: heading, the last action's result, the notices that sit above
+	 * whatever else is shown, then the body for the model's state.
 	 *
 	 * @param ViewModel $model The model.
 	 */
 	public static function render( ViewModel $model ): void {
-		self::shell_start( $model, Urls::SCORE );
-		if ( $model->confirming_disconnect && Settings::is_connected() ) {
-			self::confirm_disconnect();
-		} else {
-			self::body( $model );
-		}
-		self::shell_end();
-	}
-
-	/**
-	 * Opens the page every tab shares: heading, tabs, the last action's result and the notices
-	 * that sit above whatever else is shown.
-	 *
-	 * @param ViewModel $model The model.
-	 * @param string    $tab   The tab being drawn, a slug from `Urls`.
-	 */
-	public static function shell_start( ViewModel $model, string $tab ): void {
-		$poll = $model->polling && Urls::SCORE === $tab ? ' data-ri-poll="1"' : '';
-		echo '<div class="wrap readiness-index"' . $poll . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup, no variable data.
+		echo '<div class="wrap readiness-index"' . ( $model->polling ? ' data-ri-poll="1"' : '' ) . '>';
 		// The empty hr is where WordPress moves its own admin notices to, below the heading.
 		echo '<h1>' . esc_html( Strings::get( 'app.name' ) ) . '</h1><hr class="wp-header-end" />';
-		Tabs::render( $tab );
 
 		self::flash( $model );
 		if ( null !== $model->site && $model->site->update_required() ) {
@@ -65,12 +47,12 @@ final class ScoreView {
 		if ( $model->returned ) {
 			self::notice( 'success', '', Strings::get( 'upgrade.returned' ) );
 		}
-	}
 
-	/**
-	 * Closes the page `shell_start` opened.
-	 */
-	public static function shell_end(): void {
+		if ( $model->confirming_disconnect && Settings::is_connected() ) {
+			self::confirm_disconnect();
+		} else {
+			self::body( $model );
+		}
 		echo '</div>';
 	}
 
@@ -116,10 +98,10 @@ final class ScoreView {
 
 	/**
 	 * Draws the states that have no site answer to show (unconnected, offline, disabled,
-	 * revoked, rate limited with nothing remembered, an error), for every tab alike.
+	 * revoked, rate limited with nothing remembered, an error).
 	 *
 	 * @param ViewModel $model The model.
-	 * @return bool Whether one was drawn, in which case the tab has nothing more to show.
+	 * @return bool Whether one was drawn, in which case the screen has nothing more to show.
 	 */
 	public static function without_site( ViewModel $model ): bool {
 		switch ( $model->state ) {
@@ -295,7 +277,6 @@ final class ScoreView {
 	 * @param Score        $score The score on screen.
 	 */
 	private static function status_line( ViewModel $model, SiteResponse $site, Score $score ): void {
-		$live = ' id="ri-state" aria-live="polite"';
 		switch ( $model->state ) {
 			case ViewModel::PENDING:
 				$title = Strings::get( 'state.pending.title' );
@@ -316,7 +297,7 @@ final class ScoreView {
 				echo '<p class="ri-status" role="status">' . esc_html( Strings::get( 'score.status.finished', array( 'date' => self::datetime( $score->finished_at ) ) ) ) . '</p>';
 				return;
 		}
-		echo '<p class="ri-status" role="status"' . $live . '><span id="ri-state-title">' . esc_html( $title ) . '</span> <span id="ri-state-body">' . esc_html( $body ) . '</span></p>'; // phpcs:ignore WordPress.Security.EscapeOutput -- $live is fixed markup, the rest is escaped above.
+		echo '<p class="ri-status" role="status" id="ri-state" aria-live="polite"><span id="ri-state-title">' . esc_html( $title ) . '</span> <span id="ri-state-body">' . esc_html( $body ) . '</span></p>';
 	}
 
 	/**
@@ -326,24 +307,24 @@ final class ScoreView {
 	 * @param Score $score The score.
 	 */
 	private static function breakdown( Score $score ): void {
-		$weakest = self::weakest( $score->dimensions );
+		$weakest = self::weakest( $score->categories );
 		echo '<section class="card ri-card ri-breakdown" aria-labelledby="ri-breakdown-title">';
 		echo '<h2 id="ri-breakdown-title">' . esc_html( Strings::get( 'score.dimensions' ) ) . '</h2>';
-		echo '<table class="widefat striped ri-dimensions"><thead><tr>';
+		echo '<table class="widefat striped ri-categories"><thead><tr>';
 		echo '<th scope="col">' . esc_html( Strings::get( 'score.breakdown.category' ) ) . '</th>';
 		echo '<th scope="col" class="ri-num">' . esc_html( Strings::get( 'tab.score' ) ) . '</th>';
 		echo '<th scope="col" class="ri-meter"><span class="screen-reader-text">' . esc_html( Strings::get( 'score.breakdown.progress' ) ) . '</span></th>';
 		echo '</tr></thead><tbody>';
-		foreach ( $score->dimensions as $i => $dimension ) {
-			$name = self::sentence_case( $dimension->name );
+		foreach ( $score->categories as $i => $category ) {
+			$name = self::sentence_case( $category->name );
 			echo '<tr><th scope="row">';
 			if ( isset( $weakest[ $i ] ) ) {
 				echo '<strong>' . esc_html( $name ) . '</strong> <span class="ri-weakest">' . esc_html( Strings::get( 'score.breakdown.weakest' ) ) . '</span>';
 			} else {
 				echo esc_html( $name );
 			}
-			echo '</th><td class="ri-num"><strong>' . esc_html( (string) $dimension->earned ) . '</strong> / ' . esc_html( (string) $dimension->possible ) . '</td>';
-			echo '<td class="ri-meter"><meter min="0" max="' . esc_attr( (string) $dimension->possible ) . '" value="' . esc_attr( (string) $dimension->earned ) . '" aria-label="' . esc_attr( $name ) . '"></meter></td></tr>';
+			echo '</th><td class="ri-num"><strong>' . esc_html( (string) $category->earned ) . '</strong> / ' . esc_html( (string) $category->possible ) . '</td>';
+			echo '<td class="ri-meter"><meter min="0" max="' . esc_attr( (string) $category->possible ) . '" value="' . esc_attr( (string) $category->earned ) . '" aria-label="' . esc_attr( $name ) . '"></meter></td></tr>';
 		}
 		echo '</tbody></table></section>';
 	}
@@ -353,13 +334,13 @@ final class ScoreView {
 	 * no fraction is ever rounded into a tie. When every row has the same share, or a row has no
 	 * points to earn, nothing is flagged: "weakest" would be noise.
 	 *
-	 * @param array<int,\ReadinessIndex\Api\Model\Dimension> $dimensions The rows, in the server's order.
+	 * @param array<int,\ReadinessIndex\Api\Model\Category> $categories The rows, in the server's order.
 	 * @return array<int,true>
 	 */
-	public static function weakest( array $dimensions ): array {
+	public static function weakest( array $categories ): array {
 		$low  = null;
 		$high = null;
-		foreach ( $dimensions as $d ) {
+		foreach ( $categories as $d ) {
 			if ( $d->possible <= 0 ) {
 				continue;
 			}
@@ -374,7 +355,7 @@ final class ScoreView {
 		if ( null === $low || null === $high || $low->earned * $high->possible === $high->earned * $low->possible ) {
 			return $out;
 		}
-		foreach ( $dimensions as $i => $d ) {
+		foreach ( $categories as $i => $d ) {
 			if ( $d->possible > 0 && $d->earned * $low->possible === $low->earned * $d->possible ) {
 				$out[ $i ] = true;
 			}
@@ -589,10 +570,12 @@ final class ScoreView {
 		}
 		echo '</dl>';
 		if ( ! $model->key_is_constant ) {
-			// A form that only asks for the confirm screen, so it is a button without a nonce: it
-			// changes nothing, and the confirm step carries the nonce of the disconnect itself.
+			// A form that only asks for the confirm screen. It carries its own nonce so that a link
+			// written by somebody else cannot open the screen, and the confirm step carries the nonce
+			// of the disconnect itself, which is the one that matters.
 			echo '<form method="get" class="ri-form" action="' . esc_url( admin_url( 'admin.php' ) ) . '">';
 			echo '<input type="hidden" name="page" value="' . esc_attr( self::SCREEN_SLUG ) . '" /><input type="hidden" name="ri_confirm" value="disconnect" />';
+			wp_nonce_field( Menu::CONFIRM_ACTION, '_wpnonce', false );
 			echo '<button type="submit" class="button ri-danger">' . esc_html( Strings::get( 'common.disconnect' ) ) . '</button></form>';
 		}
 		echo '</section>';
@@ -631,7 +614,7 @@ final class ScoreView {
 	 * @param bool   $live  Whether the polling script rewrites it.
 	 */
 	public static function panel( string $title, string $body, bool $live = false ): void {
-		echo '<div class="card ri-card" id="ri-state"' . ( $live ? ' aria-live="polite"' : '' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup.
+		echo '<div class="card ri-card" id="ri-state"' . ( $live ? ' aria-live="polite"' : '' ) . '>';
 		if ( '' !== $title ) {
 			echo '<h2 id="ri-state-title">' . esc_html( $title ) . '</h2>';
 		}
@@ -751,10 +734,10 @@ final class ScoreView {
 	 * @param bool   $inline   Whether the form is displayed inline.
 	 */
 	public static function form( string $action, string $label, string $classes, bool $disabled = false, bool $inline = false ): void {
-		echo '<form method="post" class="ri-form" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"' . ( $inline ? ' style="display:inline"' : '' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup.
+		echo '<form method="post" class="ri-form" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"' . ( $inline ? ' style="display:inline"' : '' ) . '>';
 		echo '<input type="hidden" name="action" value="' . esc_attr( $action ) . '" />';
 		wp_nonce_field( $action );
-		echo '<button type="submit" class="' . esc_attr( $classes ) . '"' . ( $disabled ? ' disabled="disabled"' : '' ) . '>' . esc_html( $label ) . '</button>'; // phpcs:ignore WordPress.Security.EscapeOutput -- Fixed markup.
+		echo '<button type="submit" class="' . esc_attr( $classes ) . '"' . ( $disabled ? ' disabled="disabled"' : '' ) . '>' . esc_html( $label ) . '</button>';
 		echo '</form>';
 	}
 

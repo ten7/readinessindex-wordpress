@@ -1,0 +1,54 @@
+#!/usr/bin/env php
+<?php
+// Prints the shared strings file with the sentences that only the fixers use left out.
+//
+//   php bin/filter-strings <path to docs/cms-parity/strings/en.json>
+//
+// The shared file serves two modules and every screen of both. This plugin ships the Score
+// alone, so the sentences of the Fixes, Changes and Preview screens and of the diagnostics,
+// and the few the Drupal module's screens use that this one does not, would ship unused.
+// Both bin/sync-contract and the contract check in CI call this, so the copy and its check
+// cannot filter differently. StaticGuardsTest fails when a sentence that ships is not asked for
+// by the code, which is how a new unused one in the shared file is noticed.
+$drop_prefixes = array( 'fixer.', 'fixes.', 'changes.', 'diagnostic.', 'preview.', 'checkout.' );
+$drop_keys     = array(
+	'tab.fixes',
+	'tab.changes',
+	'settings.account',
+	'connect.title',
+	'common.copy',
+	'common.copied',
+	'common.loading',
+	'common.close',
+	'common.learn_more',
+	'score.grade',
+	'score.dimension_row',
+	'score.change.up',
+	'score.change.down',
+	'score.change.same',
+	'score.scanned_on',
+	'score.pages_read',
+	'score.index',
+	'score.rescans.left',
+	'score.rescans.monthly',
+	'score.verified',
+	'score.not_verified',
+);
+$raw  = file_get_contents( $argv[1] ?? '' );
+$data = false === $raw ? null : json_decode( $raw, true );
+if ( ! is_array( $data ) ) {
+	fwrite( STDERR, "Cannot read the strings file.\n" );
+	exit( 1 );
+}
+foreach ( array_keys( $data ) as $key ) {
+	if ( in_array( $key, $drop_keys, true ) ) {
+		unset( $data[ $key ] );
+		continue;
+	}
+	foreach ( $drop_prefixes as $prefix ) {
+		if ( 0 === strpos( (string) $key, $prefix ) ) {
+			unset( $data[ $key ] );
+		}
+	}
+}
+echo json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "\n";

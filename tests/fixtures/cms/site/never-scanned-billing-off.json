@@ -34,7 +34,7 @@
       "allowance": {
         "rescans_left": 5,
         "rescans_total": 5,
-        "plan": "Full report",
+        "plan": "Free",
         "lifetime": true,
         "can_buy_pack": false,
         "standing": {
@@ -46,8 +46,8 @@
         "pack_url": null
       },
       "index": {
-        "version": "11.5",
-        "date": "2026-10-11"
+        "version": "12.1",
+        "date": "2026-10-21"
       },
       "notices": []
     }

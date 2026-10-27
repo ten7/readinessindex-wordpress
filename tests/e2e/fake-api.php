@@ -1,64 +1,124 @@
 <?php
 /**
- * A stand-in for readinessindex.io's CMS API, for looking at the Fixes tab in a local wp-env run.
+ * A stand-in for readinessindex.io's CMS API, for driving every screen state of the Score in a
+ * local wp-env run, and for counting what the plugin sends.
  *
- * It serves the golden fixtures from tests/fixtures/cms/ and nothing else: `GET /cms/v1/site` is
- * the finished-scan fixture with a list of outstanding tests that covers every kind of row, and
- * `GET /cms/v1/fixes/{check}` is the fix-prompt fixture for that check. It checks no key and stores
- * nothing, and it is not a test double the suite depends on.
+ * It serves the golden fixtures from tests/fixtures/cms/ and nothing else, checks no key and stores
+ * nothing but which fixture to answer each route with. It is not a test double the suite depends on.
  *
  *   php -S 0.0.0.0:8099 tests/e2e/fake-api.php
  *
  * and point wp-env at it with `"config": { "READINESS_INDEX_API_ORIGIN": "http://host.docker.internal:8099" }`
- * in .wp-env.override.json. Store a key of the right shape with
- * `ReadinessIndex\Settings::store_key( 'air_0a1b2c3d_abcdefghijklmnopqrstuvwxyz012345' )`.
+ * in .wp-env.override.json.
+ *
+ * Choosing what a route answers with (any fixture can answer any route, so an error fixture can
+ * stand in for the site call):
+ *
+ *   GET /__state?site=site/running&scan=scan/started&status=scan-status/done&verify=verify/verified
+ *   GET /__state                    shows the current choices
+ *   GET /__log                      every request received, as JSON lines
+ *   GET /__reset                    clears the log and restores the defaults
+ *
+ * The Connect page, `GET /connect/cms`, answers as the real consent page would after approval: a
+ * form that posts the key, the state, the plan label and the ownership token back to the callback.
+ * The key is a made-up one of the right shape.
  *
  * @package ReadinessIndex
  */
 
-$root = dirname( __DIR__ ) . '/fixtures/cms';
-$path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ); // phpcs:ignore
+$root  = dirname( __DIR__ ) . '/fixtures/cms';
+$store = sys_get_temp_dir() . '/readiness-index-fake-api.json';
+$log   = sys_get_temp_dir() . '/readiness-index-fake-api.log';
+$path  = (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+$query = array();
+parse_str( (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY ), $query );
 
-header( 'Content-Type: application/json' );
+$defaults = array(
+	'site'   => 'site/done-first-scan',
+	'scan'   => 'scan/started',
+	'status' => 'scan-status/running',
+	'verify' => 'verify/verified',
+);
+$state    = is_readable( $store ) ? json_decode( (string) file_get_contents( $store ), true ) : $defaults;
+$state    = is_array( $state ) ? $state + $defaults : $defaults;
 
-if ( '/cms/v1/site' === $path ) {
-	$fixture = json_decode( file_get_contents( $root . '/site/done-with-change.json' ), true ); // phpcs:ignore
-	$body          = $fixture['response']['body'];
-	$rows          = array(
-		array( 'AIR-1.1', 'No blanket robots.txt blocks on AI crawler user-agents', 5 ),
-		array( 'AIR-1.10', 'An llms.txt exists, is valid and tracks the sitemap', 2 ),
-		array( 'AIR-1.11', 'One linked entity graph', 2 ),
-		array( 'AIR-1.6', 'No stray noarchive, nosnippet or max-snippet:0', 1 ),
-		array( 'AIR-4.8', 'Sitemap lastmod reflects real changes', 2 ),
-		array( 'AIR-2.5', 'Images have alt text', 2 ),
-		array( 'AIR-1.2', 'AI crawlers are not turned away at the edge', 3 ),
-		array( 'AIR-2.1', 'Primary content is present without JavaScript', 3 ),
-		array( 'AIR-4.1', 'RSL licensing document published and referenced', 1 ),
-	);
-	$base          = $body['fixes'][0];
-	$body['fixes'] = array();
-	foreach ( $rows as $i => $row ) {
-		$fix             = $base;
-		$fix['rank']     = $i + 1;
-		$fix['check']    = $row[0];
-		$fix['title']    = $row[1];
-		$fix['points']   = $row[2];
-		$body['fixes'][] = $fix;
+if ( '/__reset' === $path ) {
+	@unlink( $log );
+	file_put_contents( $store, json_encode( $defaults ) );
+	header( 'Content-Type: application/json' );
+	echo json_encode( $defaults );
+	exit;
+}
+if ( '/__state' === $path ) {
+	foreach ( array_keys( $defaults ) as $name ) {
+		if ( isset( $query[ $name ] ) && 1 === preg_match( '#^[a-z0-9/-]+$#', (string) $query[ $name ] ) && is_readable( $root . '/' . $query[ $name ] . '.json' ) ) {
+			$state[ $name ] = (string) $query[ $name ];
+		}
 	}
-	echo json_encode( $body );
+	file_put_contents( $store, json_encode( $state ) );
+	header( 'Content-Type: application/json' );
+	echo json_encode( $state );
+	exit;
+}
+if ( '/__log' === $path ) {
+	header( 'Content-Type: text/plain' );
+	echo is_readable( $log ) ? file_get_contents( $log ) : '';
 	exit;
 }
 
-if ( preg_match( '#^/cms/v1/fixes/(AIR-\d+\.\d+)$#', $path, $m ) ) {
-	$fixture                                         = json_decode( file_get_contents( $root . '/fix-prompt/outstanding-check.json' ), true ); // phpcs:ignore
-	$body                                  = $fixture['response']['body'];
-	$body['check']                         = $m[1];
-	$body['untrusted_site_text']['prompt'] = '### ' . $m[1] . "\n\nAn example prompt for " . $m[1] . ". <b>Not markup</b>.\n";
-	echo json_encode( $body );
+// What is logged is the method, the path and whether a bearer key was sent: never the key.
+file_put_contents(
+	$log,
+	json_encode(
+		array(
+			'method' => $_SERVER['REQUEST_METHOD'],
+			'path'   => $path,
+			'bearer' => isset( $_SERVER['HTTP_AUTHORIZATION'] ) && 0 === strpos( $_SERVER['HTTP_AUTHORIZATION'], 'Bearer ' ),
+			'agent'  => $_SERVER['HTTP_USER_AGENT'] ?? '',
+		)
+	) . "\n",
+	FILE_APPEND
+);
+
+if ( '/connect/cms' === $path ) {
+	$callback = (string) ( $query['callback'] ?? '' );
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8"><title>Stand-in consent page</title>';
+	echo '<form id="f" method="post" action="' . htmlspecialchars( $callback, ENT_QUOTES ) . '">';
+	echo '<input type="hidden" name="key" value="air_0a1b2c3d_abcdefghijklmnopqrstuvwxyz012345">';
+	echo '<input type="hidden" name="state" value="' . htmlspecialchars( (string) ( $query['state'] ?? '' ), ENT_QUOTES ) . '">';
+	echo '<input type="hidden" name="plan" value="Free">';
+	echo '<input type="hidden" name="verify_token" value="0123456789abcdef0123456789abcdef">';
+	echo '<button>Approve (stand-in)</button></form>';
+	exit;
+}
+
+$fixture = null;
+if ( '/cms/v1/site' === $path && 'GET' === $_SERVER['REQUEST_METHOD'] ) {
+	$fixture = $state['site'];
+} elseif ( '/cms/v1/scan' === $path && 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+	$fixture = $state['scan'];
+} elseif ( 1 === preg_match( '#^/cms/v1/scan/[A-Za-z0-9._-]+$#', $path ) ) {
+	$fixture = $state['status'];
+} elseif ( '/cms/v1/verify' === $path && 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+	$fixture = $state['verify'];
+}
+
+if ( null !== $fixture ) {
+	$data = json_decode( (string) file_get_contents( $root . '/' . $fixture . '.json' ), true );
+	http_response_code( (int) $data['response']['status'] );
+	header( 'Content-Type: application/json' );
+	foreach ( (array) $data['response']['headers'] as $name => $value ) {
+		if ( 'content-type' !== strtolower( (string) $name ) && 'content-length' !== strtolower( (string) $name ) ) {
+			header( $name . ': ' . $value );
+		}
+	}
+	echo json_encode( $data['response']['body'] );
 	exit;
 }
 
 http_response_code( 404 );
+header( 'Content-Type: application/json' );
 echo json_encode(
 	array(
 		'error'   => 'not_found',

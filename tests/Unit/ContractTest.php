@@ -4,7 +4,7 @@ namespace ReadinessIndex\Tests;
 use ReadinessIndex\Strings;
 use ReadinessIndex\Tests\Support\Fixtures;
 use ReadinessIndex\Tests\Support\SchemaValidator;
-use PHPUnit\Framework\TestCase;
+use ReadinessIndex\Tests\Support\WpTestCase;
 
 /**
  * Holds the copied contract to its pin and to itself.
@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  * copied file was edited by hand (its hash is not the pinned one), when the pin is stale,
  * and when a fixture no longer satisfies the OpenAPI document it was generated with.
  */
-final class ContractTest extends TestCase {
+final class ContractTest extends WpTestCase {
 
 	private function root(): string {
 		return dirname( __DIR__, 2 );

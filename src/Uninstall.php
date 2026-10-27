@@ -7,49 +7,53 @@
 
 namespace ReadinessIndex;
 
-use ReadinessIndex\Changes\Schema;
-use ReadinessIndex\Fixers\Runner;
-use ReadinessIndex\Fixers\State;
+use ReadinessIndex\Connect\Connector;
+use ReadinessIndex\Scan\Poller;
+use ReadinessIndex\Scan\Starter;
 
 /**
- * Called by `uninstall.php` for each site. It removes the plugin's own tables and options and
- * does not undo what the fixers changed, unless the owner turned on "Remove my changes when I
- * delete the plugin", in which case each fixer's `cleanup()` runs first. The default is to
- * leave the changes alone because the plugin's changes are filters that stop being served when
- * it is deleted anyway, and an uninstall that also rewrites a client's settings is a surprise.
+ * Called by `uninstall.php` for each site. The plugin stores only its own options, a few
+ * short-lived transients and two pieces of user meta (a closed offer and a closed notice), and changes nothing else on the site, so
+ * deleting it removes all of that and there is nothing to undo.
+ *
+ * The connection key is forgotten here and not revoked: revoking is done by the owner on
+ * readinessindex.io, where the key lives, and the plugin makes no request while it is deleted.
  */
 final class Uninstall {
 
 	const OPTIONS = array(
-		'readiness_index_key',
-		'readiness_index_connection',
-		'readiness_index_site_cache',
-		'readiness_index_active_scan',
-		'readiness_index_scan_lock',
-		Settings::OPTION_REMOVE,
-		State::OPTION,
-		Schema::VERSION_OPTION,
-		'readiness_index_llms',
-		'readiness_index_diagnostics',
+		Settings::OPTION_KEY,
+		Settings::OPTION_CONNECTION,
+		Settings::OPTION_SITE_CACHE,
+		Settings::OPTION_ACTIVE,
+		Starter::LOCK_OPTION,
 	);
 
 	/**
 	 * Cleans up one site.
 	 */
 	public static function run(): void {
-		if ( Settings::remove_on_uninstall() ) {
-			Runner::cleanup_all();
-		}
-		Schema::drop();
+		global $wpdb;
+
 		foreach ( self::OPTIONS as $option ) {
 			delete_option( $option );
 		}
-		wp_clear_scheduled_hook( 'readiness_index_poll_scan' );
-		wp_clear_scheduled_hook( 'readiness_index_verify_soon' );
-		delete_metadata( 'user', 0, 'readiness_index_dismissed_monitoring', '', true );
-		delete_metadata( 'post', 0, '_readiness_index_changed_gmt', '', true );
-		delete_transient( 'ri_backoff' );
-		delete_transient( 'ri_alt_count' );
-		delete_transient( 'ri_directives_sample' );
+		wp_clear_scheduled_hook( Poller::HOOK );
+		wp_clear_scheduled_hook( Connector::VERIFY_HOOK );
+		delete_metadata( 'user', 0, Admin\Screen::DISMISS_META, '', true );
+		delete_metadata( 'user', 0, Admin\Notices::DISMISS_META, '', true );
+
+		// Every transient the plugin sets starts `ri_` and some carry a user id or a hash in the
+		// name (the pending Connect state, the waiting marker, a user's flash message), so they
+		// cannot be listed. A site with an external object cache holds them there and lets them
+		// expire on their own; `ri_backoff` is deleted by name for that case as well.
+		delete_transient( Admin\Screen::BACKOFF_TRANSIENT );
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall only, and there is no API that deletes transients by prefix.
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name is $wpdb's own.
+				$wpdb->esc_like( '_transient_ri_' ) . '%',
+				$wpdb->esc_like( '_transient_timeout_ri_' ) . '%'
+			)
+		);
 	}
 }

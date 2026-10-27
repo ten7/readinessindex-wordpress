@@ -31,11 +31,19 @@ final class ApiClientTest extends WpTestCase {
 		$this->respond( Fixtures::response( 'site/done-with-change' ) );
 		$site = $this->client()->site();
 		$this->assertSame( 95, $site->score->value );
-		$this->assertSame( 4, $site->score->change->score_change );
+		$this->assertSame( 6, $site->score->change->score_change );
 		$this->assertTrue( $site->score->change->comparable );
-		$this->assertCount( 7, $site->score->dimensions );
-		$this->assertSame( 12, $site->score->dimensions[1]->earned );
-		$this->assertSame( 3, $site->fixes[0]->points );
+		$this->assertSame(
+			array( 'Reach', 'Read', 'Understand', 'Act' ),
+			array_map(
+				static function ( $category ) {
+					return $category->name;
+				},
+				$site->score->categories
+			)
+		);
+		$this->assertSame( 30, $site->score->categories[1]->earned );
+		$this->assertSame( 35, $site->score->categories[1]->possible );
 		$this->assertSame( 'monitoring_basic', $site->allowance->next_step->key );
 	}
 
@@ -115,12 +123,7 @@ final class ApiClientTest extends WpTestCase {
 		}
 	}
 
-	public function test_fix_prompt_and_verify_read_their_fixtures(): void {
-		$this->respond( Fixtures::response( 'fix-prompt/outstanding-check' ) );
-		$prompt = $this->client()->fix_prompt( 'AIR-1.1' );
-		$this->assertSame( 'AIR-1.1', $prompt->check );
-		$this->assertSame( 'https://api.test/cms/v1/fixes/AIR-1.1', $this->requests[0]['url'] );
-
+	public function test_verify_reads_its_fixtures(): void {
 		$this->respond( Fixtures::response( 'verify/verified' ) );
 		$this->assertTrue( $this->client()->verify()->verified );
 		$this->respond( Fixtures::response( 'verify/already-verified' ) );
@@ -159,23 +162,6 @@ final class ApiClientTest extends WpTestCase {
 				$this->assertSame( $body['message'], $e->getMessage(), $name );
 				$this->assertSame( $entry['status'], $e->status, $name );
 			}
-		}
-	}
-
-	public function test_unauthenticated_asks_for_reconnect_and_others_do_not(): void {
-		$this->respond( Fixtures::response( 'errors/unauthenticated' ) );
-		try {
-			$this->client()->site();
-			$this->fail();
-		} catch ( ApiError $e ) {
-			$this->assertTrue( $e->show_reconnect() );
-		}
-		$this->respond( Fixtures::response( 'errors/account-disabled' ) );
-		try {
-			$this->client()->site();
-			$this->fail();
-		} catch ( ApiError $e ) {
-			$this->assertFalse( $e->show_reconnect() );
 		}
 	}
 

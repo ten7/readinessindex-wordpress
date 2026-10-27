@@ -1,6 +1,6 @@
 {
   "api_revision": "1.0.0",
-  "index_version": "11.5",
+  "index_version": "12.1",
   "shapes": [
     "ErrorBody",
     "FixPrompt",

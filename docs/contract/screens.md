@@ -159,9 +159,9 @@ Three things the module can see and must not fix. Each is shown as a *hand it on
 
 | Test | Shows | Why it is not fixed |
 |---|---|---|
-| AIR-2.5, images without alt text | `diagnostic.alt_text.title`, `diagnostic.alt_text.body` (with the count), `diagnostic.alt_text.open` to the media library | A wrong description is worse than none |
-| AIR-1.2, a CDN or firewall turning AI crawlers away | `diagnostic.cdn.title`, `diagnostic.cdn.body` | The rule is outside the site |
-| AIR-2.1 and AIR-2.2, content that needs JavaScript | `diagnostic.js_only.title`, `diagnostic.js_only.body` | It is a change to the theme |
+| RED-17, images without alt text | `diagnostic.alt_text.title`, `diagnostic.alt_text.body` (with the count), `diagnostic.alt_text.open` to the media library | A wrong description is worse than none |
+| RCH-2, a CDN or firewall turning AI crawlers away | `diagnostic.cdn.title`, `diagnostic.cdn.body` | The rule is outside the site |
+| RED-1 and RED-2, content that needs JavaScript | `diagnostic.js_only.title`, `diagnostic.js_only.body` | It is a change to the theme |
 
 ## Changes
 

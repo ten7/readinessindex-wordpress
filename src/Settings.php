@@ -24,7 +24,6 @@ final class Settings {
 	const OPTION_CONNECTION = 'readiness_index_connection';
 	const OPTION_SITE_CACHE = 'readiness_index_site_cache';
 	const OPTION_ACTIVE     = 'readiness_index_active_scan';
-	const OPTION_REMOVE     = 'readiness_index_remove_on_uninstall';
 
 	/**
 	 * The shape the server mints: `air_`, eight hex characters, then a url-safe secret.
@@ -90,14 +89,6 @@ final class Settings {
 	}
 
 	/**
-	 * The last four characters of the key, the most that is ever shown or logged.
-	 */
-	public static function key_hint(): string {
-		$key = self::key();
-		return '' === $key ? '' : substr( $key, -4 );
-	}
-
-	/**
 	 * Stores a key, replacing any held one.
 	 *
 	 * @param string $key Key with a valid shape.
@@ -136,23 +127,6 @@ final class Settings {
 			),
 			false
 		);
-	}
-
-	/**
-	 * Whether deleting the plugin also removes what its fixers changed. Off unless the owner
-	 * turned it on: an uninstall that silently undoes a client's robots.txt is a surprise.
-	 */
-	public static function remove_on_uninstall(): bool {
-		return '1' === (string) get_option( self::OPTION_REMOVE, '0' );
-	}
-
-	/**
-	 * Stores the choice made on the Changes tab.
-	 *
-	 * @param bool $remove Whether to remove changes on uninstall.
-	 */
-	public static function set_remove_on_uninstall( bool $remove ): void {
-		update_option( self::OPTION_REMOVE, $remove ? '1' : '0', false );
 	}
 
 	/**

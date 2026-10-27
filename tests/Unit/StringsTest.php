@@ -16,11 +16,12 @@ final class StringsTest extends WpTestCase {
 	}
 
 	public function test_a_contract_sentence_wins_over_a_local_one(): void {
-		$this->assertSame( 'Fix it here', Strings::get( 'fixes.kind.fix_here' ) );
+		$this->assertSame( 'Score', Strings::get( 'tab.score' ) );
+		$this->assertSame( 'Try again', Strings::get( 'common.retry' ) );
 	}
 
 	public function test_a_local_sentence_is_found_and_filled(): void {
-		$this->assertStringContainsString( 'WP Rocket', Strings::get( 'fixes.live.named_cache', array( 'cache' => 'WP Rocket' ) ) );
+		$this->assertSame( 'Scan finished · March 3, 2026', Strings::get( 'score.status.finished', array( 'date' => 'March 3, 2026' ) ) );
 	}
 
 	public function test_a_missing_key_shows_itself_and_never_a_blank(): void {

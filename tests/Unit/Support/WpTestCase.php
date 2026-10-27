@@ -175,6 +175,11 @@ abstract class WpTestCase extends TestCase {
 			}
 		);
 		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'wp_json_file_decode' )->alias(
+			function ( $path, $args = array() ) {
+				return json_decode( (string) file_get_contents( $path ), ! empty( $args['associative'] ) );
+			}
+		);
 		Functions\when( 'admin_url' )->alias( fn( $path = '' ) => 'https://example.com/wp-admin/' . $path );
 		Functions\when( 'wp_nonce_field' )->alias(
 			function ( $action ) {

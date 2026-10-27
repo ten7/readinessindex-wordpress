@@ -1,61 +1,69 @@
 <?php
 /**
- * Notices outside the plugin's own screens.
+ * The one notice outside the Score screen's own content.
  *
  * @package ReadinessIndex
  */
 
 namespace ReadinessIndex\Admin;
 
-use ReadinessIndex\Changes\Log;
 use ReadinessIndex\Strings;
 
 /**
- * Two small ones: on a network-activated install, that per-site activation is supported; and,
- * with the fixers on, on the Plugins screen, what deactivating does to the changes.
+ * On a network-activated install, that each site connects on its own. It is printed on this
+ * plugin's screen only, and an administrator can dismiss it for good: a notice that cannot be
+ * closed and reappears on every load teaches people to ignore the notices that matter.
  */
 final class Notices {
 
+	const DISMISS_ACTION = 'readiness_index_dismiss_network';
+	const DISMISS_META   = 'readiness_index_dismissed_network';
+
 	/**
-	 * Hooks both.
+	 * Hooks the notice.
 	 */
 	public static function register(): void {
 		add_action( 'admin_notices', array( self::class, 'network' ) );
-		add_action( 'network_admin_notices', array( self::class, 'network' ) );
 	}
 
 	/**
-	 * The Plugins screen line about recorded changes, only when the fixers are switched on.
+	 * Whether the notice is for this person on this screen.
+	 *
+	 * @param bool   $multisite       Whether this is a multisite install.
+	 * @param bool   $network_active  Whether the plugin is active for the whole network.
+	 * @param string $screen_id       The current admin screen's id.
+	 * @param bool   $dismissed       Whether this user closed it.
 	 */
-	public static function register_fixers(): void {
-		add_action( 'after_plugin_row_' . plugin_basename( READINESS_INDEX_FILE ), array( self::class, 'plugin_row' ), 10, 0 );
+	public static function should_show( bool $multisite, bool $network_active, string $screen_id, bool $dismissed ): bool {
+		return $multisite && $network_active && ! $dismissed && false !== strpos( $screen_id, ScoreView::SCREEN_SLUG );
 	}
 
 	/**
-	 * A line under the plugin's row when it has changes on record.
-	 */
-	public static function plugin_row(): void {
-		if ( ! current_user_can( Actions::CAPABILITY ) || 0 === Log::count() ) {
-			return;
-		}
-		echo '<tr class="plugin-update-tr active"><td colspan="4" class="plugin-update colspanchange"><div class="notice inline notice-info notice-alt"><p>' . esc_html( Strings::get( 'plugin.row_note' ) ) . '</p></div></td></tr>';
-	}
-
-	/**
-	 * On a network-activated install, on this plugin's own screens and the Plugins screen.
+	 * Prints the notice with its Dismiss button.
 	 */
 	public static function network(): void {
 		if ( ! is_multisite() || ! current_user_can( Actions::CAPABILITY ) ) {
 			return;
 		}
-		if ( ! is_plugin_active_for_network( plugin_basename( READINESS_INDEX_FILE ) ) ) {
+		$screen    = get_current_screen();
+		$screen_id = null === $screen ? '' : (string) $screen->id;
+		$dismissed = '1' === (string) get_user_meta( get_current_user_id(), self::DISMISS_META, true );
+		$show      = self::should_show( true, is_plugin_active_for_network( plugin_basename( READINESS_INDEX_FILE ) ), $screen_id, $dismissed );
+		if ( ! $show ) {
 			return;
 		}
-		$screen = get_current_screen();
-		$id     = null === $screen ? '' : (string) $screen->id;
-		if ( false === strpos( $id, 'readiness-index' ) && 0 !== strpos( $id, 'plugins' ) ) {
-			return;
-		}
-		echo '<div class="notice notice-info"><p>' . esc_html( Strings::get( 'network.notice' ) ) . '</p></div>';
+		echo '<div class="notice notice-info"><p>' . esc_html( Strings::get( 'network.notice' ) ) . '</p>';
+		ScoreView::form( self::DISMISS_ACTION, Strings::get( 'network.dismiss' ), 'button-link', false, true );
+		echo '</div>';
+	}
+
+	/**
+	 * Closes the notice for this user. Capability, then nonce, then back to the screen.
+	 */
+	public static function handle_dismiss(): void {
+		Actions::guard( self::DISMISS_ACTION );
+		update_user_meta( get_current_user_id(), self::DISMISS_META, '1' );
+		wp_safe_redirect( ScoreView::screen_url() );
+		exit;
 	}
 }

@@ -90,7 +90,7 @@ final class Preflight {
 			return true; // A single label: localhost, a Docker service name, an intranet name.
 		}
 		foreach ( array( '.localhost', '.local', '.test', '.invalid', '.internal', '.lan', '.home.arpa' ) as $suffix ) {
-			if ( substr( $host, -strlen( $suffix ) ) === $suffix ) { // phpcs:ignore WordPress.PHP.YodaConditions.NotYoda -- Both sides are values, neither is a literal.
+			if ( 1 === preg_match( '/' . preg_quote( $suffix, '/' ) . '$/D', $host ) ) {
 				return true;
 			}
 		}

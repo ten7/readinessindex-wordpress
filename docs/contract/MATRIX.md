@@ -74,25 +74,25 @@ Where the truth for each kind of row lives:
 | Screen: Fixes | Points the fixers can reach, said before anything is applied | n/a | planned | planned | `fixes.reachable`. |
 | Screen: Changes | Every change listed with what, when, by whom and Undo | n/a | planned | planned | The module's own table; the record is `{fixer, prior, new}`. |
 | Screen: Changes | Empty state | n/a | planned | planned | `changes.empty`. |
-| Fixer | AIR-1.1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
-| Fixer | AIR-1.4 robots.txt: state what AI may do (Content Signals) | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
-| Fixer | AIR-1.5 robots.txt: the policy in plain words | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
-| Fixer | AIR-1.10 `/llms.txt` generated from the site's content | done | planned | planned | Spec and vectors: `fixers/llms-txt`. |
-| Fixer | AIR-1.6 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | done | planned | planned | Spec and vectors: `fixers/robots-directives`. |
-| Fixer | AIR-4.8 Sitemap `lastmod` from when the content really changed | done | planned | planned | Spec and vectors: `fixers/dates`. |
-| Fixer | AIR-5.4 `datePublished` and `dateModified` from when the content really changed | done | planned | planned | Spec and vectors: `fixers/dates`. |
-| Fixer | AIR-1.11 One linked entity graph with `@id` references | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
-| Fixer | AIR-1.12 `sameAs` links to authority records | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
-| Fixer | AIR-1.13 About, Contact and organizational detail | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
-| Fixer | AIR-3.2 `BreadcrumbList` below the home page | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
-| Fixer | AIR-3.7 `SearchAction` on the WebSite node | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
+| Fixer | RCH-1 robots.txt: take blanket AI blocks off the crawlers the owner chooses | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
+| Fixer | PST-2 robots.txt: state what AI may do (Content Signals) | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
+| Fixer | robots.txt: the policy in plain words (moves no scored test since 12.0; AIR-1.5 retired) | done | planned | planned | Spec and vectors: `fixers/robots-txt`. |
+| Fixer | EXT-1 `/llms.txt` generated from the site's content | done | planned | planned | Spec and vectors: `fixers/llms-txt`. |
+| Fixer | RCH-4 Stray `noarchive`, `nosnippet` and `max-snippet:0` removed | done | planned | planned | Spec and vectors: `fixers/robots-directives`. |
+| Fixer | RED-3 Sitemap `lastmod` from when the content really changed | done | planned | planned | Spec and vectors: `fixers/dates`. |
+| Fixer | UND-6 `datePublished` and `dateModified` from when the content really changed | done | planned | planned | Spec and vectors: `fixers/dates`. |
+| Fixer | EXT-5 One linked entity graph with `@id` references | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
+| Fixer | UND-10 `sameAs` links to authority records | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
+| Fixer | UND-1 About, Contact and organizational detail | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
+| Fixer | UND-7 `BreadcrumbList` below the home page | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
+| Fixer | `SearchAction` on the WebSite node (moves no scored test since 12.0; AIR-3.7 retired) | done | planned | planned | Spec and vectors: `fixers/entity-graph`. |
 | Fixer conflict | robots.txt: a physical file wins, so previewed to paste and not applied | n/a | planned | planned | `fixers/robots-txt` |
 | Fixer conflict | llms.txt: a physical file or another tool serves it | n/a | planned | planned | `fixers/llms-txt` |
 | Fixer conflict | Stray directives: a directive an SEO tool sets is deferred to it | n/a | planned | planned | `fixers/robots-directives` |
 | Fixer conflict | Dates and entity graph: through the SEO tool, never a second copy | n/a | planned | planned | `fixers/dates`, `fixers/entity-graph` |
 | Fixer conflict | Applying twice is the same as once; undo restores the baseline exactly | n/a | planned | planned | Every vector that applies shows both. |
-| Diagnostic | AIR-2.5 images without alt text: listed, linked to the media library, never written | n/a | planned | planned | `diagnostic.alt_text.*` |
-| Diagnostic | AIR-1.2 a CDN or firewall turning AI crawlers away: detected and handed on | n/a | planned | planned | `diagnostic.cdn.*` |
-| Diagnostic | AIR-2.1 and AIR-2.2 content that needs JavaScript: detected and handed on | n/a | planned | planned | `diagnostic.js_only.*` |
+| Diagnostic | RED-17 images without alt text: listed, linked to the media library, never written | n/a | planned | planned | `diagnostic.alt_text.*` |
+| Diagnostic | RCH-2 a CDN or firewall turning AI crawlers away: detected and handed on | n/a | planned | planned | `diagnostic.cdn.*` |
+| Diagnostic | RED-1 and RED-2 content that needs JavaScript: detected and handed on | n/a | planned | planned | `diagnostic.js_only.*` |
 | Shared | Every sentence shown comes from `strings/en.json` | done | planned | planned | A module adds no sentence of its own. |
 | Shared | CI runs `check_vectors.py` and the module's fixers against every vector | done | planned | planned | A vector the module does not match is a failing test. |

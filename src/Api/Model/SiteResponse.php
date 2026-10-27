@@ -10,7 +10,8 @@ namespace ReadinessIndex\Api\Model;
 use ReadinessIndex\Api\Shape;
 
 /**
- * One call fills the Score and Fixes screens.
+ * One call fills the Score screen. The answer also lists outstanding tests (`fixes`); this plugin
+ * does not draw them, so it does not read them, and a change to that list can never break it.
  */
 final class SiteResponse {
 
@@ -34,13 +35,6 @@ final class SiteResponse {
 	 * @var Score|null
 	 */
 	public $score;
-
-	/**
-	 * Outstanding tests in the scorer's order. Never re-sorted.
-	 *
-	 * @var Fix[]
-	 */
-	public $fixes = array();
 
 	/**
 	 * What the account may do.
@@ -78,9 +72,6 @@ final class SiteResponse {
 		$index          = Shape::need( $data, 'index', '$' );
 		$out->index     = null === $index ? null : IndexInfo::from_array( Shape::object( $index, 'index' ) );
 
-		foreach ( Shape::items( Shape::need( $data, 'fixes', '$' ), 'fixes' ) as $i => $row ) {
-			$out->fixes[] = Fix::from_array( Shape::object( $row, 'fixes.' . $i ), 'fixes.' . $i );
-		}
 		foreach ( Shape::items( Shape::need( $data, 'notices', '$' ), 'notices' ) as $i => $row ) {
 			$out->notices[] = Notice::from_array( Shape::object( $row, 'notices.' . $i ), 'notices.' . $i );
 		}
