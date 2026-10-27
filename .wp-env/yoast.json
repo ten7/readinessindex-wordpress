@@ -1,5 +1,0 @@
-{
-	"lifecycleScripts": {
-		"afterStart": "npx wp-env run cli wp plugin install plugin-check wordpress-seo --activate && npx wp-env run cli wp plugin activate readiness-index"
-	}
-}

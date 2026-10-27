@@ -21,6 +21,7 @@
 /tests
 /test-results
 /vendor
+/CHANGELOG.md
 /CLAUDE.md
 /README.md
 /composer.json

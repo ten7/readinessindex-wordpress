@@ -7,6 +7,8 @@
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/dist/*</exclude-pattern>
 	<exclude-pattern>/tests/Unit/fixtures/*</exclude-pattern>
+	<!-- A development stand-in for the service, run with PHP's built-in server: not WordPress code. -->
+	<exclude-pattern>/tests/e2e/*</exclude-pattern>
 
 	<arg name="extensions" value="php"/>
 	<arg name="colors"/>

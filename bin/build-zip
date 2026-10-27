@@ -52,6 +52,20 @@ if [ -n "${bad}" ]; then
 	exit 1
 fi
 
+# This build is the Score only. The fixers live on their own branch, and a file or a word of them
+# in the zip means the wrong tree was built. Checked on the zip's own contents, by path and by text.
+fixer_paths="$(echo "${listing}" | grep -E '^readiness-index/src/(Fixers|Changes|Diagnostics|Http)(/|$)|Features\.php$' || true)"
+check_dir="$(mktemp -d)"
+trap 'rm -rf "${check_dir}"' EXIT
+unzip -q "${zip_path}" -d "${check_dir}"
+fixer_text="$(grep -rIlE 'READINESS_INDEX_FIXERS|readiness_index_fixers|ReadinessIndex.Fixers|Fixers.Runner|SiteFetcher|llms\.txt|add_filter\( ?.robots_txt.|wp_robots' "${check_dir}" || true)"
+if [ -n "${fixer_paths}${fixer_text}" ]; then
+	echo >&2
+	echo "FAIL: the release zip contains fixer code:" >&2
+	echo "${fixer_paths}${fixer_text}" >&2
+	exit 1
+fi
+
 for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css strings/plugin.en.json; do
 	if ! echo "${listing}" | grep -qx "${slug}/${required}"; then
 		echo "FAIL: the release zip is missing ${required}" >&2
@@ -60,7 +74,7 @@ for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloa
 done
 
 echo
-echo "OK: ${zip_path} contains no development files."
+echo "OK: ${zip_path} contains no development files and no fixer code."
 
 # A checksum beside the zip, so what was built can be compared with what is installed or attached
 # to a release. Written with the zip's own name, so `shasum -a 256 -c` works in dist/.

@@ -32,9 +32,6 @@ jobs:
       # platform pin), so one install works across the whole matrix.
       - run: composer install --no-interaction --prefer-dist
       - run: composer lint
-      - name: The golden vectors and the parity matrix are well formed
-        run: |
-          python3 tests/fixtures/parity/check_vectors.py tests/fixtures/parity/fixers
       - run: composer test
 
   plugin-check:
@@ -80,32 +77,33 @@ jobs:
         run: |
           npx wp-env run cli wp plugin is-active readiness-index
           npx wp-env run cli wp eval 'echo "WordPress " . get_bloginfo("version") . ", PHP " . PHP_VERSION . "\n";'
-      - name: Plugin Check
-        run: npx wp-env run cli wp plugin check readiness-index --format=table
+      # The strictest form, on the built zip's contents: every check including the experimental
+      # ones and the low-severity errors and warnings. Plugin Check exits 0 with warnings on the
+      # screen and prints nothing at all when there are none, so the step fails on any finding.
+      - name: Plugin Check, strictest, zero findings
+        run: |
+          out="$(npx wp-env run cli wp plugin check readiness-index --format=table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings 2>&1)"
+          echo "${out}"
+          if echo "${out}" | grep -q '^FILE:'; then
+            echo "::error::Plugin Check reported findings"
+            exit 1
+          fi
+          echo "${out}" | grep -q 'No errors found'
 
   integration:
-    name: Integration, WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }}, ${{ matrix.seo }} ${{ matrix.seo_version }}
+    name: Integration, WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
-    # A cell on the newest, unpinned version of an SEO plugin or on WordPress trunk may fail
-    # without failing the workflow: it is the early warning that a release changed something
-    # this plugin reads. The cell still shows red, and its last step says so.
+    # A cell on WordPress trunk may fail without failing the workflow: it is the early warning
+    # that a release changed something this plugin reads. The cell still shows red, and its last
+    # step says so.
     continue-on-error: ${{ matrix.allow_failure }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { wp: '6.4', php: '8.1', seo: none, seo_version: '', allow_failure: false }
-          - { wp: latest, php: '8.4', seo: none, seo_version: '', allow_failure: false }
-          - { wp: trunk, php: '8.4', seo: none, seo_version: '', allow_failure: true }
-          # The pinned range this plugin is tested against. Outside it, the integration
-          # degrades to exact instructions rather than writing into a plugin it has not seen.
-          - { wp: latest, php: '8.1', seo: yoast, seo_version: '20.0', allow_failure: false }
-          - { wp: latest, php: '8.1', seo: yoast, seo_version: '28.7', allow_failure: false }
-          - { wp: latest, php: '8.1', seo: yoast, seo_version: latest, allow_failure: true }
-          - { wp: '6.4', php: '8.1', seo: yoast, seo_version: '22.0', allow_failure: false }
-          - { wp: latest, php: '8.1', seo: rank_math, seo_version: '1.0.220', allow_failure: false }
-          - { wp: latest, php: '8.1', seo: rank_math, seo_version: '1.0.280', allow_failure: false }
-          - { wp: latest, php: '8.1', seo: rank_math, seo_version: latest, allow_failure: true }
+          - { wp: '6.4', php: '8.1', allow_failure: false }
+          - { wp: latest, php: '8.4', allow_failure: false }
+          - { wp: trunk, php: '8.4', allow_failure: true }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -129,34 +127,13 @@ jobs:
           printf '{ "core": %s, "phpVersion": "%s", "lifecycleScripts": { "afterStart": null } }\n' "$core" "${{ matrix.php }}" > .wp-env.override.json
           cat .wp-env.override.json
       - run: npx wp-env start
-      - name: Install the SEO plugin for this cell
-        if: ${{ matrix.seo != 'none' }}
-        run: |
-          slug=wordpress-seo
-          [ "${{ matrix.seo }}" = rank_math ] && slug=seo-by-rank-math
-          # A pinned version is installed from its own zip: `--version` still checks the newest
-          # release's WordPress requirement and refuses on an older core (WordPress 6.4 and Yoast
-          # SEO 28, for one), which says nothing about the pinned release.
-          if [ "${{ matrix.seo_version }}" = latest ]; then
-            npx wp-env run tests-cli wp plugin install "${slug}" --force
-          else
-            npx wp-env run tests-cli wp plugin install "https://downloads.wordpress.org/plugin/${slug}.${{ matrix.seo_version }}.zip" --force
-          fi
-          npx wp-env run tests-cli wp plugin list --fields=name,version
       - name: Integration tests
         run: |
-          filter=""
-          case "${{ matrix.seo }}" in
-            yoast)     filter="--filter YoastTest" ;;
-            rank_math) filter="--filter RankMathTest" ;;
-          esac
-          seo="${{ matrix.seo }}"
-          [ "${seo}" = none ] && seo=""
           npx wp-env run tests-cli --env-cwd=wp-content/plugins/readiness-index \
-            bash -c "READINESS_INDEX_TEST_SEO=${seo} vendor/bin/phpunit -c phpunit-integration.xml.dist ${filter}"
+            vendor/bin/phpunit -c phpunit-integration.xml.dist
       - name: Say so when a cell that is allowed to fail did
         if: ${{ failure() && matrix.allow_failure }}
-        run: echo "::warning title=Early warning::${{ matrix.seo }} ${{ matrix.seo_version }} on WordPress ${{ matrix.wp }} failed. The workflow stays green; read the log before the next release of that plugin is trusted."
+        run: echo "::warning title=Early warning::WordPress ${{ matrix.wp }} failed. The workflow stays green; read the log before the next release of WordPress is trusted."
 
   contract-pin:
     name: The copied API contract is the pinned web commit's
@@ -187,11 +164,9 @@ jobs:
         if: ${{ hashFiles('web/docs/cms-fixtures/openapi.json') != '' }}
         run: |
           diff -r web/docs/cms-fixtures tests/fixtures/cms
-          diff web/docs/cms-parity/strings/en.json strings/en.json
+          php bin/filter-strings web/docs/cms-parity/strings/en.json | diff - strings/en.json
           diff web/docs/cms-parity/screens.md docs/contract/screens.md
           diff web/docs/cms-parity/MATRIX.md docs/contract/MATRIX.md
-          diff -r -x '*.md' web/docs/cms-parity/fixers tests/fixtures/parity/fixers
-          diff web/docs/cms-parity/check_vectors.py tests/fixtures/parity/check_vectors.py
       - name: No token, so only the hash pin is checked
         if: ${{ hashFiles('web/docs/cms-fixtures/openapi.json') == '' }}
         run: echo "::notice::WEB_REPO_READ_TOKEN is not set; the copy was checked against the pin's hashes only (ContractTest)."

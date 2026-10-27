@@ -1,5 +1,0 @@
-{
-	"lifecycleScripts": {
-		"afterStart": "npx wp-env run cli wp plugin install plugin-check seo-by-rank-math --activate && npx wp-env run cli wp plugin activate readiness-index"
-	}
-}
