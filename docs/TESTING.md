@@ -55,7 +55,7 @@ allowed to fail as an early warning).
 ```bash
 bin/build-zip
 bin/wp-env-variant dist && npx wp-env start --update
-npx wp-env run cli wp plugin check readiness-index --format=table --severity=0 \
+npx wp-env run cli wp plugin check readiness-index --format=strict-table --severity=0 \
   --include-experimental --include-low-severity-errors --include-low-severity-warnings
 ```
 

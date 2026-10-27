@@ -78,11 +78,11 @@ jobs:
           npx wp-env run cli wp plugin is-active readiness-index
           npx wp-env run cli wp eval 'echo "WordPress " . get_bloginfo("version") . ", PHP " . PHP_VERSION . "\n";'
       # The strictest form, on the built zip's contents: every check including the experimental
-      # ones and the low-severity errors and warnings. Plugin Check exits 0 with warnings on the
-      # screen and prints nothing at all when there are none, so the step fails on any finding.
+      # ones and the low-severity errors and warnings. The strict format exits non-zero on a warning
+      # as well as an error, and the output is read too, so a finding of any kind fails the step.
       - name: Plugin Check, strictest, zero findings
         run: |
-          out="$(npx wp-env run cli wp plugin check readiness-index --format=table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings 2>&1)"
+          out="$(npx wp-env run cli wp plugin check readiness-index --format=strict-table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings 2>&1)"
           echo "${out}"
           if echo "${out}" | grep -q '^FILE:'; then
             echo "::error::Plugin Check reported findings"

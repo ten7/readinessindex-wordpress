@@ -21,7 +21,8 @@ submitted zip (`bin/build-zip` fails if a word of them is in it).
    file or any fixer code, and writes `dist/SHA256SUMS`.
 5. **Plugin Check on the built zip, strictest form, on the latest WordPress and on trunk**: zero errors and zero warnings.
    `bin/wp-env-variant dist`, `npx wp-env start --update`, then
-   `npx wp-env run cli wp plugin check readiness-index --format=table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings`.
+   (`strict-table` exits non-zero on a warning too)
+   `npx wp-env run cli wp plugin check readiness-index --format=strict-table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings`.
    Then strip the remaining `phpcs:ignore` comments in a scratch copy, run PHPCS, and read what surfaces: fix what is real
    instead of ignoring it (`CLAUDE.md`).
 6. Drive every screen state against the stand-in API (`tests/e2e/fake-api.php`) with `WP_DEBUG` on and confirm no
