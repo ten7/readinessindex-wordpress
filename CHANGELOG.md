@@ -2,6 +2,17 @@
 
 The same entries are in `readme.txt`, which is what wordpress.org shows.
 
+## 0.6.1
+
+- The release prepared for the wordpress.org directory. It contains the Score only. The fixers (Fixes, Changes and Preview, the diagnostics, and every filter that changed robots.txt, llms.txt, dates, directives or structured data) are no longer in this branch: they are kept, unchanged, on the `fixers` branch and the `fixers-v0.6.0` tag of this repository. The `READINESS_INDEX_FIXERS` switch and the `readiness_index_fixers` filter are gone with them.
+- The Score screen reads the contract of Index 12.1 (web commit pinned in `docs/contract/PIN`): four categories, Reach, Read, Understand and Act, and the new test ids. The model class is `Category`; the API still calls the list `dimensions`. The plugin no longer reads the list of outstanding tests, which it never drew.
+- The pinned contract keeps only the sentences the Score prints (`bin/filter-strings`); a sentence that ships and is never asked for fails `StaticGuardsTest`.
+- The multisite notice is printed on the plugin's own screen only and can be dismissed, once, for the user who dismisses it (`readiness_index_dismiss_network`).
+- Uninstall removes every option, transient (including the per-user and per-state ones, by prefix) and both pieces of user meta the plugin stores, and asks `get_sites()` for every site of a network, not the first hundred.
+- Connect redirects with `wp_safe_redirect` and an `allowed_redirect_hosts` entry for that one redirect. The 403 sentence is the plugin's own and no longer borrows WordPress's text domain. The strings file is read with `wp_json_file_decode`.
+- Removed code nothing called: `ApiError::show_reconnect`, `Settings::key_hint`, the fix-prompt client call, and 66 `phpcs:ignore` comments that only guarded removed code. The remaining ones each say why.
+- `readme.txt`: four categories, what a free account includes, what the Upgrade and View the full report links do and what the upgrade link carries, an accurate statement of what the plugin writes, and the repository link.
+
 ## 0.6.0
 
 - The Score screen is five sections under one heading outline: Your site's Readiness score, Where the points are, Scan details, the weekly watch and Connection. The state of the newest scan is a plain status line above the score, not a heading.

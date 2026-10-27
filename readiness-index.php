@@ -3,7 +3,7 @@
  * Plugin Name:       Readiness Index
  * Plugin URI:        https://readinessindex.io/
  * Description:       Your site's AI readiness score inside wp-admin: connect, scan, and see how your site scores.
- * Version:           0.6.0
+ * Version:           0.6.1
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            TEN7
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'READINESS_INDEX_VERSION', '0.6.0' );
+define( 'READINESS_INDEX_VERSION', '0.6.1' );
 define( 'READINESS_INDEX_FILE', __FILE__ );
 define( 'READINESS_INDEX_DIR', plugin_dir_path( __FILE__ ) );
 
