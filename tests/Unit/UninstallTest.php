@@ -175,7 +175,7 @@ final class UninstallTest extends WpTestCase {
 			}
 		);
 		Functions\when( 'plugin_dir_path' )->justReturn( dirname( __DIR__, 2 ) . '/' );
-		define( 'WP_UNINSTALL_PLUGIN', 'readiness-index/readiness-index.php' ); // phpcs:ignore -- The constant WordPress defines for uninstall.php.
+		define( 'WP_UNINSTALL_PLUGIN', 'readinessindex-site-readiness-score/readinessindex-site-readiness-score.php' ); // phpcs:ignore -- The constant WordPress defines for uninstall.php.
 
 		require dirname( __DIR__, 2 ) . '/uninstall.php';
 

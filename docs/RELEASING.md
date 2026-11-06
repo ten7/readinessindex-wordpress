@@ -10,19 +10,19 @@ submitted zip (`bin/build-zip` fails if a word of them is in it).
 
 ## Prepare (no approval needed)
 
-1. Bump the version in `readiness-index.php` (header and constant), `readme.txt` (stable tag and its changelog),
+1. Bump the version in `readinessindex-site-readiness-score.php` (header and constant), `readme.txt` (stable tag and its changelog),
    and `CHANGELOG.md`. `bin/check-version` fails unless they agree, and CI runs it.
 2. Bring the contract up to date if the web repository's production `main` moved: clone it to a scratch directory
    at `origin/main` (the script refuses a tree with uncommitted contract files, and records the commit it reads) and run
    `bin/sync-contract <that directory>`. Fix any test fallout in the Score code or tests; the plugin has to render the
    contract production serves.
 3. `composer check` (lint, then the unit suite), and `composer test:integration` inside wp-env (`docs/TESTING.md`).
-4. `bin/build-zip` builds `dist/readiness-index-<version>.zip` from `.distignore`, fails if the zip holds a development
+4. `bin/build-zip` builds `dist/readinessindex-site-readiness-score-<version>.zip` from `.distignore`, fails if the zip holds a development
    file or any fixer code, and writes `dist/SHA256SUMS`.
 5. **Plugin Check on the built zip, strictest form, on the latest WordPress and on trunk**: zero errors and zero warnings.
    `bin/wp-env-variant dist`, `npx wp-env start --update`, then
    (`strict-table` exits non-zero on a warning too)
-   `npx wp-env run cli wp plugin check readiness-index --format=strict-table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings`.
+   `npx wp-env run cli wp plugin check readinessindex-site-readiness-score --format=strict-table --severity=0 --include-experimental --include-low-severity-errors --include-low-severity-warnings`.
    Then strip the remaining `phpcs:ignore` comments in a scratch copy, run PHPCS, and read what surfaces: fix what is real
    instead of ignoring it (`CLAUDE.md`).
 6. Drive every screen state against the stand-in API (`tests/e2e/fake-api.php`) with `WP_DEBUG` on and confirm no
@@ -32,15 +32,15 @@ submitted zip (`bin/build-zip` fails if a word of them is in it).
 
 ## GitHub release (approved for this plugin)
 
-`gh release create v<version> dist/readiness-index-<version>.zip dist/SHA256SUMS --title "Readiness Index <version>"
+`gh release create v<version> dist/readinessindex-site-readiness-score-<version>.zip dist/SHA256SUMS --title "readinessindex.io Site Readiness Score <version>"
 --notes-file <the changelog entry>`. Attach exactly the zip `bin/build-zip` built and its `SHA256SUMS`; verify
 the checksum of the downloaded asset against the file before saying it is done.
 
 ## Publish (needs Ivan)
 
 - **Name check.** "Readiness Index" must be checked against wordpress.org's name rules (no trademark of another
-  party, no misleading claim) before submitting. The team may ask for a change; the slug is `readiness-index`.
-- **Submit** the zip at https://wordpress.org/plugins/developers/add/ : upload `dist/readiness-index-<version>.zip`
+  party, no misleading claim) before submitting. The team may ask for a change; the slug is `readinessindex-site-readiness-score` (renamed from `readiness-index` in 0.6.2 at the Plugin Team's request).
+- **Submit** the zip at https://wordpress.org/plugins/developers/add/ : upload `dist/readinessindex-site-readiness-score-<version>.zip`
   from the GitHub release (the file a person downloads, not a rebuild), signed in as the wordpress.org account that
   will own the plugin. Review is a queue outside our control; every exchange is logged in `docs/REVIEW-LOG.md` (not
   created until there is one).

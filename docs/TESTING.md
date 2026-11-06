@@ -43,7 +43,7 @@ A real WordPress with `WP_DEBUG` on, a real database and the plugin loaded as a 
 ```bash
 bin/wp-env-variant plain
 npx wp-env start --update
-npx wp-env run tests-cli --env-cwd=wp-content/plugins/readiness-index \
+npx wp-env run tests-cli --env-cwd=wp-content/plugins/readinessindex-site-readiness-score \
   vendor/bin/phpunit -c phpunit-integration.xml.dist
 ```
 
@@ -55,7 +55,7 @@ allowed to fail as an early warning).
 ```bash
 bin/build-zip
 bin/wp-env-variant dist && npx wp-env start --update
-npx wp-env run cli wp plugin check readiness-index --format=strict-table --severity=0 \
+npx wp-env run cli wp plugin check readinessindex-site-readiness-score --format=strict-table --severity=0 \
   --include-experimental --include-low-severity-errors --include-low-severity-warnings
 ```
 

@@ -13,7 +13,7 @@ cd "$(dirname "$0")/.."
 
 tag="${1:?usage: bin/release-svn <tag> [--commit]}"
 commit="${2:-}"
-slug=readiness-index
+slug=readinessindex-site-readiness-score
 svn_url="https://plugins.svn.wordpress.org/${slug}"
 
 git fetch --quiet origin "refs/tags/${tag}:refs/tags/${tag}" 2>/dev/null || true

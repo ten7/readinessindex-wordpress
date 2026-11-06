@@ -18,7 +18,7 @@ set -euo pipefail
 readonly ALLOWED_SITE="readiness-index-wordpress-plugin"
 readonly ALLOWED_ENV="dev"
 readonly TARGET="${ALLOWED_SITE}.${ALLOWED_ENV}"
-readonly PLUGIN_SLUG="readiness-index"
+readonly PLUGIN_SLUG="readinessindex-site-readiness-score"
 # The web repository's environment guide, which says where edge lives.
 readonly EDGE_DOC="${READINESS_EDGE_DOC:-/Users/ivan/git/ai-readiness-index/docs/EDGE.md}"
 

@@ -1,5 +1,5 @@
 {
 	"mappings": {
-		"wp-content/plugins/readiness-index": "./dist/readiness-index"
+		"wp-content/plugins/readinessindex-site-readiness-score": "./dist/readinessindex-site-readiness-score"
 	}
 }

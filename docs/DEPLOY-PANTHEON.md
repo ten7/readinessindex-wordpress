@@ -34,11 +34,11 @@ including a `site.env` spelling and `live`. Do not make the list configurable.
 4. Clones the Pantheon repository into the temporary directory. The URL is parsed out of
    `terminus connection:info`'s `git_command` and must be an `ssh://` URL on `drush.in`;
    the string is never evaluated. `rsync --delete` replaces
-   `wp-content/plugins/readiness-index/` and nothing else.
+   `wp-content/plugins/readinessindex-site-readiness-score/` and nothing else.
 5. Writes the API origin into the clone's `wp-config.php` (below), commits, and pushes to
    `master`. A rerun that changes nothing makes no commit.
 6. Waits for the code-sync workflow with `terminus workflow:wait`, activates the plugin
-   with `terminus wp ... plugin activate readiness-index`, then prints `eval 'echo 1;'`,
+   with `terminus wp ... plugin activate readinessindex-site-readiness-score`, then prints `eval 'echo 1;'`,
    `plugin list`, the front page's HTTP status, the dev URL and the wp-admin path.
 
 `--dry-run` clones, copies and commits locally, and prints each skipped write as

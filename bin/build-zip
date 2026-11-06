@@ -10,10 +10,10 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-slug="readiness-index"
-version="$(sed -n 's/^ \* Version:[[:space:]]*//p' readiness-index.php | head -1)"
+slug="readinessindex-site-readiness-score"
+version="$(sed -n 's/^ \* Version:[[:space:]]*//p' readinessindex-site-readiness-score.php | head -1)"
 if [ -z "${version}" ]; then
-	echo "Could not read Version from readiness-index.php" >&2
+	echo "Could not read Version from readinessindex-site-readiness-score.php" >&2
 	exit 1
 fi
 
@@ -42,7 +42,7 @@ echo "Contents:"
 echo "${listing}"
 
 # Entries that must never ship. Matched against each path inside the zip, after the slug.
-forbidden='^readiness-index/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|test-results|docs|bin|dist)(/|$)|^readiness-index/(\.|composer\.|package|phpcs|phpunit|patchwork|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
+forbidden='^readinessindex-site-readiness-score/(\.git|\.github|\.claude|\.wp-env|node_modules|vendor|tests|test-results|docs|bin|dist)(/|$)|^readinessindex-site-readiness-score/(\.|composer\.|package|phpcs|phpunit|patchwork|CLAUDE\.md|README\.md|\.distignore|\.editorconfig|\.gitignore)'
 bad="$(echo "${listing}" | grep -E "${forbidden}" || true)"
 
 if [ -n "${bad}" ]; then
@@ -54,7 +54,7 @@ fi
 
 # This build is the Score only. The fixers live on their own branch, and a file or a word of them
 # in the zip means the wrong tree was built. Checked on the zip's own contents, by path and by text.
-fixer_paths="$(echo "${listing}" | grep -E '^readiness-index/src/(Fixers|Changes|Diagnostics|Http)(/|$)|Features\.php$' || true)"
+fixer_paths="$(echo "${listing}" | grep -E '^readinessindex-site-readiness-score/src/(Fixers|Changes|Diagnostics|Http)(/|$)|Features\.php$' || true)"
 check_dir="$(mktemp -d)"
 trap 'rm -rf "${check_dir}"' EXIT
 unzip -q "${zip_path}" -d "${check_dir}"
@@ -66,7 +66,7 @@ if [ -n "${fixer_paths}${fixer_text}" ]; then
 	exit 1
 fi
 
-for required in readiness-index.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css strings/plugin.en.json; do
+for required in readinessindex-site-readiness-score.php readme.txt uninstall.php LICENSE src/Autoloader.php strings/en.json assets/admin.js assets/admin.css strings/plugin.en.json; do
 	if ! echo "${listing}" | grep -qx "${slug}/${required}"; then
 		echo "FAIL: the release zip is missing ${required}" >&2
 		exit 1

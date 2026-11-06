@@ -24,7 +24,7 @@ final class NoticesTest extends WpTestCase {
 		Functions\when( 'is_multisite' )->justReturn( true );
 		Functions\when( 'current_user_can' )->justReturn( true );
 		Functions\when( 'get_current_user_id' )->justReturn( 7 );
-		Functions\when( 'plugin_basename' )->justReturn( 'readiness-index/readiness-index.php' );
+		Functions\when( 'plugin_basename' )->justReturn( 'readinessindex-site-readiness-score/readinessindex-site-readiness-score.php' );
 		Functions\when( 'is_plugin_active_for_network' )->justReturn( true );
 		Functions\when( 'get_user_meta' )->alias( fn( $user, $key ) => $this->meta[ $key ] ?? '' );
 		Functions\when( 'get_current_screen' )->justReturn( (object) array( 'id' => 'toplevel_page_readiness-index' ) );

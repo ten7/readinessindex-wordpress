@@ -4,7 +4,7 @@
  *
  * Run inside wp-env, from the plugin directory:
  *
- *   npx wp-env run tests-cli --env-cwd=wp-content/plugins/readiness-index \
+ *   npx wp-env run tests-cli --env-cwd=wp-content/plugins/readinessindex-site-readiness-score \
  *     vendor/bin/phpunit -c phpunit-integration.xml.dist
  *
  * The plugin is loaded as a must-use plugin so it is there before WordPress's own tests set up.
@@ -27,7 +27,7 @@ require_once $readiness_index_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function () {
-		require dirname( __DIR__, 2 ) . '/readiness-index.php';
+		require dirname( __DIR__, 2 ) . '/readinessindex-site-readiness-score.php';
 		// The plugin's own autoloader loads the tests' support classes too, as it does in the unit suite.
 		\ReadinessIndex\Autoloader::register( 'ReadinessIndex\\Tests\\Integration\\', __DIR__ . '/' );
 		// The golden fixtures' reader is shared with the unit suite.

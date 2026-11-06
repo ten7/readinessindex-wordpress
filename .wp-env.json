@@ -11,9 +11,9 @@
 		"SCRIPT_DEBUG": true
 	},
 	"lifecycleScripts": {
-		"afterStart": "npx wp-env run cli wp plugin install plugin-check --activate && npx wp-env run cli wp plugin activate readiness-index"
+		"afterStart": "npx wp-env run cli wp plugin install plugin-check --activate && npx wp-env run cli wp plugin activate readinessindex-site-readiness-score"
 	},
 	"mappings": {
-		"wp-content/plugins/readiness-index": "."
+		"wp-content/plugins/readinessindex-site-readiness-score": "."
 	}
 }

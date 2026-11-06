@@ -6,8 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-header="$(sed -n 's/^ \* Version:  *//p' readiness-index.php | head -1)"
-constant="$(sed -n "s/^define( 'READINESS_INDEX_VERSION', '\(.*\)' );/\1/p" readiness-index.php | head -1)"
+header="$(sed -n 's/^ \* Version:  *//p' readinessindex-site-readiness-score.php | head -1)"
+constant="$(sed -n "s/^define( 'READINESS_INDEX_VERSION', '\(.*\)' );/\1/p" readinessindex-site-readiness-score.php | head -1)"
 stable="$(sed -n 's/^Stable tag: *//p' readme.txt | head -1)"
 readme_log="$(sed -n 's/^= \([0-9][0-9.]*\) =$/\1/p' readme.txt | head -1)"
 changelog="$(sed -n 's/^## \[\{0,1\}\([0-9][0-9.]*\)\]\{0,1\}.*/\1/p' CHANGELOG.md | head -1)"

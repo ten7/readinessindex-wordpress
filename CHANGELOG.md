@@ -2,6 +2,10 @@
 
 The same entries are in `readme.txt`, which is what wordpress.org shows.
 
+## 0.6.2
+
+- Renamed to readinessindex.io Site Readiness Score at the wordpress.org Plugin Team's request: the display name, the folder, the zip and the text domain are now `readinessindex-site-readiness-score`. The admin screen address (`page=readiness-index`) and the option names are unchanged on purpose, so a bookmark, a Connect return already in flight and a connected site all keep working.
+
 ## 0.6.1
 
 - The release prepared for the wordpress.org directory. It contains the Score only. The fixers (Fixes, Changes and Preview, the diagnostics, and every filter that changed robots.txt, llms.txt, dates, directives or structured data) are no longer in this branch: they are kept, unchanged, on the `fixers` branch and the `fixers-v0.6.0` tag of this repository. The `READINESS_INDEX_FIXERS` switch and the `readiness_index_fixers` filter are gone with them.

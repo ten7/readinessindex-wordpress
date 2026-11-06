@@ -29,7 +29,7 @@ final class StaticGuardsTest extends WpTestCase {
 				}
 			}
 		}
-		foreach ( array( 'readiness-index.php', 'uninstall.php' ) as $name ) {
+		foreach ( array( 'readinessindex-site-readiness-score.php', 'uninstall.php' ) as $name ) {
 			$files[ $name ] = (string) file_get_contents( $root . '/' . $name );
 		}
 		return $files;

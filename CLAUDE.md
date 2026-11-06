@@ -6,7 +6,7 @@ and it is the one submitted to wordpress.org.** The plugin that also fixes (robo
 directives, dates and the entity graph) is on the `fixers` branch and the `fixers-v0.6.0` tag, with
 its own documentation; nothing on `main` depends on it, and nothing from it comes back here without
 Ivan deciding to (see *Where the fixers went*).
-Slug and directory `readiness-index`, text domain `readiness-index`, GPLv2 or later,
+Slug and directory `readinessindex-site-readiness-score`, text domain `readinessindex-site-readiness-score`. The admin screen address stays `page=readiness-index`, as do the option names, so a bookmark or a Connect return already in flight still lands, GPLv2 or later,
 `Requires at least: 6.4`, `Requires PHP: 7.4`. It is built for wordpress.org review, which
 is stricter than WordPress itself and is the reason for most rules below.
 
@@ -25,7 +25,7 @@ composer check              # lint then unit tests; run before every commit
 composer lint               # PHPCS: WordPress Coding Standards, PHP 7.4 to latest
 composer lint:fix           # phpcbf
 composer test               # PHPUnit unit suite (Brain Monkey, no WordPress)
-bin/build-zip               # build dist/readiness-index-<version>.zip and fail on dev files
+bin/build-zip               # build dist/readinessindex-site-readiness-score-<version>.zip and fail on dev files
 bin/sync-contract [web]     # copy fixtures, strings and screens from the web repo and re-pin them
 bin/build-zip               # also fails if the zip holds a word of the fixers
 bin/check-version [vX.Y.Z]  # the version is the same in the header, constant, readme and changelog
@@ -35,7 +35,7 @@ tests/deploy-pantheon-test.sh   # shim-based test of that script; no network
 npm install
 bin/wp-env-variant plain    # or dist
 npx wp-env start --update
-npx wp-env run cli wp plugin check readiness-index
+npx wp-env run cli wp plugin check readinessindex-site-readiness-score
 python3 tests/e2e/drive-screens.py   # every screen state over HTTP against the stand-in API, WP_DEBUG on
 ```
 
@@ -47,8 +47,8 @@ on the working tree it reports `.github` and `CLAUDE.md`, which never ship. Plug
 installed by wp-env's `afterStart` script with WP-CLI, not listed as
 `plugins` zip URLs: on Node 26 wp-env 10's zip extraction hangs, and `wp-env start` exits 0
 having started only MySQL, with no message. The plugin is mapped to
-`wp-content/plugins/readiness-index` explicitly, because wp-env otherwise installs it under
-the checkout's directory name and `wp plugin is-active readiness-index` fails.
+`wp-content/plugins/readinessindex-site-readiness-score` explicitly, because wp-env otherwise installs it under
+the checkout's directory name and `wp plugin is-active readinessindex-site-readiness-score` fails.
 
 `composer test:integration` runs the suite that needs a real WordPress (`wp-phpunit`), inside wp-env
 (`docs/TESTING.md` has the command). The unit suite must stay free of WordPress so it stays fast; a

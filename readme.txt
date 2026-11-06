@@ -1,9 +1,9 @@
-=== Readiness Index ===
+=== readinessindex.io Site Readiness Score ===
 Tags: seo, ai, score, readiness, scan
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ The source code is public: https://github.com/ten7/readinessindex-wordpress
 
 == Installation ==
 
-1. Upload the `readiness-index` folder to `/wp-content/plugins/`, or install the plugin from the Plugins screen.
+1. Upload the `readinessindex-site-readiness-score` folder to `/wp-content/plugins/`, or install the plugin from the Plugins screen.
 2. Activate it through the Plugins screen.
 3. Open Readiness in the admin menu and choose Connect. You sign in to your Readiness Index account on readinessindex.io and approve the connection, then you are returned to your site.
 
@@ -72,6 +72,9 @@ The connection key is stored in one non-autoloaded option in your database, or r
 The terms are at https://readinessindex.io/terms and the privacy policy is at https://readinessindex.io/privacy.
 
 == Changelog ==
+
+= 0.6.2 =
+* The plugin is renamed readinessindex.io Site Readiness Score, with the folder and text domain `readinessindex-site-readiness-score`, at the wordpress.org Plugin Team's request. Nothing else changes: the admin screen address, the settings and the connection are as they were.
 
 = 0.6.1 =
 * The release prepared for the wordpress.org directory. It reads and reports: connect, scan, and see the score. It does not edit your site.

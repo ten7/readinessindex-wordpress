@@ -28,7 +28,7 @@ case "$1" in
 	connection:info)
 		echo '{"git_command":"git clone ssh://codeserver.dev.0000@codeserver.dev.0000.drush.in:2222/~/repository.git fake-site"}' ;;
 	wp)
-		case "$*" in *"plugin list"*) echo "readiness-index active 0.1.0" ;; *eval*) echo 1 ;; esac ;;
+		case "$*" in *"plugin list"*) echo "readinessindex-site-readiness-score active 0.1.0" ;; *eval*) echo 1 ;; esac ;;
 esac
 exit 0
 SHIM
@@ -141,7 +141,7 @@ run --dry-run --allow-dirty
 check "--allow-dirty goes on" test "${rc}" -eq 0
 
 echo "-- uncommitted SFTP changes"
-reset_env; export FAKE_MODE=sftp FAKE_DIFFSTAT='{"wp-content/plugins/readiness-index/a.php":{"status":"M"}}'
+reset_env; export FAKE_MODE=sftp FAKE_DIFFSTAT='{"wp-content/plugins/readinessindex-site-readiness-score/a.php":{"status":"M"}}'
 run
 check "refuses uncommitted SFTP changes" test "${rc}" -ne 0
 check "  says SFTP" has "uncommitted SFTP changes" "${work}/out.txt"
@@ -173,7 +173,7 @@ sequence="$(grep -o '^terminus [a-z:]*\|^git -C <dir> push\|^git clone' "${work}
 check "  order: info, diffstat, set git, connection info, clone, push, wait, activate" \
 	test "${sequence}" = "terminus env:info,terminus env:diffstat,terminus connection:set,terminus connection:info,git clone,git -C <dir> push,terminus workflow:wait,terminus wp,terminus env:info,terminus wp,terminus wp,"
 check "  switched to git mode" has "terminus connection:set readiness-index-wordpress-plugin.dev git" "${work}/log.txt"
-check "  activated the plugin" has "terminus wp readiness-index-wordpress-plugin.dev -- plugin activate readiness-index" "${work}/log.txt"
+check "  activated the plugin" has "terminus wp readiness-index-wordpress-plugin.dev -- plugin activate readinessindex-site-readiness-score" "${work}/log.txt"
 check "  commit message names the hash" has "abc1234" "${work}/out/message.txt"
 check "  commit message says whether the tree was clean" has "clean working tree" "${work}/out/message.txt"
 check "  commit message has the co-author line" has "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" "${work}/out/message.txt"
@@ -181,7 +181,7 @@ check "  wp-config has the origin" has "define( 'READINESS_INDEX_API_ORIGIN', 'h
 block_line="$(grep -n 'BEGIN readiness-index' "${work}/out/wp-config.php" | cut -d: -f1)"
 stop_line="$(grep -n "That's all, stop editing" "${work}/out/wp-config.php" | cut -d: -f1)"
 check "  the block is above the stop-editing line" test -n "${block_line}" -a "${block_line}" -lt "${stop_line}"
-check "  only the zip's files were shipped" has "wp-content/plugins/readiness-index/readiness-index.php" "${work}/out/files.txt"
+check "  only the zip's files were shipped" has "wp-content/plugins/readinessindex-site-readiness-score/readinessindex-site-readiness-score.php" "${work}/out/files.txt"
 check "  no tests, vendor, docs or CLAUDE.md shipped" \
 	test -z "$(grep -E 'tests/|vendor/|docs/|CLAUDE.md|\.github' "${work}/out/files.txt")"
 
@@ -202,7 +202,7 @@ check "  made no terminus call" lacks "^terminus" "${work}/log.txt"
 
 echo "-- the origin constant lives only in the Pantheon repository"
 check "plugin source does not define it" \
-	test -z "$(grep -rn "define( *'READINESS_INDEX_API_ORIGIN'" "${here}/../src" "${here}/../readiness-index.php" 2>/dev/null)"
+	test -z "$(grep -rn "define( *'READINESS_INDEX_API_ORIGIN'" "${here}/../src" "${here}/../readinessindex-site-readiness-score.php" 2>/dev/null)"
 
 echo
 echo "${passes} passed, ${failures} failed"

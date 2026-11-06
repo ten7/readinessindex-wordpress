@@ -21,7 +21,7 @@ require_once dirname( __DIR__ ) . '/src/Autoloader.php';
 define( 'ARRAY_A', 'ARRAY_A' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress's own constant.
 define( 'READINESS_INDEX_VERSION', '0.5.0' );
 define( 'READINESS_INDEX_DIR', dirname( __DIR__ ) . '/' );
-define( 'READINESS_INDEX_FILE', dirname( __DIR__ ) . '/readiness-index.php' );
+define( 'READINESS_INDEX_FILE', dirname( __DIR__ ) . '/readinessindex-site-readiness-score.php' );
 
 // A stand-in for WordPress's error object: the client only asks is_wp_error().
 class WP_Error_Double {} // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound,Universal.Files.SeparateFunctionsFromOO.Mixed -- Test double.

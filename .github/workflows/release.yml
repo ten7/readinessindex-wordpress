@@ -29,7 +29,7 @@ jobs:
           find "${unpacked}" -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
       - uses: actions/upload-artifact@v4
         with:
-          name: readiness-index-${{ github.ref_name }}
+          name: readinessindex-site-readiness-score-${{ github.ref_name }}
           path: |
             dist/*.zip
             dist/SHA256SUMS
